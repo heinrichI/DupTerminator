@@ -12,8 +12,6 @@ Supported features:
 - Preliminary fast comparing for the big files.
 - Change program font, font and color of list duplicates.
 
- Please report bugs or enhancements requests to the sourceforge project page or email dmitryborisov@users.sourceforge.net.
-
 ------------------------------------------------------------------------------------------------------------
 
 DupTerminator - программа для поиска, удаления, перемещения, и переименования дубликатов c помощью сравнения по MD5 хешу. Программа бесплатная и с открытым исходным кодом. Пришлось ее написать, потому что другая хорошая программа - DupKiller не поддерживала некоторых функций и была достаточно старой и медленной.
@@ -27,6 +25,5 @@ DupTerminator - программа для поиска, удаления, пер
 - Предварительное быстрое сравнение для больших файлов.
 - Изменение шрифта программы, шрифта и цвета списка дубликатов.
 
-Если вы найдете какой-нибудь баг, или у вас есть предложения по улучшению, то, пожалуйста, напишите на dmitryborisov@users.sourceforge.net.
 
 
