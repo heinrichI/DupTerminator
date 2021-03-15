@@ -5,18 +5,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator_2010", "DupTe
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DebegTest|Any CPU = DebegTest|Any CPU
+		DebegTest|x86 = DebegTest|x86
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebegTest|Any CPU.ActiveCfg = DebegTest|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebegTest|Any CPU.Build.0 = DebegTest|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebegTest|x86.ActiveCfg = DebegTest|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebegTest|x86.Build.0 = DebegTest|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.Build.0 = Debug|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|x86.ActiveCfg = Debug|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|x86.Build.0 = Debug|x86
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.ActiveCfg = Release|x86
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.Build.0 = Release|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|x86.ActiveCfg = Release|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection

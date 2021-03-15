@@ -1,5 +1,7 @@
 using System;
 using System.Windows.Forms;
+using DupTerminator.Views;
+using DupTerminator.Presenter;
 
 namespace DupTerminator
 {
@@ -35,19 +37,21 @@ namespace DupTerminator
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            FormMain formMain = new FormMain();
+            //FormMain formMain = new FormMain();
+            MainPresenter presenter = new MainPresenter();
             // Add event handler for thread exceptions
-            //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
             //Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
-            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(formMain.Application_ThreadException);
+            //Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(formMain.Application_ThreadException);
+            Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(presenter.Application_ThreadException);
 
-
-            Application.Run(new FormMain());
+            //Application.Run(presenter.CreateContext());
+            presenter.Run();
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            new CrashReport("UnhandledException", (Exception)e.ExceptionObject, null, null).ShowDialog();
+            new CrashReport("UnhandledException", (Exception)e.ExceptionObject).ShowDialog();
         }
 
         /*static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)

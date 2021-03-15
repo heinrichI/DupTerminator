@@ -11,7 +11,8 @@ namespace DupTerminator.VersionManager
 {
     class UpdateChecker
     {
-        public SettingsApp settings = new SettingsApp(); //экземпляр класса с настройками
+        //public Settings settings = new Settings(); //экземпляр класса с настройками
+        private Settings settings;
         private bool m_downloadingFinished;
         private System.Windows.Forms.Timer m_timer;
         private VersionInfo onlineVersion = null;
@@ -30,6 +31,7 @@ namespace DupTerminator.VersionManager
         public UpdateChecker(bool showMessage)
         {
             ShowMessage = showMessage;
+            settings = Settings.GetInstance();
             InitializeComponents();
             InitializeVersions();
         }

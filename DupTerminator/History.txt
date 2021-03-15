@@ -61,11 +61,8 @@ Added selecting by file name in selected rows.
 Version 1.3.5359
 Fixing selecting in "Select All in This Folder (in group with this folders)"
 
-Version 1.3.5402
-Fixing Drag and Drop. Now possible drop few directories.
-
-Version 1.3.5428
-Added options 'Check non-existent on load'. Fixed constraint failed.
+Version 1.4
+ListView is transferred to a virtual mode that means increased speed.
 
 -----------------------------------------------------------------------------------
 Версия 1.0
@@ -84,7 +81,7 @@ Added options 'Check non-existent on load'. Fixed constraint failed.
 
 Версия 1.0.4
 Оптимизирована скорость.
-Добавлена опция удаления всех файлов в группе.
+Добавлена опция цдаления всех файлов в группе.
 
 Версия 1.1
 Добавлен отчет о падение, ограничение на максимальное количество файлов для сканирования.
@@ -116,8 +113,5 @@ Version 1.3.5348
 Version 1.3.5359
 Исправлено выделение в "Выбрать все в этой папке (в группах с этими папками)"
 
-Version 1.3.5402
-Исправлена функция Drag and Drop. Теперь можно бросать несколько директорий.
-
-Version 1.3.5428
-Добавлена опция 'Проверять на несуществующие при загрузке'. Устранена редкая ошибка при вставке поля, значение которого нарушает ограничение уникальности поля.
+Version 1.4
+ListView переведен в виртуальный режим, что значит увеличело скорость.

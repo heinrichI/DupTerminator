@@ -22,7 +22,13 @@ namespace DupTerminator
         //public FormWindowState Win_State = FormWindowState.Normal;
         //public int Win_Left = 0;
         //public int Win_Top = 0;
-        //public int splitDistance = 150;
+        public int SplitDistance = 100;
+        public int Column0Width = 300;
+        public int Column1Width = 600;
+        public int Column2Width = 70; //size
+        public int Column3Width = 40; //ext
+        public int Column4Width = 115; //date
+        public int Column5Width = 205; //md5
 
         public Boolean IsConfirmDelete = false;
         public Boolean IsCheckUpdate = true;
@@ -31,13 +37,11 @@ namespace DupTerminator
         public Boolean IsSaveLoadListDub = true;
         public Boolean IsCheckNonExistentOnLoad = false;
         public Boolean IsAllowDelAllFiles = false;
-        public Boolean IsDontUpdateSize = false;
         public bool IsScanMax = true;
         public int MaxFile = 250000;
         public int PathHistoryLength = 20;
         public List<string> PathHistory;
         public long[] limits = { 0, long.MaxValue }; //Min Max file size
-        //public String FolderToMove = String.Empty;
         public String IncludePattern = String.Empty;
         public String ExcludePattern = String.Empty;
         public SerializableFont ProgramFont = new SerializableFont(Form.DefaultFont);
@@ -52,9 +56,11 @@ namespace DupTerminator
         public uint FastCheckFileSizeMb = 5;
         public uint FastCheckBufferKb = 1; 
         public Boolean UseDB = true;
+        public Boolean ShowNeighboringFiles = false;
+        public uint MaxFilePreviewMb = 200;
     }
 
-    //[Serializable]
+    [Serializable]
     public class SerializableColor
     {
         public int RGBColor { get; set; }
@@ -121,19 +127,53 @@ namespace DupTerminator
     }
 
     /// <summary>
-    /// Класс работы с настройками
+    /// Класс работы с настройками, паттерн Одиночка.
     /// </summary>
-    public class SettingsApp
+    public class Settings
     {
+        //private static readonly Settings settings = new Settings();
+        /// <summary>
+        /// This is the one instance of this type.
+        /// </summary>
+        private static volatile Settings singletonInstance;
+        private static readonly Object syncRoot = new Object();
+
         public SettingsAppFields Fields;
         private String XMLFilePath = Path.Combine(Environment.CurrentDirectory, "settings.xml");
 
-        public SettingsApp()
+        // Private constructor allowing this type to construct the Singleton.
+        private Settings() 
+        //public Settings()
         {
             Fields = new SettingsAppFields();
         }
 
-        //Запись настроек в файл
+        /// <summary>
+        /// A method returning a reference to the Singleton.
+        /// </summary>
+        public static Settings GetInstance()
+        {
+		    // создан ли объект
+		    if(singletonInstance == null)
+		    {
+			    // нет, не создан
+			    // только один поток может создать его
+			    lock(syncRoot)
+			    {
+				    // проверяем, не создал ли объект другой поток
+				    if(singletonInstance == null)
+				    {
+					    // нет не создал — создаём
+					    singletonInstance = new Settings();
+				    }
+			    }
+		    }
+		    return singletonInstance;
+        }
+
+        /// <summary>
+        /// Запись настроек в файл xml.
+        /// </summary>
         public void WriteXml()
         {
             /*XmlSerializer ser = new XmlSerializer(typeof(SettingsAppFields));
@@ -169,7 +209,9 @@ namespace DupTerminator
             }//*/
         }
 
-        //Чтение настроек из файла
+        /// <summary>
+        /// Чтение настроек из файла xml.
+        /// </summary>
         public void ReadXml()
         {
             if (File.Exists(XMLFilePath))

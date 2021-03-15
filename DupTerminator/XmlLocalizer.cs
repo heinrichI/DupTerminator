@@ -37,7 +37,11 @@ namespace DupTerminator
         public XmlLocalizer(string directory): this()
         {
             if (!Directory.Exists(directory))
-                throw new Exception(String.Format("Directory for language files {0} not exists.", directory));
+            {
+                //throw new Exception(String.Format("Directory for language files {0} not exists.", directory));
+                MessageBox.Show(String.Format("Directory for language files {0} not exists.", directory));
+                Process.GetCurrentProcess().Kill();
+            }
 
             this.directory = directory;
             schemaFile = Path.Combine(directory, "language.xsd");

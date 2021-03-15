@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 //using SQLite;
 
 namespace DupTerminator
@@ -13,28 +14,13 @@ namespace DupTerminator
     public class ExtendedFileInfo
     {
         private string _checkSum;
-        private System.IO.FileInfo _fi;
-        private DBManager _dbManager;
-
-        /*[AutoIncrement]
-        [PrimaryKey]
-        public long FileId
-        {
-            get;
-            set;
-        }*/
+        private FileInfo _fi;
 
         public byte[] Chunk;
 
         public ExtendedFileInfo(System.IO.FileInfo fi)
         {
             _fi = fi;
-        }
-
-        public ExtendedFileInfo(System.IO.FileInfo fi, DBManager dbManager)
-        {
-            _fi = fi;
-            _dbManager = dbManager;
         }
 
         /// <summary>
@@ -46,19 +32,20 @@ namespace DupTerminator
             {
                 if (_checkSum == null)
                 {
-                    if (_dbManager != null)
+                    if (Settings.GetInstance().Fields.UseDB)
                     {
-                        if (_dbManager.Active)
+                        DBManager dbManager = DBManager.GetInstance();
+                        if (dbManager.Active)
                         {
                             //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
                             string md5 = String.Empty;
-                            md5 = _dbManager.ReadMD5(_fi.FullName, _fi.LastWriteTime, _fi.Length);
+                            md5 = dbManager.ReadMD5(_fi.FullName, _fi.LastWriteTime, _fi.Length);
                             if (String.IsNullOrEmpty(md5))
                             {
                                 //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
                                 _checkSum = CreateMD5Checksum(_fi.FullName);
-                                //_dbManager.Add(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
-                                _dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                                dbManager.Add(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                                //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
                             }
                             else
                                 _checkSum = md5;
@@ -113,6 +100,10 @@ namespace DupTerminator
             catch (System.IO.DirectoryNotFoundException ex)
             {
                 //MessageBox.Show(ex.Message);
+                return String.Empty;
+            }
+            catch (System.IO.IOException)
+            {
                 return String.Empty;
             }
 

@@ -19,10 +19,10 @@ namespace DupTerminator.VersionManager
         private string downloadWebPageAddress = string.Empty;
         private string changes = string.Empty;
 
-        private const string curDownloadWebPageAddress = "http://sourceforge.net/projects/dupterminator/files/1.3/DupTerminator1.3_Exe.zip";
+        private const string curDownloadWebPageAddress = "http://sourceforge.net/projects/dupterminator/files/1.4/DupTerminator1.4.5639_Exe.zip";
         private const string curChanges =
-@"Version 1.3.5428
-Added options 'Check non-existent on load'. Fixed constraint failed.";
+@"Version 1.4
+ListView is transferred to a virtual mode that means increased speed.";
 
         public VersionInfo()
         {
