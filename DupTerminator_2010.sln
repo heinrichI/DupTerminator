@@ -1,24 +1,50 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator_2010", "DupTerminator\DupTerminator_2010.csproj", "{DDD8D953-46BC-452D-BF47-DF534950478D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EA3AAA58-919F-45EF-BBB4-AC77D1683D90}"
+	ProjectSection(SolutionItems) = preProject
+		DupTerminator_2008.vsmdi = DupTerminator_2008.vsmdi
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator_2008", "DupTerminator\DupTerminator_2008.csproj", "{DDD8D953-46BC-452D-BF47-DF534950478D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.Test", "DupTerminator.Test\DupTerminator.Test.csproj", "{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}"
 EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = DupTerminator_2008.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
+		DebugNUnit|Any CPU = DebugNUnit|Any CPU
+		DebugNUnit|x86 = DebugNUnit|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.Build.0 = Debug|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|x86.ActiveCfg = Debug|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Debug|x86.Build.0 = Debug|x86
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.ActiveCfg = Release|x86
-		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.Build.0 = Release|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebugNUnit|Any CPU.ActiveCfg = DebugNUnit|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebugNUnit|Any CPU.Build.0 = DebugNUnit|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebugNUnit|x86.ActiveCfg = DebugNUnit|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.DebugNUnit|x86.Build.0 = DebugNUnit|x86
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|x86.ActiveCfg = Release|x86
 		{DDD8D953-46BC-452D-BF47-DF534950478D}.Release|x86.Build.0 = Release|x86
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Debug|x86.ActiveCfg = Debug|x86
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.DebugNUnit|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.DebugNUnit|Any CPU.Build.0 = Debug|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.DebugNUnit|x86.ActiveCfg = Debug|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

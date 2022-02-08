@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using DupTerminator.Views;
 
 namespace DupTerminator
 {
@@ -10,22 +11,6 @@ namespace DupTerminator
     /// <summary>
     /// Helper class to sort listForCompare of files by size
     /// </summary>
-    /*public class sortBySize2 : System.Collections.IComparer
-    {
-        /// <summary>
-        /// Determine the larger of two files
-        /// </summary>
-        /// <param name="fi1"></param>
-        /// <param name="fi2"></param>
-        /// <returns></returns>
-        int System.Collections.IComparer.Compare(object object1, object object2)
-        {
-            System.IO.FileInfo fi1 = (System.IO.FileInfo)object1;
-            System.IO.FileInfo fi2 = (System.IO.FileInfo)object2;
-            return (int)(fi1.Length - fi2.Length);
-        }
-    }*/
-
     public class SortBySize : System.Collections.IComparer
     {
         /// <summary>
@@ -52,7 +37,6 @@ namespace DupTerminator
         }
     }
 
-
     /// <summary>
     /// Helper class to sort listForCompare of files by checksum.
     /// </summary>
@@ -73,57 +57,57 @@ namespace DupTerminator
             ExtendedFileInfo efi2 = (ExtendedFileInfo)object2;
 
             if (FastCheck && (efi1.fileInfo.Length >= FastCheckFileSize))
-                if (fastCheсk(efi1, efi2))
+                if (FirstBytesEqual(efi1, efi2))
                     return (int)string.Compare(efi1.CheckSum, efi2.CheckSum);
                 else
                     return 0;
             else
                 return (int)string.Compare(efi1.CheckSum, efi2.CheckSum);
-            //return (int)string.Compare(efi1.CheckSum, efi2.CheckSum);
         }
 
         /// <summary>
-        /// Retuern true if first 1024 bytes are equal.
+        /// Return true if first 1024 bytes are equal.
         /// </summary>
-        private bool fastCheсk(ExtendedFileInfo efi1, ExtendedFileInfo efi2)
+        private bool FirstBytesEqual(ExtendedFileInfo efi1, ExtendedFileInfo efi2)
         {
-            /*byte[] b1 = new byte[chunkSize];
-            byte[] b2 = new byte[chunkSize];*/
-            if (efi1.Chunk == null)
+            try
             {
-                efi1.Chunk = new byte[chunkSize];
-                int b1Read;
-                using (FileStream file1 = File.OpenRead(efi1.fileInfo.FullName))
+                if (efi1.Chunk == null)
                 {
-                    b1Read = file1.Read(efi1.Chunk, 0, efi1.Chunk.Length);
+                    efi1.Chunk = new byte[chunkSize];
+                    int b1Read;
+					using (FileStream file1 = File.OpenRead(efi1.fileInfo.FullName))
+					{
+						b1Read = file1.Read(efi1.Chunk, 0, efi1.Chunk.Length);
+					}
+                    if (b1Read < chunkSize)
+                        new CrashReport("SortByChecksum.FirstBytesEqual() b1Read < chunkSize!");
                 }
-                if (b1Read < chunkSize)
-                    new CrashReport("SortByChecksum.fastCheсk() b1Read < chunkSize!");
-            }
-            if (efi2.Chunk == null)
-            {
-                efi2.Chunk = new byte[chunkSize];
-                int b2Read;
-                using (FileStream file2 = File.OpenRead(efi2.fileInfo.FullName))
+                if (efi2.Chunk == null)
                 {
-                    b2Read = file2.Read(efi2.Chunk, 0, efi2.Chunk.Length);
+                    efi2.Chunk = new byte[chunkSize];
+                    int b2Read;
+                    using (FileStream file2 = File.OpenRead(efi2.fileInfo.FullName))
+                    {
+                        b2Read = file2.Read(efi2.Chunk, 0, efi2.Chunk.Length);
+                    }
+                    if (b2Read < chunkSize)
+                        new CrashReport("SortByChecksum.FirstBytesEqual() b2Read < chunkSize!");
                 }
-                if (b2Read < chunkSize)
-                    new CrashReport("SortByChecksum.fastCheсk() b2Read < chunkSize!");
+                return BlockCompare(efi1.Chunk, efi2.Chunk, 0, chunkSize);
             }
-            return BlockCompare(efi1.Chunk, efi2.Chunk, 0, chunkSize);
-
-            /*int b1Read;
-            int b2Read;
-            using (FileStream file1 = File.OpenRead(efi1.fileInfo.FullName), 
-                file2 = File.OpenRead(efi2.fileInfo.FullName))
+            catch (System.IO.FileNotFoundException)
             {
-                b1Read = file1.Read(efi1.Chunk, 0, efi1.Chunk.Length);
-                b2Read = file2.Read(efi2.Chunk, 0, efi2.Chunk.Length);
+                return false;
             }
-            bool result = BlockCompare(efi1.Chunk, efi2.Chunk, 0, Math.Min(b1Read, b2Read));
-            return result;*/
-
+            catch (System.IO.DirectoryNotFoundException)
+            {
+                return false;
+            }
+			catch (IOException)
+			{
+				return false;
+			}
         }
 
         unsafe bool BlockCompare(byte[] buffer1, byte[] buffer2, int offset, uint length)

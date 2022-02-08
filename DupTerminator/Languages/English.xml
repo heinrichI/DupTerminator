@@ -22,17 +22,22 @@
     <message name="LoadListGroups" value=" groups" />
     <message name="LoadListItem" value=" ListView items" />
     <message name="LoadListRemove" value="Remove missing files from list" />
-    <message name="LoadListColoring" value="Coloring groups" />
     <message name="LoadListResize" value="Resize width" />
     <message name="SaveList" value="Saving list" />
     <message name="RetrievingStructure" value="Retrieving directory structure information..." />
     <message name="toolTip_buttonStart" value="Starts the search for duplicate files" />
+    <message name="toolTip_buttonCancel" value="Cancel search" />
+    <message name="toolTip_buttonUndo" value="Undo" />
+    <message name="toolTip_buttonRedo" value="Redo" />
+    <message name="toolTip_buttonDeleteSelectedFiles" value="Delete selected files" />
+    <message name="toolTip_buttonSettings" value="Settings" />
+    <message name="toolTip_buttonRefresh" value="Remove Missing Files from List" />
+    <message name="toolTip_buttonMove" value="Move selected files to folder" />
+    <message name="toolTip_buttonSelectBy" value="Select by last accessed time, file name, file name length" />
     <message name="toolTip_buttonAddDirectory" value="Adds directory" />
     <message name="toolTip_chkRecurse" value="Scan all directories and subdirectories for duplicate files" />
     <message name="toolTip_comboBoxIncludeExtension" value="Types files which be included to search" />
     <message name="toolTip_comboBoxExcludeExtension" value="Types files which be excluded to search" />
-    <message name="toolTip_buttonSelectBy" value="Select by last accessed time, file name, file name length" />
-    <message name="toolTip_buttonMove" value="Move selected files to folder" />
     <message name="statusSearch_CompletedJob" value="Completed Job - No files found" />
     <message name="statusSearch_Cancelled" value="Cancelled" />
     <message name="NewVersion" value="New version " />
@@ -56,7 +61,7 @@
     <message name="ListViewColumn_MD5Checksum" value="MD5 Checksum" />
     <message name="ListViewColumn_SubDirectory" value="Subdirectory" />
     <message name="CheckAllSelected" value="Whether check there are groups in which all files are selected" />
-    <message name="AllSelected" value="Some groups have ALL copies of Duplicate files selected!&#xD;&#xA;You need to leave at least one file." />
+    <message name="AllSelected" value="Some groups have ALL copies of Duplicate files selected!&#xD;&#xA;Allow delete all files in group?" />
     <message name="SelectedFilesDelete" value="Selected files delete" />
     <message name="YouSure" value="Are you sure?" />
     <message name="Warning" value="Warning" />
@@ -72,7 +77,7 @@
     <message name="OutdateRecordDel" value="{0} outdate record deleted." />
   </messages>
   <forms>
-    <form type="DupTerminator.FormMain">
+    <form type="DupTerminator.Views.FormMain">
       <property name="tabPageSearchCriteria.Text" value="Search Criteria" />
       <property name="checkBoxSameName.Text" value="Same File Name" />
       <property name="groupBoxFileFilter.Text" value="File Filter" />
@@ -95,6 +100,8 @@
       <property name="tsmi_Search_Add.Text" value="Add" />
       <property name="tsmi_Search_Edit.Text" value="Edit" />
       <property name="tsmi_Search_Delete.Text" value="Delete" />
+      <property name="tsmi_Search_SelectAll.Text" value="Select all" />
+      <property name="tsmi_Search_DeselectAll.Text" value="Deselct all" />
       <property name="tabPageSkipFolder.Text" value="Skip Folder" />
       <property name="buttonAddDirectory.Text" value="Add Folder" />
       <property name="buttonDel.Text" value="Delete" />
@@ -102,8 +109,6 @@
       <property name="buttonClearAll.Text" value="Clear all" />
       <property name="buttonClearNonExistent.Text" value="Clear nonexistent" />
       <property name="tabPageDuplicate.Text" value="Duplicate Results" />
-      <property name="buttonMove.Text" value="Move to" />
-      <property name="buttonSelectBy.Text" value="Select by" />
       <property name="selectByFileSizeToolStripMenuItem1.Text" value="Select by File Size" />
       <property name="smallestFilesInEachGroupToolStripMenuItem1.Text" value="Smallest files in each group" />
       <property name="largestFilesInEachGroupToolStripMenuItem1.Text" value="Largest files in each group" />
@@ -114,7 +119,6 @@
       <property name="tmsi_Select_ByFileNameLength.Text" value="Select by File Name Length" />
       <property name="tmsi_Select_ByShorterFileNameInEachGroup.Text" value="Shorter file name in each group" />
       <property name="tmsi_Select_ByLongerFileNameInEachGroup.Text" value="Longer file name in each group" />
-      <property name="buttonDelete.Text" value="Delete" />
       <property name="tmsi_Dubli_SelectAll.Text" value="Select All" />
       <property name="tmsi_Dubli_DeSelectAll.Text" value="Unselect All" />
       <property name="tmsi_Dubli_SelectAllButOne.Text" value="Select All But One" />
@@ -125,15 +129,12 @@
       <property name="tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Text" value="Select All in This Folder (in group with this folders)" />
       <property name="tmsi_Dubli_RenameFile.Text" value="Rename File" />
       <property name="tmsi_Dubli_RenameFileLikeNeighbour.Text" value="Rename File like Neighbour" />
-      <property name="tmsi_Dubli_RemoveMissingFilesFromList.Text" value="Remove Missing Files from List" />
       <property name="tmsi_Dubli_MoveSelectedFilesToFolder.Text" value="Move Selected Files to Folder" />
       <property name="tmsi_Dubli_MoveFileToNeighbour.Text" value="Move File to Neighbour" />
       <property name="tmsi_Dubli_CopyPath.Text" value="Copy Path" />
-      <property name="tmsi_Dubli_DeleteGroup.Text" value="Delete Group from List" />
-      <property name="tmsi_Dubli_DeleteSelectedItems.Text" value="Delete Selected Items" />
-      <property name="buttonDeleteSelectedFiles.Text" value="Delete Selected Files" />
-      <property name="buttonStart.Text" value="Start" />
-      <property name="buttonCancel.Text" value="Cancel" />
+      <property name="tmsi_Dubli_DeleteGroup.Text" value="Delete Groups from List" />
+      <property name="tmsi_Dubli_AddDirectoryToSkipped.Text" value="Add directory to skipped" />
+      <property name="tmsi_Dubli_Delete.Text" value="Delete" />
       <property name="toolStripMenuItem_Job.Text" value="Job" />
       <property name="toolStripMenuItem_Save.Text" value="Save" />
       <property name="toolStripMenuItem_Load.Text" value="Load" />
@@ -150,31 +151,31 @@
       <property name="toolStripMenuItem_CheckForUpdate.Text" value="Check for Update" />
       <property name="toolStripMenuItem_About.Text" value="About" />
     </form>
-    <form type="DupTerminator.FormAbout">
+    <form type="DupTerminator.Views.FormAbout">
       <property name="Text" value="About DupTerminator" />
       <property name="textBoxDescription.Text" value="DupTerminator - a program to search, delete, move, and rename duplicate file by comparing MD5 hash. The program is free and open source software.&#xD;&#xA;Supported features:&#xD;&#xA;- Sort groups by column.&#xD;&#xA;- Select files in a specific folder, in a folder in the groups that have all folders from the selected group, by date, by name length, by specified name.&#xD;&#xA;- Rename files, moving files.&#xD;&#xA;- Delte to recycle bin.&#xD;&#xA;- Load / Save the list of duplicates.&#xD;&#xA;- Saving of calculating md5 in database SQLite.&#xD;&#xA;- Preliminary fast comparing for the big files.&#xD;&#xA;- Change program font, font and color of list duplicates." />
     </form>
-    <form type="DupTerminator.FormFileFilterSelect">
+    <form type="DupTerminator.Views.FormFileFilterSelect">
       <property name="Text" value="File Filter Select" />
       <property name="buttonCancel.Text" value="Cancel" />
       <property name="buttonSelect.Text" value="Select" />
     </form>
-    <form type="DupTerminator.FormFileNameSelect">
+    <form type="DupTerminator.Views.FormFileNameSelect">
       <property name="Text" value="File Name Select" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.FormFolderSelect">
+    <form type="DupTerminator.Views.FormFolderSelect">
       <property name="Text" value="Folder Select" />
       <property name="checkBoxSubDir.Text" value="Scan Subdirectories" />
       <property name="buttonBrowse.Text" value="Browse" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.FormJobLoad">
+    <form type="DupTerminator.Views.FormJobLoad">
       <property name="Text" value="Job Select" />
       <property name="buttonBrowse.Text" value="Browse" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.FormSetting">
+    <form type="DupTerminator.Views.FormSetting">
       <property name="Text" value="Setting" />
       <property name="m_btnCancel.Text" value="Cancel" />
       <property name="tabDelete.Text" value="Main" />
@@ -184,7 +185,6 @@
       <property name="checkBoxNonExistentOnLoad.Text" value="Check non-existent on load" />
       <property name="labelLengthHistory.Text" value="Length history used path" />
       <property name="checkBoxDelAll.Text" value="Allow delete all files in group" />
-      <property name="checkBoxDontUpdateSize.Text" value="Don't update duplicate size (increase speed)" />
       <property name="checkBoxMaxFileToScan.Text" value="Maximum file to scan" />
       <property name="checkBoxFastCheck.Text" value="Fast check file more them" />
       <property name="labelFastCheckBuffer.Text" value="Size of buffer for fast check" />
@@ -201,13 +201,14 @@
       <property name="labelRowNotExist.Text" value="List Row Not Exist" />
       <property name="labelRow2Background.Text" value="List Row Background 2" />
       <property name="labelRow1Background.Text" value="List Row Background 1" />
+      <property name="checkBoxShowNeighboringFiles.Text" value="Show neighboring files in preview" />
     </form>
-    <form type="DupTerminator.FormUpdate">
+    <form type="DupTerminator.Views.FormUpdate">
       <property name="Text" value="Update" />
       <property name="btnDownload.Text" value="Download" />
       <property name="LabelChanges.Text" value="Changes:" />
     </form>
-    <form type="DupTerminator.CrashReport">
+    <form type="DupTerminator.Views.CrashReport">
       <property name="Text" value="CrashReport" />
       <property name="tabPage1.Text" value="Exception" />
       <property name="label2.Text" value="Optionally, you may add any additional information that you deem appropriate, such as what you were trying to do at the time. You can include your email address if you would like the authors to contact you. You may also leave this box blank." />
@@ -220,7 +221,7 @@
       <property name="buttonDontSend.Text" value="Don't Send" />
       <property name="buttonSend.Text" value="Send Error Report" />
     </form>
-    <form type="DupTerminator.FormProgress">
+    <form type="DupTerminator.Views.FormProgress">
       <property name="Text" value="Deleting outdated records" />
       <property name="buttonCancel.Text" value="Cancel" />
     </form>

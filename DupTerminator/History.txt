@@ -67,6 +67,9 @@ Fixing Drag and Drop. Now possible drop few directories.
 Version 1.3.5428
 Added options 'Check non-existent on load'. Fixed constraint failed.
 
+Version 1.4
+ListView is transferred to a virtual mode that means increased speed.
+
 -----------------------------------------------------------------------------------
 Версия 1.0
 Первый релиз
@@ -121,3 +124,6 @@ Version 1.3.5402
 
 Version 1.3.5428
 Добавлена опция 'Проверять на несуществующие при загрузке'. Устранена редкая ошибка при вставке поля, значение которого нарушает ограничение уникальности поля.
+
+Version 1.4
+ListView переведен в виртуальный режим, что значит увеличело скорость.
