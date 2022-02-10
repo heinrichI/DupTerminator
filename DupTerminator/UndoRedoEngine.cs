@@ -1,9 +1,10 @@
-﻿using System;
+﻿using DupTerminator.BusinessLogic;
+using DupTerminator.Command;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using DupTerminator.Commands;
 
 namespace DupTerminator
 {
@@ -20,14 +21,17 @@ namespace DupTerminator
         private Stack<ICommand> _undoCommandStack;
         private Stack<ICommand> _redoCommandStack;
         public ListViewSave ListDuplicates;
+        private readonly IDBManager _dbManager;
 
-        public UndoRedoEngine()
+        public UndoRedoEngine(IDBManager dbManager)
         {
+            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
+
             //_UndoStack = new Stack<ListViewSave>();
             //_RedoStack = new Stack<ListViewSave>();
             _undoCommandStack = new Stack<ICommand>();
             _redoCommandStack = new Stack<ICommand>();
-            ListDuplicates = new ListViewSave();
+            ListDuplicates = new ListViewSave(_dbManager);
         }
 
         public bool Undo()

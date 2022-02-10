@@ -1,0 +1,229 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<language culture="ru">
+  <author>D.Borisov</author>
+  <version>1.0</version>
+  <messages>
+    <message name="S_NotSetSearchDir" value="Не установлена директория для поиска!" />
+    <message name="S_Error" value="Ошибка" />
+    <message name="classTypes_Picture" value="Изображения" />
+    <message name="classTypes_Audio" value="Аудио" />
+    <message name="classTypes_Video" value="Видео" />
+    <message name="classTypes_Documents" value="Документы" />
+    <message name="classTypes_Saved sites" value="Сохраненные сайты" />
+    <message name="statusStripSearch1" value="Файлов: " />
+    <message name="statusStripSearch2" value="Дубликатов: " />
+    <message name="statusStripSearch3" value="Размер дубликатов: " />
+    <message name="statusStripSearch4" value="Времени осталось: " />
+    <message name="statusStripSearch5" value="Проверка файла: " />
+    <message name="statusStripDubli1" value="Дубликатов: " />
+    <message name="statusStripDubli2" value="Размер дубликатов: " />
+    <message name="ComputationChecksum" value="Подсчет контрольных сумм файлов..." />
+    <message name="LoadListLoad" value="Загрузка " />
+    <message name="LoadListGroups" value=" групп" />
+    <message name="LoadListItem" value=" ListView элементов" />
+    <message name="LoadListRemove" value="Удаление отсутствующих файлов из списка" />
+    <message name="LoadListResize" value="Изменение ширины" />
+    <message name="SaveList" value="Сохранение списка" />
+    <message name="RetrievingStructure" value="Получение информации о директориях..." />
+    <message name="toolTip_buttonStart" value="Начать поиск повторяющихся файлов" />
+    <message name="toolTip_buttonCancel" value="Отменить поиск" />
+    <message name="toolTip_buttonUndo" value="Откат" />
+    <message name="toolTip_buttonRedo" value="Возврат" />
+    <message name="toolTip_buttonDeleteSelectedFiles" value="Удалить выбранные файлы" />
+    <message name="toolTip_buttonMove" value="Переместить выбранные файлы в папку" />
+    <message name="toolTip_buttonSelectBy" value="Выбрать по времени последнего доступа, имени файла, длине имени файла" />
+    <message name="toolTip_buttonSettings" value="Настройки" />
+    <message name="toolTip_buttonRefresh" value="Удалить отсутствующие файлы из списка" />
+    <message name="toolTip_buttonAddDirectory" value="Добавить директорию" />
+    <message name="toolTip_chkRecurse" value="Сканировать все директории и поддиректории для поиска дубликатов" />
+    <message name="toolTip_comboBoxIncludeExtension" value="Типы файлов которые будут включены в поиск" />
+    <message name="toolTip_comboBoxExcludeExtension" value="Типы файлов которые будут исключены из поиска" />
+    <message name="statusSearch_CompletedJob" value="Работа завершена - Файлов не найдено" />
+    <message name="statusSearch_Cancelled" value="Отменено" />
+    <message name="NewVersion" value="Новая версия " />
+    <message name="released" value=" вышла" />
+    <message name="isHaveCurrentVersion" value="Вы имеете текущую версию" />
+    <message name="Update" value="Обновление" />
+    <message name="BuildOn" value="Построено: {0} {1}" />
+    <message name="Version2" value="Версия: {0}" />
+    <message name="About" value="About {0}" />
+    <message name="Pause" value="Пауза" />
+    <message name="Resume" value="Возобновить" />
+    <message name="toolTip_ResumeSearch" value="Возобновить поиск" />
+    <message name="toolTip_PauseSearch" value="Приостановить поиск" />
+    <message name="Directory" value="Директория " />
+    <message name="AlreadyInList" value="уже в списке!" />
+    <message name="ListViewColumn_FileName" value="Имя файла" />
+    <message name="ListViewColumn_Path" value="Путь" />
+    <message name="ListViewColumn_Size" value="Размер" />
+    <message name="ListViewColumn_FileType" value="Тип файла" />
+    <message name="ListViewColumn_LastAccessed" value="Последний доступ" />
+    <message name="ListViewColumn_MD5Checksum" value="MD5 контрольная сумма" />
+    <message name="ListViewColumn_SubDirectory" value="Поддиректории" />
+    <message name="CheckAllSelected" value="Проверка существуют ли группы в которых выделены все файлы" />
+    <message name="AllSelected" value="В некоторых группах выделены ВСЕ копии файла!&#xD;&#xA;Разрешить удалять все файлы в группе?" />
+    <message name="SelectedFilesDelete" value="Удаление выбранных файлов" />
+    <message name="YouSure" value="Вы уверены?" />
+    <message name="Warning" value="Предепреждение" />
+    <message name="ErrorRename" value="Ошибка при переименование: " />
+    <message name="MoveFolder" value="Переместить в папку" />
+    <message name="DuplicateFilesTotalSize" value=" дубликатов общим размером : " />
+    <message name="Version" value="Версия: " />
+    <message name="Crash_UnknownError" value="Произошла неизветная ошибка. DupTerminator не может выполняться далее." />
+    <message name="Crash_ErrorReportSent" value="Отчет об ошибке отослан. Спасибо за помощь в улучшение " />
+    <message name="Crash_ SendingReportFailed" value=" Отправка отчета об ошибке завершилась неудачно." />
+    <message name="Yes" value="Да" />
+    <message name="No" value="Нет" />
+    <message name="OutdateRecordDel" value="{0} устаревших записей удалено." />
+  </messages>
+  <forms>
+    <form type="DupTerminator.Views.FormMain">
+      <property name="tabPageSearchCriteria.Text" value="Критерии поиска" />
+      <property name="checkBoxSameName.Text" value="Одинаковые имена файлов" />
+      <property name="groupBoxFileFilter.Text" value="Фильтр файлов" />
+      <property name="buttonSelectExclude.Text" value="Выбрать" />
+      <property name="buttonSelectInclude.Text" value="Выбрать" />
+      <property name="label3.Text" value="Исключить:" />
+      <property name="label2.Text" value="Включить:" />
+      <property name="groupBoxLessThan.Text" value="Исключить размер Меньше чем" />
+      <property name="rdbLGiga.Text" value="Гб" />
+      <property name="rdbLMega.Text" value="Мб" />
+      <property name="rdbLKilo.Text" value="Кб" />
+      <property name="rdbLBytes.Text" value="Байт" />
+      <property name="groupBoxMoreThan.Text" value="Исключить размер Больше чем" />
+      <property name="rdbMGiga.Text" value="Гб" />
+      <property name="rdbMMega.Text" value="Мб" />
+      <property name="rdbMKilo.Text" value="Кб" />
+      <property name="rdbMBytes.Text" value="Байт" />
+      <property name="tabPageSearchableFolders.Text" value="Папки для поиска" />
+      <property name="tabPageSearchFolder.Text" value="Папки для поиска" />
+      <property name="tsmi_Search_Add.Text" value="Добавить" />
+      <property name="tsmi_Search_Edit.Text" value="Редактировать" />
+      <property name="tsmi_Search_Delete.Text" value="Удалить" />
+      <property name="tsmi_Search_SelectAll.Text" value="Выделить все" />
+      <property name="tsmi_Search_DeselectAll.Text" value="Снять выделение со всех" />
+      <property name="tabPageSkipFolder.Text" value="Папки для исключения из поиска" />
+      <property name="buttonDel.Text" value="Удалить" />
+      <property name="buttonEdit.Text" value="Редактировать" />
+      <property name="buttonClearAll.Text" value="Очистить все" />
+      <property name="buttonClearNonExistent.Text" value="Очистить &#xD;&#xA;несуществующие" />
+      <property name="buttonAddDirectory.Text" value="Добавить папку" />
+      <property name="tabPageDuplicate.Text" value="Найденные дубликаты" />
+      <property name="selectByFileSizeToolStripMenuItem1.Text" value="Выбрать по Размеру файла" />
+      <property name="smallestFilesInEachGroupToolStripMenuItem1.Text" value="Меньший файл в каждой группе" />
+      <property name="largestFilesInEachGroupToolStripMenuItem1.Text" value="Больший файл в каждой группе" />
+      <property name="tmsi_Select_ByLastAcess.Text" value="Выбрать по Времени последнего доступа" />
+      <property name="tmsi_Select_ByOldestFileInEachGroup.Text" value="Старый файл в каждой группе" />
+      <property name="tmsi_Select_ByNewestFilesInEachGroup.Text" value="Новый файл в каждой группе" />
+      <property name="tmsi_Select_ByFileName.Text" value="Выбрать по Имени файла" />
+      <property name="tmsi_Select_ByFileNameLength.Text" value="Выбрать по Длине имени файла" />
+      <property name="tmsi_Select_ByShorterFileNameInEachGroup.Text" value="Короткое имя файла в каждой группе" />
+      <property name="tmsi_Select_ByLongerFileNameInEachGroup.Text" value="Длинное имя файла в каждой группе" />
+      <property name="tmsi_Dubli_SelectAll.Text" value="Выбрать все" />
+      <property name="tmsi_Dubli_DeSelectAll.Text" value="Сбросить все" />
+      <property name="tmsi_Dubli_SelectAllButOne.Text" value="Выбрать все кроме одного" />
+      <property name="ToolStripMenuItem_SelectByDate.Text" value="Выбрать по Дате (в группах с этими папками)" />
+      <property name="tmsi_Dubli_SelectByDateOldestFiles.Text" value="Старые файлы в каждой группе" />
+      <property name="tmsi_Dubli_SelectByDateNewestFiles.Text" value="Новые файлы в каждой группе" />
+      <property name="tmsi_Dubli_SelectAllInThisFolder.Text" value="Выбрать все в этой папке" />
+      <property name="tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Text" value="Выбрать все в этой папке (в группах с этими папками)" />
+      <property name="tmsi_Dubli_RenameFile.Text" value="Переименовать файл" />
+      <property name="tmsi_Dubli_RenameFileLikeNeighbour.Text" value="Переименовать файл как соседний" />
+      <property name="tmsi_Dubli_MoveSelectedFilesToFolder.Text" value="Переместить выбранные файлы в папку" />
+      <property name="tmsi_Dubli_MoveFileToNeighbour.Text" value="Переместить файл к соседу" />
+      <property name="tmsi_Dubli_CopyPath.Text" value="Скопировать путь" />
+      <property name="tmsi_Dubli_DeleteGroup.Text" value="Удалить группы из списка" />
+      <property name="tmsi_Dubli_AddDirectoryToSkipped.Text" value="Добавить директорию в пропускаемые" />
+      <property name="tmsi_Dubli_Delete.Text" value="Удалить" />
+      <property name="toolStripMenuItem_Job.Text" value="Работа" />
+      <property name="toolStripMenuItem_Save.Text" value="Сохранить" />
+      <property name="toolStripMenuItem_Load.Text" value="Загрузить" />
+      <property name="toolStripMenuItem_CurrentText.Text" value="Текущая:" />
+      <property name="toolStripMenuItem_Options.Text" value="Опции" />
+      <property name="toolStripMenuItem_Language.Text" value="Язык" />
+      <property name="toolStripMenuItem_Settings.Text" value="Настройки" />
+      <property name="toolStripMenuItem_View.Text" value="Вид" />
+      <property name="toolStripMenuItem_Orientation.Text" value="Ориентация" />
+      <property name="toolStripMenuItem_Horizontal.Text" value="Горизонтальная" />
+      <property name="toolStripMenuItem_Vertical.Text" value="Вертикальная" />
+      <property name="toolStripMenuItem_FullScreen.Text" value="На весь экран" />
+      <property name="toolStripMenuItem_Help.Text" value="Помощь" />
+      <property name="toolStripMenuItem_CheckForUpdate.Text" value="Проверить обновления" />
+      <property name="toolStripMenuItem_About.Text" value="О программе" />
+    </form>
+    <form type="DupTerminator.Views.FormAbout">
+      <property name="Text" value="About DupTerminator" />
+      <property name="textBoxDescription.Text" value="DupTerminator - программа для поиска, удаления, перемещения, и переименования дубликатов c помощью сравнения по MD5 хешу. Программа бесплатная и с открытым исходным кодом.&#xD;&#xA;Поддерживаемые функции:&#xD;&#xA;- Сортировка групп по колонкам.&#xD;&#xA;- Выбор файлов в определенной папке, в определенной папке в тех группах, где есть все пути из выделенной группы, по дате, по длине имени, по заданному имени.&#xD;&#xA;- Переименование файлов, перемещение файлов.&#xD;&#xA;- Удаление в корзину.&#xD;&#xA;- Загрузка/сохранение списка дубликатов.&#xD;&#xA;- Сохранение подсчитанных контрольных сумм в базу данных SQLite.&#xD;&#xA;- Предварительное быстрое сравнение для больших файлов.&#xD;&#xA;- Изменение шрифта программы, шрифта и цвета списка дубликатов." />
+    </form>
+    <form type="DupTerminator.Views.FormFileFilterSelect">
+      <property name="Text" value="Выбор фильтра" />
+      <property name="buttonCancel.Text" value="Отмена" />
+      <property name="buttonSelect.Text" value="Выбрать" />
+    </form>
+    <form type="DupTerminator.Views.FormFileNameSelect">
+      <property name="Text" value="Выбор имени файла" />
+      <property name="m_btnCancel.Text" value="Отмена" />
+    </form>
+    <form type="DupTerminator.Views.FormFolderSelect">
+      <property name="Text" value="Выбор папки" />
+      <property name="checkBoxSubDir.Text" value="Сканировать поддиректории" />
+      <property name="buttonBrowse.Text" value="Обзор" />
+      <property name="m_btnCancel.Text" value="Отмена" />
+    </form>
+    <form type="DupTerminator.Views.FormJobLoad">
+      <property name="Text" value="Выбор работы" />
+      <property name="buttonBrowse.Text" value="Обзор" />
+      <property name="m_btnCancel.Text" value="Отмена" />
+    </form>
+    <form type="DupTerminator.Views.FormSetting">
+      <property name="Text" value="Настройки" />
+      <property name="m_btnCancel.Text" value="Отмена" />
+      <property name="tabDelete.Text" value="Основные" />
+      <property name="checkBoxConfirmDelete.Text" value="Подтверждение удаления" />
+      <property name="checkBoxUpdate.Text" value="Автоматическая проверка обновлений" />
+      <property name="checkBoxSaveListDubli.Text" value="Сохранять и загружать список дубликатов" />
+      <property name="checkBoxNonExistentOnLoad.Text" value="Проверять на несуществующие при загрузке" />
+      <property name="labelLengthHistory.Text" value="Длина истории используемых путей" />
+      <property name="checkBoxDelAll.Text" value="Разрешить удалять все файлы в группе" />
+      <property name="checkBoxMaxFileToScan.Text" value="Максимальное количество файлов для сканирования" />
+      <property name="checkBoxFastCheck.Text" value="Быстрая проверка файлов больше чем" />
+      <property name="labelFastCheckBuffer.Text" value="Размер буфера для быстрой проверки" />
+      <property name="groupBoxDB.Text" value="База данных" />
+      <property name="labelSizeDatabase.Text" value="Размер базы данных:" />
+      <property name="checkBoxUseDB.Text" value="Использовать базу данных" />
+      <property name="buttonCleanDB.Text" value="Очистить БД" />
+      <property name="buttonDeleteDB.Text" value="Удалить БД" />
+      <property name="tabPage2.Text" value="Вид" />
+      <property name="groupAppearance.Text" value="Шрифт и внешний вид" />
+      <property name="labelListRowFont.Text" value="Шрифт строки списка:" />
+      <property name="labelProgramFont.Text" value="Шрифт программы:" />
+      <property name="labelRowError.Text" value="Строка списка ошибка" />
+      <property name="labelRowNotExist.Text" value="Строка списка не существует" />
+      <property name="labelRow2Background.Text" value="Строка списка фон 2" />
+      <property name="labelRow1Background.Text" value="Строка списка фон 1" />
+      <property name="checkBoxShowNeighboringFiles.Text" value="Показывать соседние файлы в превью" />
+    </form>
+    <form type="DupTerminator.Views.FormUpdate">
+      <property name="Text" value="Обновление" />
+      <property name="btnDownload.Text" value="Загрузить" />
+      <property name="LabelChanges.Text" value="Изменения:" />
+    </form>
+    <form type="DupTerminator.Views.CrashReport">
+      <property name="Text" value="Отчет о падение" />
+      <property name="tabPage1.Text" value="Исключение" />
+      <property name="label2.Text" value="Опционально, Вы можете добавить любую дополнительную информацию которую Вы считаете подходящей, как например что Вы пытались делать в это время. Вы можете включить email адрес если Вы хотите чтобы автор связался с Вами. Вы также можете оставить это поле пустым." />
+      <property name="label1.Text" value="Пожалуйста, помогите нам сделать DupTerminator лучше отправив эту ошибку. Просто нажмите &quot;Послать отчет об ошибке&quot; и информация показанная ниже будет отослана. Отчет об этой ошибке поможет авторам исправить эту проблему в будуших выпусках." />
+      <property name="tabPage2.Text" value="Снимок экрана" />
+      <property name="linkLabelView.Text" value="Посмотреть снимок экрана в полный размер" />
+      <property name="groupBoxScreenshot.Text" value="Снимок экрана" />
+      <property name="checkBoxIncludeScreenshot.Text" value="Включить снимок экрана" />
+      <property name="checkBoxRestart.Text" value="Перезапустить Программу" />
+      <property name="buttonDontSend.Text" value="Не посылать" />
+      <property name="buttonSend.Text" value="Послать отчет об ошибке" />
+    </form>
+      <form type="DupTerminator.Views.FormProgress">
+      <property name="Text" value="Удаление устаревших записей" />
+      <property name="buttonCancel.Text" value="Отмена" />
+    </form>
+  </forms>
+</language>

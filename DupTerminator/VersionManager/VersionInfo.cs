@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.IO;
 using System.Reflection; //Assembly
+using DupTerminator.Localize;
 
 namespace DupTerminator.VersionManager
 {

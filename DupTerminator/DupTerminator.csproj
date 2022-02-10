@@ -1,0 +1,105 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Help.txt" />
+    <None Remove="History.txt" />
+    <None Remove="Languages\English.xml" />
+    <None Remove="Languages\Russian.xml" />
+    <None Remove="Readme.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Help.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="History.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Languages\English.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Languages\Russian.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Readme.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessLogic\DupTerminator.BusinessLogic.csproj" />
+    <ProjectReference Include="..\DupTerminator.DataBase\DupTerminator.DataBase.csproj" />
+    <ProjectReference Include="..\DupTerminator.Unsafe\DupTerminator.Unsafe.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="View\CrashReport.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FileViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="View\FormAbout.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormFileFilterSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormFileNameSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormFolderSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormJobLoad.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormProgress.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormProgressWithBackgroundWorker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormSetting.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\FormUpdate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="View\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Languages\language.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

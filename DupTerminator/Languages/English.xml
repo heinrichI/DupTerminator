@@ -77,7 +77,7 @@
     <message name="OutdateRecordDel" value="{0} outdate record deleted." />
   </messages>
   <forms>
-    <form type="DupTerminator.Views.FormMain">
+    <form type="DupTerminator.View.MainForm">
       <property name="tabPageSearchCriteria.Text" value="Search Criteria" />
       <property name="checkBoxSameName.Text" value="Same File Name" />
       <property name="groupBoxFileFilter.Text" value="File Filter" />
@@ -151,31 +151,31 @@
       <property name="toolStripMenuItem_CheckForUpdate.Text" value="Check for Update" />
       <property name="toolStripMenuItem_About.Text" value="About" />
     </form>
-    <form type="DupTerminator.Views.FormAbout">
+    <form type="DupTerminator.View.FormAbout">
       <property name="Text" value="About DupTerminator" />
       <property name="textBoxDescription.Text" value="DupTerminator - a program to search, delete, move, and rename duplicate file by comparing MD5 hash. The program is free and open source software.&#xD;&#xA;Supported features:&#xD;&#xA;- Sort groups by column.&#xD;&#xA;- Select files in a specific folder, in a folder in the groups that have all folders from the selected group, by date, by name length, by specified name.&#xD;&#xA;- Rename files, moving files.&#xD;&#xA;- Delte to recycle bin.&#xD;&#xA;- Load / Save the list of duplicates.&#xD;&#xA;- Saving of calculating md5 in database SQLite.&#xD;&#xA;- Preliminary fast comparing for the big files.&#xD;&#xA;- Change program font, font and color of list duplicates." />
     </form>
-    <form type="DupTerminator.Views.FormFileFilterSelect">
+    <form type="DupTerminator.View.FormFileFilterSelect">
       <property name="Text" value="File Filter Select" />
       <property name="buttonCancel.Text" value="Cancel" />
       <property name="buttonSelect.Text" value="Select" />
     </form>
-    <form type="DupTerminator.Views.FormFileNameSelect">
+    <form type="DupTerminator.View.FormFileNameSelect">
       <property name="Text" value="File Name Select" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.Views.FormFolderSelect">
+    <form type="DupTerminator.View.FormFolderSelect">
       <property name="Text" value="Folder Select" />
       <property name="checkBoxSubDir.Text" value="Scan Subdirectories" />
       <property name="buttonBrowse.Text" value="Browse" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.Views.FormJobLoad">
+    <form type="DupTerminator.View.FormJobLoad">
       <property name="Text" value="Job Select" />
       <property name="buttonBrowse.Text" value="Browse" />
       <property name="m_btnCancel.Text" value="Cancel" />
     </form>
-    <form type="DupTerminator.Views.FormSetting">
+    <form type="DupTerminator.View.FormSetting">
       <property name="Text" value="Setting" />
       <property name="m_btnCancel.Text" value="Cancel" />
       <property name="tabDelete.Text" value="Main" />
@@ -203,12 +203,12 @@
       <property name="labelRow1Background.Text" value="List Row Background 1" />
       <property name="checkBoxShowNeighboringFiles.Text" value="Show neighboring files in preview" />
     </form>
-    <form type="DupTerminator.Views.FormUpdate">
+    <form type="DupTerminator.View.FormUpdate">
       <property name="Text" value="Update" />
       <property name="btnDownload.Text" value="Download" />
       <property name="LabelChanges.Text" value="Changes:" />
     </form>
-    <form type="DupTerminator.Views.CrashReport">
+    <form type="DupTerminator.View.CrashReport">
       <property name="Text" value="CrashReport" />
       <property name="tabPage1.Text" value="Exception" />
       <property name="label2.Text" value="Optionally, you may add any additional information that you deem appropriate, such as what you were trying to do at the time. You can include your email address if you would like the authors to contact you. You may also leave this box blank." />
@@ -221,7 +221,7 @@
       <property name="buttonDontSend.Text" value="Don't Send" />
       <property name="buttonSend.Text" value="Send Error Report" />
     </form>
-    <form type="DupTerminator.Views.FormProgress">
+    <form type="DupTerminator.View.FormProgress">
       <property name="Text" value="Deleting outdated records" />
       <property name="buttonCancel.Text" value="Cancel" />
     </form>

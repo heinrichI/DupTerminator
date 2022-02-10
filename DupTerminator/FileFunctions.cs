@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Collections;
 using System.Diagnostics;
+using DupTerminator.BusinessLogic;
 
 #if NUNIT
 using NUnit.Framework;
@@ -33,6 +34,7 @@ namespace DupTerminator
         private string[] _separators = new string[] { "|", ";" };
 
         public Settings settings; //= new Settings(); //экземпляр класса с настройками 
+        private readonly IDBManager _dbManager;
         #endregion //"Declarations"
 
         #region "Events"
@@ -55,9 +57,10 @@ namespace DupTerminator
         public event SearchCancelledDelegate SearchCancelledEvent;
         #endregion //"Events"
 
-        public FileFunctions()
+        public FileFunctions(IDBManager dbManager)
         {
             settings = Settings.GetInstance();
+            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
         }
 
         #region "Internal Helper Functions"
@@ -300,18 +303,18 @@ namespace DupTerminator
             ArrayList completeFileList = new ArrayList();
             ArrayList fileChecksumMatchList = new ArrayList();
 
-            SortByChecksum sortByChecksum = new SortByChecksum();
+            SortByChecksum sortByChecksum = new SortByChecksum(_dbManager);
             sortByChecksum.FastCheck = settings.Fields.FastCheck;
             sortByChecksum.FastCheckFileSize = settings.Fields.FastCheckFileSizeMb * 1024 * 1024;
             sortByChecksum.chunkSize = settings.Fields.FastCheckBufferKb * 1024;
             alFiles.Sort(sortByChecksum);
-            currentChecksum = ((ExtendedFileInfo)alFiles[0]).CheckSum;
+            currentChecksum = ((ExtendedFileInfo)alFiles[0]).GetCheckSum(_dbManager);
             fileChecksumMatchList.Add(alFiles[0]);
             for (int i = 1; i < alFiles.Count; i++)
             {
-                if (String.IsNullOrEmpty(((ExtendedFileInfo)alFiles[i]).CheckSum))
+                if (String.IsNullOrEmpty(((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager)))
                     continue;
-                if (string.Compare(currentChecksum, ((ExtendedFileInfo)alFiles[i]).CheckSum) == 0)
+                if (string.Compare(currentChecksum, ((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager)) == 0)
                 {
                     fileChecksumMatchList.Add(alFiles[i]);
                 }
@@ -321,7 +324,7 @@ namespace DupTerminator
                     fileChecksumMatchList.Clear();
                     fileChecksumMatchList.Add(alFiles[i]);
                 }
-                currentChecksum = ((ExtendedFileInfo)alFiles[i]).CheckSum;
+                currentChecksum = ((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager);
             }
             completeFileList.Add(fileChecksumMatchList.Clone());
             return completeFileList;
@@ -375,8 +378,8 @@ namespace DupTerminator
 
             if (settings.Fields.UseDB)
             {
-                DBManager.GetInstance().Active = true;
-                DBManager.GetInstance().CreateDataBase();
+                _dbManager.Active = true;
+                _dbManager.CreateDataBase();
             }
             //System.Diagnostics.Debug.WriteLine("ScanForDuplicates dbManager.Active=" + dbManager.Active);
 
@@ -427,8 +430,8 @@ namespace DupTerminator
                             {
                                 if (_cancelSearch == true)
                                 {
-                                    if (DBManager.GetInstance().Active)
-                                        DBManager.GetInstance().SaveFromMemory();
+                                    if (_dbManager.Active)
+                                        _dbManager.SaveFromMemory();
                                     
                                     if (_duplicateFileList.Count > 0)
                                         DuplicateFileListAvailableEvent(_duplicateFileList);
@@ -453,8 +456,8 @@ namespace DupTerminator
                 }
             }
 
-            if (DBManager.GetInstance().Active)
-                DBManager.GetInstance().SaveFromMemory();
+            if (_dbManager.Active)
+                _dbManager.SaveFromMemory();
 
             if (DuplicateFileListAvailableEvent != null)
                 DuplicateFileListAvailableEvent(_duplicateFileList);

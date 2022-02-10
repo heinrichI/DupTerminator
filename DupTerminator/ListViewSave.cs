@@ -7,7 +7,8 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using System.Threading;
 using System.ComponentModel;
-using DupTerminator.Views;
+using DupTerminator.View;
+using DupTerminator.BusinessLogic;
 
 namespace DupTerminator
 {
@@ -23,20 +24,22 @@ namespace DupTerminator
 
         [XmlArray("Items")]
         public List<ListViewItemSave> Items; //список элементов для отображения
+        private readonly IDBManager _dbManager;
 
-        public ListViewSave()
+        public ListViewSave(IDBManager dbManager)
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>();
+            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
         }
 
-        public ListViewSave(int col)
+        public ListViewSave(IDBManager dbManager, int col) : this(dbManager)
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>(col);
         }
 
-        public ListViewSave(ListViewSave lvs)
+        public ListViewSave(IDBManager dbManager, ListViewSave lvs) : this(dbManager)
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>();
@@ -45,7 +48,7 @@ namespace DupTerminator
 
         public ListViewSave Clone()
         {
-            return new ListViewSave(this);
+            return new ListViewSave(_dbManager, this);
         }
 
         public void Add(ExtendedFileInfo efi)
@@ -56,7 +59,7 @@ namespace DupTerminator
             ListViewItemSave itemLVSave = new ListViewItemSave(6);
             itemLVSave.Name = "FileName";
             itemLVSave.Text = efi.fileInfo.Name;
-            itemLVSave.Group = efi.CheckSum;
+            itemLVSave.Group = efi.GetCheckSum(_dbManager);
             itemLVSave.Checked = false;
             itemLVSave.Color = Settings.GetInstance().Fields.ColorRow1;
 
@@ -88,7 +91,7 @@ namespace DupTerminator
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "MD5Checksum";
-            subItem.Text = efi.CheckSum;
+            subItem.Text = efi.GetCheckSum(_dbManager);
             itemLVSave.SubItems[5] = subItem;
 
             if (!Items.Contains(itemLVSave))

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Reflection; //Assembly
+using DupTerminator.Localize;
 
 namespace DupTerminator
 {

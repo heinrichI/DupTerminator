@@ -77,7 +77,7 @@
     <message name="OutdateRecordDel" value="{0} устаревших записей удалено." />
   </messages>
   <forms>
-    <form type="DupTerminator.Views.FormMain">
+    <form type="DupTerminator.View.MainForm">
       <property name="tabPageSearchCriteria.Text" value="Критерии поиска" />
       <property name="checkBoxSameName.Text" value="Одинаковые имена файлов" />
       <property name="groupBoxFileFilter.Text" value="Фильтр файлов" />
@@ -151,31 +151,31 @@
       <property name="toolStripMenuItem_CheckForUpdate.Text" value="Проверить обновления" />
       <property name="toolStripMenuItem_About.Text" value="О программе" />
     </form>
-    <form type="DupTerminator.Views.FormAbout">
+    <form type="DupTerminator.View.FormAbout">
       <property name="Text" value="About DupTerminator" />
       <property name="textBoxDescription.Text" value="DupTerminator - программа для поиска, удаления, перемещения, и переименования дубликатов c помощью сравнения по MD5 хешу. Программа бесплатная и с открытым исходным кодом.&#xD;&#xA;Поддерживаемые функции:&#xD;&#xA;- Сортировка групп по колонкам.&#xD;&#xA;- Выбор файлов в определенной папке, в определенной папке в тех группах, где есть все пути из выделенной группы, по дате, по длине имени, по заданному имени.&#xD;&#xA;- Переименование файлов, перемещение файлов.&#xD;&#xA;- Удаление в корзину.&#xD;&#xA;- Загрузка/сохранение списка дубликатов.&#xD;&#xA;- Сохранение подсчитанных контрольных сумм в базу данных SQLite.&#xD;&#xA;- Предварительное быстрое сравнение для больших файлов.&#xD;&#xA;- Изменение шрифта программы, шрифта и цвета списка дубликатов." />
     </form>
-    <form type="DupTerminator.Views.FormFileFilterSelect">
+    <form type="DupTerminator.View.FormFileFilterSelect">
       <property name="Text" value="Выбор фильтра" />
       <property name="buttonCancel.Text" value="Отмена" />
       <property name="buttonSelect.Text" value="Выбрать" />
     </form>
-    <form type="DupTerminator.Views.FormFileNameSelect">
+    <form type="DupTerminator.View.FormFileNameSelect">
       <property name="Text" value="Выбор имени файла" />
       <property name="m_btnCancel.Text" value="Отмена" />
     </form>
-    <form type="DupTerminator.Views.FormFolderSelect">
+    <form type="DupTerminator.View.FormFolderSelect">
       <property name="Text" value="Выбор папки" />
       <property name="checkBoxSubDir.Text" value="Сканировать поддиректории" />
       <property name="buttonBrowse.Text" value="Обзор" />
       <property name="m_btnCancel.Text" value="Отмена" />
     </form>
-    <form type="DupTerminator.Views.FormJobLoad">
+    <form type="DupTerminator.View.FormJobLoad">
       <property name="Text" value="Выбор работы" />
       <property name="buttonBrowse.Text" value="Обзор" />
       <property name="m_btnCancel.Text" value="Отмена" />
     </form>
-    <form type="DupTerminator.Views.FormSetting">
+    <form type="DupTerminator.View.FormSetting">
       <property name="Text" value="Настройки" />
       <property name="m_btnCancel.Text" value="Отмена" />
       <property name="tabDelete.Text" value="Основные" />
@@ -203,12 +203,12 @@
       <property name="labelRow1Background.Text" value="Строка списка фон 1" />
       <property name="checkBoxShowNeighboringFiles.Text" value="Показывать соседние файлы в превью" />
     </form>
-    <form type="DupTerminator.Views.FormUpdate">
+    <form type="DupTerminator.View.FormUpdate">
       <property name="Text" value="Обновление" />
       <property name="btnDownload.Text" value="Загрузить" />
       <property name="LabelChanges.Text" value="Изменения:" />
     </form>
-    <form type="DupTerminator.Views.CrashReport">
+    <form type="DupTerminator.View.CrashReport">
       <property name="Text" value="Отчет о падение" />
       <property name="tabPage1.Text" value="Исключение" />
       <property name="label2.Text" value="Опционально, Вы можете добавить любую дополнительную информацию которую Вы считаете подходящей, как например что Вы пытались делать в это время. Вы можете включить email адрес если Вы хотите чтобы автор связался с Вами. Вы также можете оставить это поле пустым." />
@@ -221,7 +221,7 @@
       <property name="buttonDontSend.Text" value="Не посылать" />
       <property name="buttonSend.Text" value="Послать отчет об ошибке" />
     </form>
-      <form type="DupTerminator.Views.FormProgress">
+      <form type="DupTerminator.View.FormProgress">
       <property name="Text" value="Удаление устаревших записей" />
       <property name="buttonCancel.Text" value="Отмена" />
     </form>
