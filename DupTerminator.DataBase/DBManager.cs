@@ -20,11 +20,7 @@ namespace DupTerminator.DataBase
                                              md5            TEXT,
                             PRIMARY KEY(Path,LastWriteTime,Length))";
         private readonly string SQLUpdate = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
-        private const string SQLInsert = "INSERT OR REPLACE INTO ExtendedFileInfo(path, lastWriteTime, length, md5) VALUES(?, ?, ?, ?) ";
         private const string SQLSelectAll = "SELECT * FROM ExtendedFileInfo";
-        private readonly string SQLSelect = @"SELECT * FROM ExtendedFileInfo WHERE Path = ? AND 
-                                 LastWriteTime = ? AND
-                                 Length = ?";
         private const string SQLDelete = "DELETE FROM ExtendedFileInfo WHERE path = ? AND lastWriteTime = ? AND length = ?";
         private const string SQLDeletePath = "DELETE FROM ExtendedFileInfo WHERE path = ?";
 
@@ -41,7 +37,6 @@ namespace DupTerminator.DataBase
         //private String _sqliteConnection;
         //private SQLiteConnection _sqliteConnectionFile;
         private SqliteConnection _sqliteConnectionMemory;
-        private SqliteCommand _command;
         //private SQLiteCommand _commandRead;
         private bool _stopDeleting;
 
@@ -58,7 +53,7 @@ namespace DupTerminator.DataBase
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
 
             _sqliteConnectionMemory = new SqliteConnection(sqlConnectionMemory);
-            _command = _sqliteConnectionMemory.CreateCommand();
+            //_command = _sqliteConnectionMemory.CreateCommand();
         }
 
         public void SaveFromMemory()
@@ -184,17 +179,22 @@ namespace DupTerminator.DataBase
 
             CheckMemoryState();
 
-            //String SQLInsert = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
-            //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            _command.CommandText = SQLInsert;
-            _command.Parameters.AddWithValue("path", path);
-            _command.Parameters.AddWithValue("lastWriteTime", lastWriteTime);
-            _command.Parameters.AddWithValue("length", length);
-            _command.Parameters.AddWithValue("md5", md5);
 
-            _command.ExecuteNonQuery();
+            using (var command = _sqliteConnectionMemory.CreateCommand())
+            {
+                //String SQLInsert = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
+                //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
+                command.CommandText = "INSERT OR REPLACE INTO ExtendedFileInfo(path, lastWriteTime, length, md5) VALUES(@path, @lastWriteTime, @length, @md5)";
+                command.Parameters.AddWithValue("@path", path);
+                command.Parameters.AddWithValue("@lastWriteTime", lastWriteTime);
+                command.Parameters.AddWithValue("@length", length);
+                command.Parameters.AddWithValue("@md5", md5);
+                command.Prepare();
 
-            //command.Dispose();
+                int updated = command.ExecuteNonQuery();
+
+                //command.Dispose();
+            }
             //System.Diagnostics.Debug.WriteLine(String.Format("md5 added for file {0}, lastwrite: {1}, length: {2}", path, lastWriteTime, length));
         }
 
@@ -266,7 +266,9 @@ namespace DupTerminator.DataBase
 
             using (SqliteCommand command = _sqliteConnectionMemory.CreateCommand())
             {
-                command.CommandText = SQLSelect;
+                command.CommandText = @"SELECT * FROM ExtendedFileInfo WHERE Path = @Path AND 
+                                 LastWriteTime = @LastWriteTime AND
+                                 Length = @Length";
                 command.Parameters.AddWithValue("Path", fullName);
                 //command.Parameters.AddWithValue("LastWriteTime", lastWriteTime.ToString(format_date));
                 command.Parameters.AddWithValue("LastWriteTime", lastWriteTime);
@@ -291,21 +293,27 @@ namespace DupTerminator.DataBase
             CheckMemoryState();
 
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            _command.CommandText = SQLDelete;
-            _command.Parameters.AddWithValue("Path", fullName);
-            _command.Parameters.AddWithValue("LastWriteTime", lastWriteTime);
-            _command.Parameters.AddWithValue("Length", length);
+            using (var command = _sqliteConnectionMemory.CreateCommand())
+            {
+                command.CommandText = SQLDelete;
+                command.Parameters.AddWithValue("Path", fullName);
+                command.Parameters.AddWithValue("LastWriteTime", lastWriteTime);
+                command.Parameters.AddWithValue("Length", length);
 
-            _command.ExecuteNonQuery();
+                command.ExecuteNonQuery();
+            }
         }
 
         public void Delete(string fullName)
         {
             CheckMemoryState();
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            _command.CommandText = SQLDeletePath;
-            _command.Parameters.AddWithValue("Path", fullName);
-            _command.ExecuteNonQuery();
+            using (var command = _sqliteConnectionMemory.CreateCommand())
+            {
+                command.CommandText = SQLDeletePath;
+                command.Parameters.AddWithValue("Path", fullName);
+                command.ExecuteNonQuery();
+            }
         }
 
         public void DeleteDB()
@@ -361,40 +369,43 @@ namespace DupTerminator.DataBase
             uint deleted = 0;
             using (DataTable dt = new DataTable())
             {
-                _command.CommandText = SQLSelectAll;
-                //SQLiteDataAdapter da = new SQLiteDataAdapter(_command);
-                //da.Fill(dt);
-
-                int rowsCount = dt.Rows.Count;
-                if (rowsCount > 0)
+                using (var command = _sqliteConnectionMemory.CreateCommand())
                 {
-                    SetMaxValueEvent(rowsCount - 1);
-                    for (int i = 0; i < rowsCount; i++)
+                    command.CommandText = SQLSelectAll;
+                    //SQLiteDataAdapter da = new SQLiteDataAdapter(_command);
+                    //da.Fill(dt);
+
+                    int rowsCount = dt.Rows.Count;
+                    if (rowsCount > 0)
                     {
-                        string path = dt.Rows[i]["path"].ToString();
-                        if (File.Exists(path))
+                        SetMaxValueEvent(rowsCount - 1);
+                        for (int i = 0; i < rowsCount; i++)
                         {
-                            DateTime lastWrite;
-                            lastWrite = DateTime.Parse(dt.Rows[i]["lastWriteTime"].ToString());
-                            long length = long.Parse(dt.Rows[i]["length"].ToString());
-                            FileInfo fi = new FileInfo(path);
-                            if (fi.LastWriteTime != lastWrite ||
-                                fi.Length != length)
+                            string path = dt.Rows[i]["path"].ToString();
+                            if (File.Exists(path))
                             {
-                                Delete(path, lastWrite, length);
+                                DateTime lastWrite;
+                                lastWrite = DateTime.Parse(dt.Rows[i]["lastWriteTime"].ToString());
+                                long length = long.Parse(dt.Rows[i]["length"].ToString());
+                                FileInfo fi = new FileInfo(path);
+                                if (fi.LastWriteTime != lastWrite ||
+                                    fi.Length != length)
+                                {
+                                    Delete(path, lastWrite, length);
+                                    deleted++;
+                                }
+                            }
+                            else
+                            {
+                                Delete(path);
                                 deleted++;
                             }
-                        }
-                        else
-                        {
-                            Delete(path);
-                            deleted++;
-                        }
 
-                        ProgressChangedEvent(i);
+                            ProgressChangedEvent(i);
 
-                        if (_stopDeleting)
-                            break;
+                            if (_stopDeleting)
+                                break;
+                        }
                     }
                 }
             }

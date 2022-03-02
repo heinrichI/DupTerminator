@@ -32,7 +32,7 @@ namespace DupTerminator.View
 
         private ToolTip ttMainForm;
         private readonly IServiceProvider _serviceProvider;
-        private FileFunctions fFunctions;
+        private FileFunctions _fFunctions;
         //Properties.Settings mySettings = new Properties.Settings();
         private Settings _settings; //= new Settings(); //экземпляр класса с настройками 
         private DateTime _timeStart;
@@ -90,7 +90,7 @@ namespace DupTerminator.View
             InitializeComponent();
             InitializePreviewBox();
             _serviceProvider = serviceProvider;
-            fFunctions = fileFunctions ?? throw new ArgumentNullException(nameof(undoRedoEngine));
+            _fFunctions = fileFunctions ?? throw new ArgumentNullException(nameof(undoRedoEngine));
             _undoRedoEngine = undoRedoEngine ?? throw new ArgumentNullException(nameof(undoRedoEngine));
 
             if ((Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)
@@ -137,16 +137,6 @@ namespace DupTerminator.View
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (!FileUtils.IsDotNet35Installed)
-            {
-                //MessageBox.Show("You Need Microsoft .NET Framework 4 Full in order to run this program.", ".NET Framework Detection", MessageBoxButtons.OK, MessageBoxIcon.Hand);
-                if (MessageBox.Show("You Need Microsoft .NET Framework 3.5 in order to run this program. Want to download .Net Framework 3.5?", "Warning",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
-                    System.Diagnostics.Process.Start("http://www.microsoft.com/ru-ru/download/details.aspx?id=22");
-                base.Close();
-                //System.Diagnostics.Process.GetCurrentProcess().Kill();
-            }
-
             readSetting();
 
 #if ExtLang
@@ -189,7 +179,7 @@ namespace DupTerminator.View
             Load_listDirectorySkipped(_settings.Fields.LastJob);
 
             //System.Diagnostics.Debug.WriteLine("Form1_Load _dbManager.Active=" + _dbManager.Active);
-            fFunctions.settings = _settings;
+            _fFunctions.settings = _settings;
             //fFunctions.dbManager = _dbManager;
             //  событие                     подписчик   экземпляр делегата
             //DCSearch.FolderChangedEvent += new EventHandler(DCSearch_FolderChanged);
@@ -201,12 +191,12 @@ namespace DupTerminator.View
             //private void FileUpdateEventHandler(string fileNameOfListDupl, int currentCount);
             //fFunctions.FileCheckInProgressEvent += new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
             //событие вызывающего += new делегат вызывающего(собыите принимающего)
-            fFunctions.FolderChangedEvent += new FileFunctions.FolderChangedDelegate(FolderChangedEventHandler);
-            fFunctions.FileCountAvailableEvent += new FileFunctions.FileCountAvailableDelegate(FileCountCompleteEventHandler);
-            fFunctions.FileListAvailableEvent += new FileFunctions.FileListAvailableDelegate(CompleteFileListAvailableEventHandler);
-            fFunctions.DuplicateFileListAvailableEvent += new FileFunctions.DuplicateFileListAvailableDelegate(DuplicatFileListAvailableEventHandler);
-            fFunctions.FileCheckInProgressEvent += new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
-            fFunctions.SearchCancelledEvent += new FileFunctions.SearchCancelledDelegate(SearchCancelledEventHandler);
+            _fFunctions.FolderChangedEvent += new FileFunctions.FolderChangedDelegate(FolderChangedEventHandler);
+            _fFunctions.FileCountAvailableEvent += new FileFunctions.FileCountAvailableDelegate(FileCountCompleteEventHandler);
+            _fFunctions.FileListAvailableEvent += new FileFunctions.FileListAvailableDelegate(CompleteFileListAvailableEventHandler);
+            _fFunctions.DuplicateFileListAvailableEvent += new FileFunctions.DuplicateFileListAvailableDelegate(DuplicatFileListAvailableEventHandler);
+            _fFunctions.FileCheckInProgressEvent += new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
+            _fFunctions.SearchCancelledEvent += new FileFunctions.SearchCancelledDelegate(SearchCancelledEventHandler);
             _undoRedoEngine.OnActoinAppledEvent += new UndoRedoEngine.ActoinAppledHandler(OnAction);
         }
 
@@ -501,12 +491,12 @@ namespace DupTerminator.View
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             //fFunctions.CancelSearch();
-            fFunctions.FolderChangedEvent -= new FileFunctions.FolderChangedDelegate(FolderChangedEventHandler);
-            fFunctions.FileCountAvailableEvent -= new FileFunctions.FileCountAvailableDelegate(FileCountCompleteEventHandler);
-            fFunctions.FileListAvailableEvent -= new FileFunctions.FileListAvailableDelegate(CompleteFileListAvailableEventHandler);
-            fFunctions.DuplicateFileListAvailableEvent -= new FileFunctions.DuplicateFileListAvailableDelegate(DuplicatFileListAvailableEventHandler);
-            fFunctions.FileCheckInProgressEvent -= new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
-            fFunctions.SearchCancelledEvent -= new FileFunctions.SearchCancelledDelegate(SearchCancelledEventHandler);
+            _fFunctions.FolderChangedEvent -= new FileFunctions.FolderChangedDelegate(FolderChangedEventHandler);
+            _fFunctions.FileCountAvailableEvent -= new FileFunctions.FileCountAvailableDelegate(FileCountCompleteEventHandler);
+            _fFunctions.FileListAvailableEvent -= new FileFunctions.FileListAvailableDelegate(CompleteFileListAvailableEventHandler);
+            _fFunctions.DuplicateFileListAvailableEvent -= new FileFunctions.DuplicateFileListAvailableDelegate(DuplicatFileListAvailableEventHandler);
+            _fFunctions.FileCheckInProgressEvent -= new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
+            _fFunctions.SearchCancelledEvent -= new FileFunctions.SearchCancelledDelegate(SearchCancelledEventHandler);
             _undoRedoEngine.OnActoinAppledEvent -= new UndoRedoEngine.ActoinAppledHandler(OnAction);
 
             if (updateChecker != null)
@@ -724,10 +714,10 @@ namespace DupTerminator.View
             StringBuilder rem = new StringBuilder();
             rem.AppendFormat("{0}{1}:{2}:{3}.{4}", LanguageManager.GetString("statusStripSearch4"), timeRemain.Hours.ToString("00"), timeRemain.Minutes.ToString("00"), timeRemain.Seconds.ToString("00"), timeRemain.Milliseconds.ToString("000"));
             statusStrip1.Items[3].Text = rem.ToString();
-            statusStrip1.Items[0].Text = LanguageManager.GetString("statusStripSearch1") + fFunctions.TotalFiles.ToString();
-            statusStrip1.Items[1].Text = LanguageManager.GetString("statusStripSearch2") + fFunctions.DuplicateFileCount.ToString();
+            statusStrip1.Items[0].Text = LanguageManager.GetString("statusStripSearch1") + _fFunctions.TotalFiles.ToString();
+            statusStrip1.Items[1].Text = LanguageManager.GetString("statusStripSearch2") + _fFunctions.DuplicateFileCount.ToString();
             //Duplicate group
-            statusStrip1.Items[2].Text = LanguageManager.GetString("statusStripSearch3") + fFunctions.DuplicateFileSize.ToString("###,###,###,###,###");
+            statusStrip1.Items[2].Text = LanguageManager.GetString("statusStripSearch3") + _fFunctions.DuplicateFileSize.ToString("###,###,###,###,###");
 
             /*if (currentCount - _lastCount > 10000)
             {
@@ -836,7 +826,7 @@ namespace DupTerminator.View
             SetWidthOfListView();
 
             SetStatusState(StatusState.Duplicate); ;
-            SetStatusDuplicate(fFunctions.DuplicateFileCount, fFunctions.DuplicateFileSize, true);
+            SetStatusDuplicate(_fFunctions.DuplicateFileCount, _fFunctions.DuplicateFileSize, true);
 
             System.Media.SystemSounds.Beep.Play();  // Beep
 
@@ -1134,7 +1124,7 @@ namespace DupTerminator.View
             if (_stateofSearch == StateOfSearch.Search)
             {
                 _stateofSearch = StateOfSearch.Pause;
-                fFunctions.PauseSearch();
+                _fFunctions.PauseSearch();
                 toolStripButtonStart.Image = Properties.Resources.play_32;
                 toolStripButtonStart.ToolTipText = LanguageManager.GetString("toolTip_ResumeSearch");
                 SetVistaProgressState(ThumbnailProgressState.Paused);
@@ -1143,7 +1133,7 @@ namespace DupTerminator.View
             if (_stateofSearch == StateOfSearch.Pause)
             {
                 _stateofSearch = StateOfSearch.Search;
-                fFunctions.ResumeSearch();
+                _fFunctions.ResumeSearch();
                 toolStripButtonStart.Image = Properties.Resources.pause_32;
                 SetVistaProgressState(ThumbnailProgressState.Normal);
                 return;
@@ -1169,8 +1159,8 @@ namespace DupTerminator.View
 
             lvDuplicates.Items.Clear();
 
-            fFunctions.Clear_Search_Directory();
-            fFunctions.Clear_Skip_Directory();
+            _fFunctions.Clear_Search_Directory();
+            _fFunctions.Clear_Skip_Directory();
 
             //_settings.Fields.SameContent = radioButtonSameContent.Checked;
             //_settings.Fields.DeepSimilarName = uint.Parse(labelSimilarDeepSize.Text);
@@ -1193,7 +1183,7 @@ namespace DupTerminator.View
                     new CrashReport("lvDirectorySearch.SubItems[SubDir] not equal Yes or No", _settings, lvDirectorySearch).ShowDialog();
 
                 //System.Diagnostics.Debug.WriteLine("Add directory in fFunctions() " + dir + ", subdir=" + isSubDir);
-                fFunctions.Add_Search_Directory(dir, isSubDir);
+                _fFunctions.Add_Search_Directory(dir, isSubDir);
             }
 
             CheckedListBox.CheckedItemCollection cicSkip = checkedListBoxSkipFolder.CheckedItems;
@@ -1201,13 +1191,13 @@ namespace DupTerminator.View
             {
                 foreach (string str in cicSkip)
                 {
-                    fFunctions.Add_Skip_Directory(str);
+                    _fFunctions.Add_Skip_Directory(str);
                 }
             }
 
             SetStatusSearch(LanguageManager.GetString("RetrievingStructure"));
 
-            fFunctions.BeginSearch();
+            _fFunctions.BeginSearch();
 
             //результаты возврашает через событие DuplicateFileListAvailableDelegate DuplicatFileListAvailableEventHandler(System.Collections.ArrayList duplicateList)
         }
@@ -1231,9 +1221,9 @@ namespace DupTerminator.View
         {
             if (_stateofSearch == StateOfSearch.Pause)
             {
-                fFunctions.ResumeSearch();
+                _fFunctions.ResumeSearch();
             }
-            fFunctions.CancelSearch();
+            _fFunctions.CancelSearch();
 
             _stateofSearch = StateOfSearch.ShowDuplicate;
             progressBar1.Value = 0;

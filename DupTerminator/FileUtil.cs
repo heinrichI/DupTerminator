@@ -39,20 +39,5 @@ namespace DupTerminator
             }
             return false;
         }
-
-        public static bool IsDotNet35Installed
-        {
-            get
-            {
-                try
-                {
-                    return (Convert.ToInt32(Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v3.5").GetValue("Install")) == 1);
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-        }
     }
 }
