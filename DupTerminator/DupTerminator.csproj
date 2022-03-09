@@ -37,12 +37,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Localization" Version="6.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BusinessLogic\DupTerminator.BusinessLogic.csproj" />
     <ProjectReference Include="..\DupTerminator.DataBase\DupTerminator.DataBase.csproj" />
     <ProjectReference Include="..\DupTerminator.Unsafe\DupTerminator.Unsafe.csproj" />
+    <ProjectReference Include="..\DupTerminator.WindowsSpecific\DupTerminator.WindowsSpecific.csproj" />
   </ItemGroup>
 
   <ItemGroup>

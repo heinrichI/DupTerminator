@@ -8,6 +8,7 @@ using System.Linq;
 using System.Collections;
 using System.Diagnostics;
 using DupTerminator.BusinessLogic;
+using DupTerminator.WindowsSpecific;
 
 #if NUNIT
 using NUnit.Framework;

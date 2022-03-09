@@ -1,4 +1,5 @@
-﻿using DupTerminator.BusinessLogic.ObjectModel;
+﻿using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.ObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,12 @@ namespace DupTerminator.View
 {
     enum SeacrhState
     {
+        ShowDuplicate,
         Search,
-        Stop
+        Pause
     }
 
-    internal class MainViewModel
+    internal class MainViewModel : BasePropertyChanged
     {
         public MainViewModel()
         {
@@ -24,6 +26,27 @@ namespace DupTerminator.View
         public List<DuplicateDirectory> PathOfSearch { get; set; }
         public List<DuplicateDirectory> PathOfSkip { get; set; }
 
-        public SeacrhState State { get; set; }
-}
+        private SeacrhState _seacrhState = SeacrhState.ShowDuplicate;
+        public SeacrhState SeacrhState
+        {
+            get { return _seacrhState; }
+            set 
+            { 
+                _seacrhState = value; 
+                RaisePropertyChangedEvent(); 
+            }
+        }
+
+        IList<FileViewModel>? _dublicates;
+        public IList<FileViewModel>? Dublicates
+        {
+            get { return _dublicates; }
+            set 
+            {
+                _dublicates = value; 
+                RaisePropertyChangedEvent();
+            }
+        }
+
+    }
 }

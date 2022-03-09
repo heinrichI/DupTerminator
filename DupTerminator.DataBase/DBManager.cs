@@ -1,4 +1,4 @@
-Ôªøusing System;
+using System;
 using System.IO;
 using System.Data;
 using System.Threading;
@@ -36,7 +36,7 @@ namespace DupTerminator.DataBase
 
         //private String _sqliteConnection;
         //private SQLiteConnection _sqliteConnectionFile;
-        private SqliteConnection _sqliteConnectionMemory;
+        private SqliteConnection _sqliteConnection;
         //private SQLiteCommand _commandRead;
         private bool _stopDeleting;
 
@@ -52,16 +52,18 @@ namespace DupTerminator.DataBase
             _dbPath = dbPath ?? throw new ArgumentNullException(nameof(dbPath));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
 
-            _sqliteConnectionMemory = new SqliteConnection(sqlConnectionMemory);
+            _sqliteConnection = new SqliteConnection(sqlConnectionMemory);
             //_command = _sqliteConnectionMemory.CreateCommand();
+
+            CreateDataBase();
         }
 
         public void SaveFromMemory()
         {
-            if (_sqliteConnectionMemory.State == ConnectionState.Open)
+            if (_sqliteConnection.State == ConnectionState.Open)
             {
                 //    new CrashReport("sqliteConnectionMemory.State != ConnectionState.Open").ShowDialog();
-                System.Diagnostics.Debug.Assert(_sqliteConnectionMemory.State == ConnectionState.Open);
+                System.Diagnostics.Debug.Assert(_sqliteConnection.State == ConnectionState.Open);
 
                 using (SqliteConnection sqliteConnectionFile = new SqliteConnection(String.Format(sqlConnectionFile, _dbPath)))
                 {
@@ -91,8 +93,8 @@ namespace DupTerminator.DataBase
                     });*/
                     //_sqliteConnectionMemory.BackupDatabase(sqliteConnectionFile, "main", "main", -1, _formProgress.BackupEventHandler, 10);
                     // save memory db to file
-                    _sqliteConnectionMemory.BackupDatabase(sqliteConnectionFile, "main", "main");
-                    _sqliteConnectionMemory.Close();
+                    _sqliteConnection.BackupDatabase(sqliteConnectionFile, "main", "main");
+                    _sqliteConnection.Close();
                 }
             }
         }
@@ -121,7 +123,7 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// –°–æ–∑–¥–∞–Ω–∏–µ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –Ω–∞ –¥–∏—Å–∫–µ, –µ—Å–ª–∏ —É–∂–µ –Ω–µ —Å—É—â–µ—Å—Ç–≤—É–µ—Ç.
+        /// »F»d»]»Y»U»c»^»Z »V»U»]»q »Y»U»c»c»q»k »c»U »Y»^»g»`»Z, »Z»g»a»^ »i»\»Z »c»Z »g»i»o»Z»g»h»W»i»Z»h.
         /// </summary>
         public void CreateDataBase()
         {
@@ -133,17 +135,17 @@ namespace DupTerminator.DataBase
                 SqliteCommand command = new SqliteCommand(sqlCreate, sqliteConnectionFile);
                 command.ExecuteNonQuery();
 
-                if (_sqliteConnectionMemory.State != ConnectionState.Open)
-                    _sqliteConnectionMemory.Open();
+                if (_sqliteConnection.State != ConnectionState.Open)
+                    _sqliteConnection.Open();
 
                 // copy db file to memory
-                sqliteConnectionFile.BackupDatabase(_sqliteConnectionMemory, "main", "main");
+                sqliteConnectionFile.BackupDatabase(_sqliteConnection, "main", "main");
                 sqliteConnectionFile.Close();
             }
         }
 
         /// <summary>
-        /// –ó–∞–≥—Ä—É–∑–∫–∞ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –≤ –ø–∞–º—è—Ç—å.
+        /// «˚»U»X»f»i»]»`»U »V»U»]»q »Y»U»c»c»q»k »W »e»U»b»u»h»r.
         /// </summary>
         //public void LoadToMemory()
         //{
@@ -180,7 +182,7 @@ namespace DupTerminator.DataBase
             CheckMemoryState();
 
 
-            using (var command = _sqliteConnectionMemory.CreateCommand())
+            using (var command = _sqliteConnection.CreateCommand())
             {
                 //String SQLInsert = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
                 //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
@@ -264,7 +266,10 @@ namespace DupTerminator.DataBase
 
             string md5 = String.Empty;
 
-            using (SqliteCommand command = _sqliteConnectionMemory.CreateCommand())
+            if (_sqliteConnection.State != ConnectionState.Open)
+                _sqliteConnection.Open();
+
+            using (SqliteCommand command = _sqliteConnection.CreateCommand())
             {
                 command.CommandText = @"SELECT * FROM ExtendedFileInfo WHERE Path = @Path AND 
                                  LastWriteTime = @LastWriteTime AND
@@ -293,7 +298,7 @@ namespace DupTerminator.DataBase
             CheckMemoryState();
 
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            using (var command = _sqliteConnectionMemory.CreateCommand())
+            using (var command = _sqliteConnection.CreateCommand())
             {
                 command.CommandText = SQLDelete;
                 command.Parameters.AddWithValue("Path", fullName);
@@ -308,7 +313,7 @@ namespace DupTerminator.DataBase
         {
             CheckMemoryState();
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            using (var command = _sqliteConnectionMemory.CreateCommand())
+            using (var command = _sqliteConnection.CreateCommand())
             {
                 command.CommandText = SQLDeletePath;
                 command.Parameters.AddWithValue("Path", fullName);
@@ -318,10 +323,10 @@ namespace DupTerminator.DataBase
 
         public void DeleteDB()
         {
-            if (_sqliteConnectionMemory.State == ConnectionState.Open)
+            if (_sqliteConnection.State == ConnectionState.Open)
             {
-                _sqliteConnectionMemory.Close();
-                _sqliteConnectionMemory.Dispose();
+                _sqliteConnection.Close();
+                _sqliteConnection.Dispose();
             }
 
             GC.Collect();
@@ -333,7 +338,7 @@ namespace DupTerminator.DataBase
 
 
         /// <summary>
-        /// –ü—Ä–æ–≤–µ—Ä–∫–∞ —Ç–æ–≥–æ —á—Ç–æ –±–∞–∑–∞ –¥–∞–Ω–Ω—ã—Ö –≤ –ø–∞–º—è—Ç–∏ –∏ –æ—Ç–∫—Ä—ã—Ç–∞.
+        /// »D»f»d»W»Z»f»`»U »h»d»X»d »m»h»d »V»U»]»U »Y»U»c»c»q»k »W »e»U»b»u»h»^ »^ »d»h»`»f»q»h»U.
         /// </summary>
         private void CheckMemoryState()
         {
@@ -345,7 +350,7 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// –û—á–∏—Å—Ç–∫–∞ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –æ—Ç —É—Å—Ç–∞—Ä–µ–≤—à–∏—Ö –∑–∞–ø–∏—Å–µ–π.
+        /// »C»m»^»g»h»`»U »V»U»]»q »Y»U»c»c»q»k »d»h »i»g»h»U»f»Z»W»n»^»k »]»U»e»^»g»Z»_.
         /// </summary>
         public void CleanDB()
         {
@@ -362,14 +367,14 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// –£–¥–∞–ª–µ–Ω–∏–µ —É—Å—Ç–∞—Ä–µ–≤—à–∏—Ö –∑–∞–ø–∏—Å–µ–π.
+        /// »H»Y»U»a»Z»c»^»Z »i»g»h»U»f»Z»W»n»^»k »]»U»e»^»g»Z»_.
         /// </summary>
         private void Deleting()
         {
             uint deleted = 0;
             using (DataTable dt = new DataTable())
             {
-                using (var command = _sqliteConnectionMemory.CreateCommand())
+                using (var command = _sqliteConnection.CreateCommand())
                 {
                     command.CommandText = SQLSelectAll;
                     //SQLiteDataAdapter da = new SQLiteDataAdapter(_command);
@@ -426,7 +431,7 @@ namespace DupTerminator.DataBase
 
         public void Vacuum()
         {
-            using (SqliteCommand cmd = _sqliteConnectionMemory.CreateCommand())
+            using (SqliteCommand cmd = _sqliteConnection.CreateCommand())
             {
                 cmd.CommandText = "VACUUM";
                 cmd.ExecuteNonQuery();
@@ -437,9 +442,9 @@ namespace DupTerminator.DataBase
         private SqliteTransaction tr;
         public void BeginInsert()
         {
-            if (_sqliteConnectionMemory.State != ConnectionState.Open)
-                _sqliteConnectionMemory.Open();
-            tr = _sqliteConnectionMemory.BeginTransaction();
+            if (_sqliteConnection.State != ConnectionState.Open)
+                _sqliteConnection.Open();
+            tr = _sqliteConnection.BeginTransaction();
         }
 
         public void EndInsert()

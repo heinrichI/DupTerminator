@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Text;
-using System.Windows.Forms;
 using System.IO;
 using DupTerminator.Native;
 using DupTerminator.Util;
@@ -17,6 +16,11 @@ using DupTerminator.Localize;
 using DupTerminator.BusinessLogic.ObjectModel;
 using DupTerminator.Native.Taskbar;
 using Microsoft.Extensions.DependencyInjection;
+using DupTerminator.BusinessLogic;
+using System.Collections.ObjectModel;
+using DupTerminator.WindowsSpecific;
+using Microsoft.Extensions.Localization;
+using System.Diagnostics;
 
 namespace DupTerminator.View
 {
@@ -32,7 +36,11 @@ namespace DupTerminator.View
 
         private ToolTip ttMainForm;
         private readonly IServiceProvider _serviceProvider;
+        private readonly MainViewModel _model;
+
         private FileFunctions _fFunctions;
+        private Searcher _searcher;
+
         //Properties.Settings mySettings = new Properties.Settings();
         private Settings _settings; //= new Settings(); //экземпляр класса с настройками 
         private DateTime _timeStart;
@@ -53,7 +61,8 @@ namespace DupTerminator.View
         private ITaskbarList3 taskbarProgress;
 
         private UndoRedoEngine _undoRedoEngine;
-
+        private readonly IDBManager _dbManager;
+        private readonly IStringLocalizer<MainForm> _stringLocalizer;
         private bool _beginUpdate = false;
 
         private enum StatusState
@@ -61,14 +70,6 @@ namespace DupTerminator.View
             Search,
             Duplicate
         }
-
-        private enum StateOfSearch
-        {
-            ShowDuplicate,
-            Search,
-            Pause
-        }
-        private StateOfSearch _stateofSearch;
 
         private Font _fontRegular;
         private Font _fontStrikeout;
@@ -82,17 +83,34 @@ namespace DupTerminator.View
 
         public event EventHandler AboutClick;
 
-        public MainForm(IServiceProvider serviceProvider,
+        public MainForm(
+            IServiceProvider serviceProvider,
             MainViewModel model,
-            FileFunctions fileFunctions,
-            UndoRedoEngine undoRedoEngine)
+            UndoRedoEngine undoRedoEngine,
+            IDBManager dbManager,
+            IStringLocalizer<MainForm> stringLocalizer)
         {
             InitializeComponent();
-            InitializePreviewBox();
-            _serviceProvider = serviceProvider;
-            _fFunctions = fileFunctions ?? throw new ArgumentNullException(nameof(undoRedoEngine));
-            _undoRedoEngine = undoRedoEngine ?? throw new ArgumentNullException(nameof(undoRedoEngine));
+            //dataGridView1.DataBindingComplete += (o, _) =>
+            //{
+            //    var dataGridView = o as DataGridView;
+            //    if (dataGridView != null)
+            //    {
+            //        dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
+            //        dataGridView.Columns[dataGridView.ColumnCount - 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            //    }
+            //};
 
+            InitializePreviewBox();
+
+
+
+            _serviceProvider = serviceProvider;
+            _model = model;
+
+            _undoRedoEngine = undoRedoEngine ?? throw new ArgumentNullException(nameof(undoRedoEngine));
+            _dbManager = dbManager;
+            _stringLocalizer = stringLocalizer;
             if ((Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)
                 || Environment.OSVersion.Version.Major > 6)
                 taskbarProgress = (ITaskbarList3)new ProgressTaskbar();
@@ -105,23 +123,90 @@ namespace DupTerminator.View
             _settings = Settings.GetInstance();
             //_listDuplicates = new ListViewSave();
 
-            _stateofSearch = StateOfSearch.ShowDuplicate;
 
             toolStripMenuItem_About.Click += (s, e) => AboutClick?.Invoke(s, e);
 
-            Binding bindingImageState = new Binding("Image", model, nameof(MainViewModel.State));
-            bindingImageState.Format += (s, e) =>
+            SetBinding();
+
+            _fFunctions = new FileFunctions(dbManager);
+        }
+
+        private void SetBinding()
+        {
+            Binding bindingImageSeacrhState = new Binding("Image", _model, nameof(MainViewModel.SeacrhState));
+            bindingImageSeacrhState.Format += (s, e) =>
             {
-                if (e.Value is SeacrhState state && state == SeacrhState.Search)
+                if (e.Value is SeacrhState state)
                 {
-                    e.Value = Properties.Resources.play_32;
-                }
-                else
-                {
-                    e.Value = Properties.Resources.stop_32;
+                    if (state == SeacrhState.Search)
+                    {
+                        e.Value = Properties.Resources.pause_32;
+                    }
+                    else if (state == SeacrhState.Pause)
+                    {
+                        e.Value = Properties.Resources.play_32;
+                    }
+                    else if (state == SeacrhState.ShowDuplicate)
+                    {
+                        e.Value = Properties.Resources.play_32;
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(state));
+                    }
                 }
             };
-            toolStripButtonStart.DataBindings.Add(bindingImageState);
+            toolStripButtonStart.DataBindings.Add(bindingImageSeacrhState);
+
+
+            Binding bindingToolTipSeacrhState = new Binding("ToolTipText", _model, nameof(MainViewModel.SeacrhState));
+            bindingToolTipSeacrhState.Format += (s, e) =>
+            {
+                if (e.Value is SeacrhState state)
+                {
+                    if (state == SeacrhState.Search)
+                    {
+                        e.Value = LanguageManager.GetString("toolTip_PauseSearch");
+                    }
+                    else if (state == SeacrhState.ShowDuplicate)
+                    {
+                        e.Value = LanguageManager.GetString("toolTip_buttonStart");
+                    }
+                    else if (state == SeacrhState.Pause)
+                    {
+                        e.Value = LanguageManager.GetString("toolTip_ResumeSearch");
+                    }
+                    else
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(state));
+                    }
+                }
+            };
+            toolStripButtonStart.DataBindings.Add(bindingToolTipSeacrhState);
+
+            toolStripButtonCancel.DataBindings.Add(CreateBindingEnableToSeacrhState());
+
+            Binding CreateBindingEnableToSeacrhState()
+            {
+                Binding bindingEnableToSeacrhState = new Binding("Enabled", _model, nameof(MainViewModel.SeacrhState));
+                bindingEnableToSeacrhState.Format += (s, e) =>
+                {
+                    if (e.Value is SeacrhState state)
+                    {
+                        if (state == SeacrhState.Search || state == SeacrhState.Pause)
+                        {
+                            e.Value = true;
+                        }
+                        else
+                        {
+                            e.Value = false;
+                        }
+                    }
+                };
+                return bindingEnableToSeacrhState;
+            }
+
+            //dataGridView1.DataBindings.Add(nameof(dataGridView1.DataSource), _model, nameof(MainViewModel.Dublicates));
         }
 
         private void FormMain_Shown(object sender, EventArgs e)
@@ -155,7 +240,6 @@ namespace DupTerminator.View
             SetStatusState(StatusState.Search);
 
             ttMainForm = new ToolTip();
-            toolStripButtonStart.ToolTipText = LanguageManager.GetString("toolTip_buttonStart");
             toolStripButtonCancel.ToolTipText = LanguageManager.GetString("toolTip_buttonCancel");
             toolStripButtonUndo.ToolTipText = LanguageManager.GetString("toolTip_buttonUndo");
             toolStripButtonRedo.ToolTipText = LanguageManager.GetString("toolTip_buttonRedo");
@@ -795,8 +879,8 @@ namespace DupTerminator.View
                 return;
             }
 
-            _stateofSearch = StateOfSearch.ShowDuplicate;
-            toolStripButtonCancel.Enabled = false;
+            //_stateofSearch = StateOfSearch.ShowDuplicate;
+            //toolStripButtonCancel.Enabled = false;
             progressBar1.Value = 0;
             SetVistaProgressState(ThumbnailProgressState.NoProgress);
 
@@ -860,7 +944,7 @@ namespace DupTerminator.View
             progressBar1.Value = 0;
             SetStatusState(StatusState.Search);
             SetStatusSearch(LanguageManager.GetString("statusSearch_Cancelled"));
-            toolStripButtonStart.Image = Properties.Resources.play_32;
+            _model.SeacrhState = SeacrhState.ShowDuplicate;
             Controls_Enabled(true);
         }
 
@@ -1116,74 +1200,188 @@ namespace DupTerminator.View
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void btnStart_Click(object sender, EventArgs e)
+        private async void btnStart_Click(object sender, EventArgs e)
         {
             //throw new ApplicationException("Exception");
             //new CrashReport("Test", _settings).ShowDialog();
             //new CrashReport(new Exception()).ShowDialog();
-            if (_stateofSearch == StateOfSearch.Search)
+            if (_model.SeacrhState == SeacrhState.Search)
             {
-                _stateofSearch = StateOfSearch.Pause;
-                _fFunctions.PauseSearch();
-                toolStripButtonStart.Image = Properties.Resources.play_32;
-                toolStripButtonStart.ToolTipText = LanguageManager.GetString("toolTip_ResumeSearch");
+                _model.SeacrhState = SeacrhState.Pause;
+                //_fFunctions.PauseSearch();
+                _searcher.Pause();
+
                 SetVistaProgressState(ThumbnailProgressState.Paused);
-                return;
             }
-            if (_stateofSearch == StateOfSearch.Pause)
+            else if (_model.SeacrhState == SeacrhState.Pause)
             {
-                _stateofSearch = StateOfSearch.Search;
-                _fFunctions.ResumeSearch();
-                toolStripButtonStart.Image = Properties.Resources.pause_32;
+                _model.SeacrhState = SeacrhState.Search;
+                //_fFunctions.ResumeSearch();
+                _searcher.Resume();
                 SetVistaProgressState(ThumbnailProgressState.Normal);
-                return;
             }
-            if (lvDirectorySearch.CheckedIndices.Count == 0)
+            else if (_model.SeacrhState == SeacrhState.ShowDuplicate)
             {
-                MessageBox.Show(LanguageManager.GetString("S_NotSetSearchDir"), LanguageManager.GetString("S_Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (lvDirectorySearch.CheckedIndices.Count == 0)
+                {
+                    MessageBox.Show(LanguageManager.GetString("S_NotSetSearchDir"), LanguageManager.GetString("S_Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                _model.SeacrhState = SeacrhState.Search;
+
+
+                progressBar1.Value = 0;
+                SetVistaProgressValue(Convert.ToUInt64(progressBar1.Value), Convert.ToUInt64(progressBar1.Maximum));
+
+                SetStatusState(StatusState.Search);
+                //ClearPicrureBox();
+
+                Controls_Enabled(false);
+
+                lvDuplicates.Items.Clear();
+
+                _fFunctions.Clear_Search_Directory();
+                _fFunctions.Clear_Skip_Directory();
+
+                //_settings.Fields.SameContent = radioButtonSameContent.Checked;
+                //_settings.Fields.DeepSimilarName = uint.Parse(labelSimilarDeepSize.Text);
+                _settings.Fields.IncludePattern = comboBoxIncludeExtension.Text;
+                _settings.Fields.ExcludePattern = comboBoxExcludeExtension.Text;
+                _settings.Fields.limits = ParseMinMaxSizesFromForm();
+
+
+                ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> directories = GetDirectorySearch();
+           
+
+                SetStatusSearch(LanguageManager.GetString("RetrievingStructure"));
+
+                //_fFunctions.BeginSearch();
+
+                var progressForm = new ProgressForm();
+                //IProgress<ProgressDto> progress = new Progress<ProgressDto>(progressModel =>
+                //{
+                //    if (!progressForm.IsDisposed) // don't attempt to use disposed form
+                //        progressForm.UpdateProgress(progressModel);
+                //});
+
+                IProgress<ProgressDto> progress = new ProgressWithTimer<ProgressDto>(TimeSpan.FromMilliseconds(100), progressModel =>
+                {
+                    if (!progressForm.IsDisposed) // don't attempt to use disposed form
+                        progressForm.UpdateProgress(progressModel);
+                });
+
+                _searcher = new Searcher(
+                    directories,
+                    null,
+                    new SearchSetting(),
+                    _dbManager,
+                    new WindowsUtil(),
+                    progress);
+
+                progressForm.Cancelled += (s, e) => _searcher.Cancell();
+                var progressFormTask = progressForm.ShowDialogAsync();
+
+                try
+                {
+                    await _searcher.Start();
+                }
+                finally
+                {
+                    if (!progressForm.IsDisposed)
+                        progressForm.Close();
+                    await progressFormTask;
+                }
+
+                //результаты возврашает через событие DuplicateFileListAvailableDelegate DuplicatFileListAvailableEventHandler(System.Collections.ArrayList duplicateList)
+
+                SearchEnded(_searcher);
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(_model.SeacrhState));
+            }
+        }
+
+        private void SearchEnded(Searcher searcher)
+        {
+            if (searcher.Duplicates == null || searcher.Duplicates != null && searcher.Duplicates.Count == 0)
+            {
+                SetStatusSearch(LanguageManager.GetString("statusSearch_CompletedJob")); //Completed Job - No files found
+                Controls_Enabled(true);
                 return;
             }
 
-            _stateofSearch = StateOfSearch.Search;
-            toolStripButtonStart.Image = Properties.Resources.pause_32;
-            toolStripButtonCancel.Enabled = true;
-            toolStripButtonStart.ToolTipText = LanguageManager.GetString("toolTip_PauseSearch");
-
+            //_stateofSearch = StateOfSearch.ShowDuplicate;
+            //toolStripButtonCancel.Enabled = false;
             progressBar1.Value = 0;
-            SetVistaProgressValue(Convert.ToUInt64(progressBar1.Value), Convert.ToUInt64(progressBar1.Maximum));
+            SetVistaProgressState(ThumbnailProgressState.NoProgress);
 
-            SetStatusState(StatusState.Search);
-            //ClearPicrureBox();
+            
+            //заполняем наш лист дубликатов _listDuplicates 
+            if (_undoRedoEngine.ListDuplicates != null)
+                _undoRedoEngine.ListDuplicates.Clear();
 
-            Controls_Enabled(false);
+            //foreach (ExtendedFileInfo efi in duplicateList)
+            //{
+            //    _undoRedoEngine.ListDuplicates.Add(efi);
+            //}
 
-            lvDuplicates.Items.Clear();
+            //lvDuplicates.VirtualListSize = searcher.Duplicates.Count;
+            //lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
 
-            _fFunctions.Clear_Search_Directory();
-            _fFunctions.Clear_Skip_Directory();
+            //lvDuplicates.View = View.Details;
+            //lvDuplicates.View = View.List;
+            //lvDuplicates.CheckBoxes = true;
+            //lvDuplicates.OwnerDraw = true;
+            //lvDuplicates.FullRowSelect = true;
 
-            //_settings.Fields.SameContent = radioButtonSameContent.Checked;
-            //_settings.Fields.DeepSimilarName = uint.Parse(labelSimilarDeepSize.Text);
-            _settings.Fields.IncludePattern = comboBoxIncludeExtension.Text;
-            _settings.Fields.ExcludePattern = comboBoxExcludeExtension.Text;
-            _settings.Fields.limits = ParseMinMaxSizesFromForm();
+            _undoRedoEngine.ListDuplicates.Sort(lvwGroupSorter);
+            UpdateColumnSortingIcons();
+
+            _undoRedoEngine.ListDuplicates.ColoringOfGroups();
 
 
+            var duplicates = searcher.Duplicates.SelectMany(d => d.Files).Select(f => new FileViewModel(f)).ToList();
+            //for (int i = 0; i < 300000; i++)
+            //{
+            //    //duplicates.Add(new FileViewModel(new ExtendedFileInfo(new FileInfo("c:\\DumpStack.log"))));
+            //    duplicates.Add(new FileViewModel("c:\\DumpStack.log", 54161));
+            //}
+            _model.Dublicates = duplicates;
+
+            lvDuplicates.VirtualListSize = _model.Dublicates.Count;
+
+            SetWidthOfListView();
+
+            SetStatusState(StatusState.Duplicate); ;
+            SetStatusDuplicate(_fFunctions.DuplicateFileCount, _fFunctions.DuplicateFileSize, true);
+
+            System.Media.SystemSounds.Beep.Play();  // Beep
+
+            Controls_Enabled(true);
+            tabControl1.SelectedTab = tabPageDuplicate;
+        }
+
+        private ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> GetDirectorySearch()
+        {
+            Collection<(string DirectoryPath, bool SearchInSubdirectory)> collection = new Collection<(string DirectoryPath, bool SearchInSubdirectory)>();
             for (int i = 0; i < lvDirectorySearch.CheckedItems.Count; i++)
             {
                 ListViewItem lvi;
                 lvi = lvDirectorySearch.CheckedItems[i];
-                string dir = lvi.Text;
+                string directoryPath = lvi.Text;
                 bool isSubDir = false;
                 if (lvi.SubItems["SubDir"].Text == LanguageManager.GetString("Yes"))
                     isSubDir = true;
                 else if (lvi.SubItems["SubDir"].Text == LanguageManager.GetString("No"))
                     isSubDir = false;
                 else
-                    new CrashReport("lvDirectorySearch.SubItems[SubDir] not equal Yes or No", _settings, lvDirectorySearch).ShowDialog();
+                    throw new ArgumentException("lvDirectorySearch.SubItems[SubDir] not equal Yes or No");
 
                 //System.Diagnostics.Debug.WriteLine("Add directory in fFunctions() " + dir + ", subdir=" + isSubDir);
-                _fFunctions.Add_Search_Directory(dir, isSubDir);
+                //_fFunctions.Add_Search_Directory(dir, isSubDir);
+                collection.Add((directoryPath, isSubDir));
             }
 
             CheckedListBox.CheckedItemCollection cicSkip = checkedListBoxSkipFolder.CheckedItems;
@@ -1191,15 +1389,11 @@ namespace DupTerminator.View
             {
                 foreach (string str in cicSkip)
                 {
-                    _fFunctions.Add_Skip_Directory(str);
+                    //_fFunctions.Add_Skip_Directory(str);
                 }
             }
 
-            SetStatusSearch(LanguageManager.GetString("RetrievingStructure"));
-
-            _fFunctions.BeginSearch();
-
-            //результаты возврашает через событие DuplicateFileListAvailableDelegate DuplicatFileListAvailableEventHandler(System.Collections.ArrayList duplicateList)
+            return new ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)>(collection);
         }
 
         /*private void ClearPicrureBox()
@@ -1219,13 +1413,14 @@ namespace DupTerminator.View
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            if (_stateofSearch == StateOfSearch.Pause)
-            {
-                _fFunctions.ResumeSearch();
-            }
-            _fFunctions.CancelSearch();
+            //if (_model.SeacrhState == SeacrhState.Pause)
+            //{
+            //    _fFunctions.ResumeSearch();
+            //}
+            //_fFunctions.CancelSearch();
 
-            _stateofSearch = StateOfSearch.ShowDuplicate;
+            _searcher?.Cancell();
+            _model.SeacrhState = SeacrhState.ShowDuplicate;
             progressBar1.Value = 0;
             SetVistaProgressState(ThumbnailProgressState.NoProgress);
         }
@@ -1900,7 +2095,7 @@ namespace DupTerminator.View
         private void Controls_Enabled(bool enable)
         {
             //btnStart.Enabled = enable;
-            toolStripButtonCancel.Enabled = !enable;
+            //toolStripButtonCancel.Enabled = !enable;
             lvDirectorySearch.Enabled = enable;
             checkedListBoxSkipFolder.Enabled = enable;
             lvDuplicates.Enabled = enable;
@@ -1918,17 +2113,6 @@ namespace DupTerminator.View
             toolStripMenuItem_Settings.Enabled = enable;
             toolStripMenuItem_Save.Enabled = enable;
             toolStripMenuItem_Load.Enabled = enable;
-
-            //ControlBox = enable;
-            if (enable == true)
-            {
-                toolStripButtonStart.Image = Properties.Resources.play_32;
-                toolStripButtonStart.ToolTipText = LanguageManager.GetString("toolTip_buttonStart");
-            }
-            else
-            {
-                toolStripButtonStart.Image = Properties.Resources.pause_32;
-            }
         }
 
         /// <summary>
@@ -1937,8 +2121,12 @@ namespace DupTerminator.View
         /// <param name="lv"></param>
         private void Set_ListViewItemDupl(ListView lv)
         {
+            Debug.WriteLine(CultureInfo.CurrentCulture);
+            Debug.WriteLine(CultureInfo.CurrentUICulture);
+
             ColumnHeader colHead = new ColumnHeader();
-            colHead.Text = LanguageManager.GetString("ListViewColumn_FileName");
+            colHead.Text = _stringLocalizer["File Name"];
+            //colHead.Text = LanguageManager.GetString("ListViewColumn_FileName");
             lv.Columns.Add(colHead);
 
             colHead = new ColumnHeader();
@@ -3430,24 +3618,30 @@ namespace DupTerminator.View
             if (!_beginUpdate)
             {
                 int index = e.ItemIndex;
-                if (index >= _undoRedoEngine.ListDuplicates.Items.Count)
+                //if (index >= _undoRedoEngine.ListDuplicates.Items.Count)
+                if (index >= _model.Dublicates.Count)
                 {
-                    MessageBox.Show(this, String.Format("RetrieveVirtualItem: index ({0}) >= ListDuplicates.Items ({1}), lvDuplicates.VirtualListSize ({2})", 
-                        index, _undoRedoEngine.ListDuplicates.Items.Count, lvDuplicates.VirtualListSize), "Errror", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
-                    return;
+                    throw new ArgumentOutOfRangeException($"RetrieveVirtualItem: index({index}) >= ListDuplicates.Items({_undoRedoEngine.ListDuplicates.Items.Count}), lvDuplicates.VirtualListSize({lvDuplicates.VirtualListSize})");
                 }
-                /*if (index > lvDuplicates.VirtualListSize)
-                    new CrashReport("index > lvDuplicates.VirtualListSize", _settings, lvDuplicates, _undoRedoEngine.ListDuplicates.Items).ShowDialog();
-                if (index < 0)
-                    new CrashReport("index < 0", _settings, lvDuplicates, _undoRedoEngine.ListDuplicates.Items).ShowDialog();*/
-                ListViewItem item = new ListViewItem(
+
+                ListViewItem listViewItem = new ListViewItem(
+                    new string[]
+                    {
+                        _model.Dublicates[index].Checksum,
+                        _model.Dublicates[index].Path,
+                        "",
+                        "",
+                        "",
+                        "",
+                    });
+
+                /*
+                ListViewItem listViewItem = new ListViewItem(
                         new string[]
                     {
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[0].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[1].Text,
                         GetStringToSize(ulong.Parse(_undoRedoEngine.ListDuplicates.Items[index].SubItems[2].Text), "F01"),
-                        //_undoRedoEngine.ListDuplicates.Items[index].SubItems[2].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[3].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[4].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[5].Text
@@ -3457,21 +3651,22 @@ namespace DupTerminator.View
 
                 if (_undoRedoEngine.ListDuplicates.Items[index].Checked)
                 {
-                    item.Checked = true;
-                    item.Checked = false;
-                    item.Checked = true;
-                    item.Font = _fontStrikeout;
+                    listViewItem.Checked = true;
+                    listViewItem.Checked = false;
+                    listViewItem.Checked = true;
+                    listViewItem.Font = _fontStrikeout;
                 }
                 else
                 {
-                    item.Checked = true;
-                    item.Checked = false;
-                    item.Font = _fontRegular;
+                    listViewItem.Checked = true;
+                    listViewItem.Checked = false;
+                    listViewItem.Font = _fontRegular;
                 }
 
-                item.BackColor = _undoRedoEngine.ListDuplicates.Items[index].Color.ToColor();
+                listViewItem.BackColor = _undoRedoEngine.ListDuplicates.Items[index].Color.ToColor();
+                */
 
-                e.Item = item;
+                e.Item = listViewItem;
             }
             else
             {

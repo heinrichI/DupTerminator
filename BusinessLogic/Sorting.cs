@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using DupTerminator.View;
-using DupTerminator.Unsafe;
 using DupTerminator.BusinessLogic;
 
-namespace DupTerminator
+namespace DupTerminator.BusinessLogic
 {
     //#region "Sorting Functions"
     /// <summary>
@@ -65,19 +63,19 @@ namespace DupTerminator
             ExtendedFileInfo efi1 = (ExtendedFileInfo)object1;
             ExtendedFileInfo efi2 = (ExtendedFileInfo)object2;
 
-            if (FastCheck && (efi1.fileInfo.Length >= FastCheckFileSize))
-                if (FirstBytesEqual(efi1, efi2))
-                    return (int)string.Compare(efi1.GetCheckSum(_dbManager), efi2.GetCheckSum(_dbManager));
-                else
-                    return 0;
-            else
+            //if (FastCheck && (efi1.fileInfo.Length >= FastCheckFileSize))
+            //    if (FirstBytesEqual(efi1, efi2))
+            //        return (int)string.Compare(efi1.GetCheckSum(_dbManager), efi2.GetCheckSum(_dbManager));
+            //    else
+            //        return 0;
+            //else
                 return (int)string.Compare(efi1.GetCheckSum(_dbManager), efi2.GetCheckSum(_dbManager));
         }
 
         /// <summary>
         /// Return true if first 1024 bytes are equal.
         /// </summary>
-        private bool FirstBytesEqual(ExtendedFileInfo efi1, ExtendedFileInfo efi2)
+        /*private bool FirstBytesEqual(ExtendedFileInfo efi1, ExtendedFileInfo efi2)
         {
             try
             {
@@ -117,7 +115,7 @@ namespace DupTerminator
 			{
 				return false;
 			}
-        }
+        }*/
 
         
     }

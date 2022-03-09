@@ -45,6 +45,7 @@ namespace DupTerminator.View
             this.tmsi_Dubli_SelectByDateNewestFiles = new System.Windows.Forms.ToolStripMenuItem();
             this.tmsi_Dubli_SelectAllInThisFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.tmsi_Dubli_SelectGroup = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tmsi_Dubli_CopyPath = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -137,8 +138,8 @@ namespace DupTerminator.View
             this.tsmi_Select_biggestNumberInEachGroup = new System.Windows.Forms.ToolStripMenuItem();
             this.tsmi_Select_lowestNumberInEachGroup = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.toolStripButtonStart = new Control.BindableToolStripButton();
-            this.toolStripButtonCancel = new System.Windows.Forms.ToolStripButton();
+            this.toolStripButtonStart = new DupTerminator.Control.BindableToolStripButton();
+            this.toolStripButtonCancel = new DupTerminator.Control.BindableToolStripButton();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripButtonUndo = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonRedo = new System.Windows.Forms.ToolStripButton();
@@ -149,10 +150,10 @@ namespace DupTerminator.View
             this.toolStripButtonSelectBy = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonSettings = new System.Windows.Forms.ToolStripButton();
             this.toolStripButtonRefresh = new System.Windows.Forms.ToolStripButton();
-            this.tmsi_Dubli_SelectGroup = new System.Windows.Forms.ToolStripMenuItem();
             this.cmsDuplicates.SuspendLayout();
             this.cmsDirectorySearch.SuspendLayout();
             this.menuMain.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.tabControl1.SuspendLayout();
@@ -176,15 +177,18 @@ namespace DupTerminator.View
             // 
             // statusStrip1
             // 
-            this.statusStrip1.Location = new System.Drawing.Point(0, 541);
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 1061);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(843, 22);
+            this.statusStrip1.Padding = new System.Windows.Forms.Padding(2, 0, 23, 0);
+            this.statusStrip1.Size = new System.Drawing.Size(1405, 22);
             this.statusStrip1.TabIndex = 13;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // LabelStaStrip1
             // 
             this.LabelStaStrip1.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.LabelStaStrip1.Margin = new System.Windows.Forms.Padding(0, 3, 0, 2);
             this.LabelStaStrip1.Name = "LabelStaStrip1";
             this.LabelStaStrip1.Size = new System.Drawing.Size(67, 19);
             this.LabelStaStrip1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -192,6 +196,7 @@ namespace DupTerminator.View
             // LabelStaStrip2
             // 
             this.LabelStaStrip2.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.LabelStaStrip2.Margin = new System.Windows.Forms.Padding(0, 3, 0, 2);
             this.LabelStaStrip2.Name = "LabelStaStrip2";
             this.LabelStaStrip2.Size = new System.Drawing.Size(99, 19);
             this.LabelStaStrip2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -199,6 +204,7 @@ namespace DupTerminator.View
             // LabelStaStrip3
             // 
             this.LabelStaStrip3.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.LabelStaStrip3.Margin = new System.Windows.Forms.Padding(0, 3, 0, 2);
             this.LabelStaStrip3.Name = "LabelStaStrip3";
             this.LabelStaStrip3.Size = new System.Drawing.Size(86, 19);
             this.LabelStaStrip3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -206,12 +212,14 @@ namespace DupTerminator.View
             // LabelStaStrip4
             // 
             this.LabelStaStrip4.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
+            this.LabelStaStrip4.Margin = new System.Windows.Forms.Padding(0, 3, 0, 2);
             this.LabelStaStrip4.Name = "LabelStaStrip4";
             this.LabelStaStrip4.Size = new System.Drawing.Size(81, 19);
             this.LabelStaStrip4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // LabelStaStrip5
             // 
+            this.LabelStaStrip5.Margin = new System.Windows.Forms.Padding(0, 3, 0, 2);
             this.LabelStaStrip5.Name = "LabelStaStrip5";
             this.LabelStaStrip5.Size = new System.Drawing.Size(495, 19);
             this.LabelStaStrip5.Spring = true;
@@ -219,6 +227,7 @@ namespace DupTerminator.View
             // 
             // cmsDuplicates
             // 
+            this.cmsDuplicates.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.cmsDuplicates.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tmsi_Dubli_SelectAll,
             this.tmsi_Dubli_DeSelectAll,
@@ -240,27 +249,27 @@ namespace DupTerminator.View
             this.toolStripSeparator5,
             this.tmsi_Dubli_Delete});
             this.cmsDuplicates.Name = "cmsDuplicates";
-            this.cmsDuplicates.Size = new System.Drawing.Size(359, 380);
+            this.cmsDuplicates.Size = new System.Drawing.Size(519, 508);
             this.cmsDuplicates.Opening += new System.ComponentModel.CancelEventHandler(this.cmsDuplicates_Opening);
             // 
             // tmsi_Dubli_SelectAll
             // 
             this.tmsi_Dubli_SelectAll.Name = "tmsi_Dubli_SelectAll";
-            this.tmsi_Dubli_SelectAll.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_SelectAll.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_SelectAll.Text = "Select All";
             this.tmsi_Dubli_SelectAll.Click += new System.EventHandler(this.tmsi_Dubli_SelectAll_Click);
             // 
             // tmsi_Dubli_DeSelectAll
             // 
             this.tmsi_Dubli_DeSelectAll.Name = "tmsi_Dubli_DeSelectAll";
-            this.tmsi_Dubli_DeSelectAll.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_DeSelectAll.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_DeSelectAll.Text = "Unselect All";
             this.tmsi_Dubli_DeSelectAll.Click += new System.EventHandler(this.tmsi_Dubli_DeSelectAll_Click);
             // 
             // tmsi_Dubli_SelectAllButOne
             // 
             this.tmsi_Dubli_SelectAllButOne.Name = "tmsi_Dubli_SelectAllButOne";
-            this.tmsi_Dubli_SelectAllButOne.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_SelectAllButOne.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_SelectAllButOne.Text = "Select All But One";
             this.tmsi_Dubli_SelectAllButOne.Click += new System.EventHandler(this.tmsi_Dubli_SelectAllButOne_Click);
             // 
@@ -270,20 +279,20 @@ namespace DupTerminator.View
             this.tmsi_Dubli_SelectByDateOldestFiles,
             this.tmsi_Dubli_SelectByDateNewestFiles});
             this.ToolStripMenuItem_SelectByDate.Name = "ToolStripMenuItem_SelectByDate";
-            this.ToolStripMenuItem_SelectByDate.Size = new System.Drawing.Size(358, 22);
+            this.ToolStripMenuItem_SelectByDate.Size = new System.Drawing.Size(518, 32);
             this.ToolStripMenuItem_SelectByDate.Text = "Select By Date in Group with This Folders";
             // 
             // tmsi_Dubli_SelectByDateOldestFiles
             // 
             this.tmsi_Dubli_SelectByDateOldestFiles.Name = "tmsi_Dubli_SelectByDateOldestFiles";
-            this.tmsi_Dubli_SelectByDateOldestFiles.Size = new System.Drawing.Size(185, 22);
+            this.tmsi_Dubli_SelectByDateOldestFiles.Size = new System.Drawing.Size(281, 34);
             this.tmsi_Dubli_SelectByDateOldestFiles.Text = "Oldest files in group";
             this.tmsi_Dubli_SelectByDateOldestFiles.Click += new System.EventHandler(this.tmsi_Dubli_SelectByDateOldestFiles_Click);
             // 
             // tmsi_Dubli_SelectByDateNewestFiles
             // 
             this.tmsi_Dubli_SelectByDateNewestFiles.Name = "tmsi_Dubli_SelectByDateNewestFiles";
-            this.tmsi_Dubli_SelectByDateNewestFiles.Size = new System.Drawing.Size(185, 22);
+            this.tmsi_Dubli_SelectByDateNewestFiles.Size = new System.Drawing.Size(281, 34);
             this.tmsi_Dubli_SelectByDateNewestFiles.Text = "Newest files in group";
             this.tmsi_Dubli_SelectByDateNewestFiles.Click += new System.EventHandler(this.tmsi_Dubli_SelectByDateNewestFiles_Click);
             // 
@@ -291,7 +300,7 @@ namespace DupTerminator.View
             // 
             this.tmsi_Dubli_SelectAllInThisFolder.Name = "tmsi_Dubli_SelectAllInThisFolder";
             this.tmsi_Dubli_SelectAllInThisFolder.ShortcutKeys = System.Windows.Forms.Keys.F6;
-            this.tmsi_Dubli_SelectAllInThisFolder.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_SelectAllInThisFolder.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_SelectAllInThisFolder.Text = "Select All in This Folder";
             this.tmsi_Dubli_SelectAllInThisFolder.Click += new System.EventHandler(this.tmsi_Dubli_SelectAllInThisFolder_Click);
             // 
@@ -299,33 +308,40 @@ namespace DupTerminator.View
             // 
             this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Name = "tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder";
             this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.ShortcutKeys = System.Windows.Forms.Keys.F5;
-            this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Text = "Select All in This Folder (in group with this folders)";
             this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolder.Click += new System.EventHandler(this.tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolders_Click);
+            // 
+            // tmsi_Dubli_SelectGroup
+            // 
+            this.tmsi_Dubli_SelectGroup.Name = "tmsi_Dubli_SelectGroup";
+            this.tmsi_Dubli_SelectGroup.Size = new System.Drawing.Size(518, 32);
+            this.tmsi_Dubli_SelectGroup.Text = "Select group";
+            this.tmsi_Dubli_SelectGroup.Click += new System.EventHandler(this.tmsi_Dubli_SelectGroup_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(355, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(515, 6);
             // 
             // tmsi_Dubli_CopyPath
             // 
             this.tmsi_Dubli_CopyPath.Name = "tmsi_Dubli_CopyPath";
             this.tmsi_Dubli_CopyPath.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.B)));
-            this.tmsi_Dubli_CopyPath.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_CopyPath.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_CopyPath.Text = "Copy Path";
             this.tmsi_Dubli_CopyPath.Click += new System.EventHandler(this.tmsi_Dubli_CopyPath_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(355, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(515, 6);
             // 
             // tmsi_Dubli_RenameFile
             // 
             this.tmsi_Dubli_RenameFile.Name = "tmsi_Dubli_RenameFile";
             this.tmsi_Dubli_RenameFile.ShortcutKeys = System.Windows.Forms.Keys.F2;
-            this.tmsi_Dubli_RenameFile.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_RenameFile.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_RenameFile.Text = "Rename File";
             this.tmsi_Dubli_RenameFile.Click += new System.EventHandler(this.tmsi_Dubli_RenameFile_Click);
             // 
@@ -333,7 +349,7 @@ namespace DupTerminator.View
             // 
             this.tmsi_Dubli_RenameFileLikeNeighbour.Name = "tmsi_Dubli_RenameFileLikeNeighbour";
             this.tmsi_Dubli_RenameFileLikeNeighbour.ShortcutKeys = System.Windows.Forms.Keys.F3;
-            this.tmsi_Dubli_RenameFileLikeNeighbour.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_RenameFileLikeNeighbour.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_RenameFileLikeNeighbour.Text = "Rename File like Neighbour";
             this.tmsi_Dubli_RenameFileLikeNeighbour.Click += new System.EventHandler(this.tmsi_Dubli_RenameFileLikeNeighbour_Click);
             // 
@@ -342,7 +358,7 @@ namespace DupTerminator.View
             this.tmsi_Dubli_MoveSelectedFilesToFolder.Image = ((System.Drawing.Image)(resources.GetObject("tmsi_Dubli_MoveSelectedFilesToFolder.Image")));
             this.tmsi_Dubli_MoveSelectedFilesToFolder.Name = "tmsi_Dubli_MoveSelectedFilesToFolder";
             this.tmsi_Dubli_MoveSelectedFilesToFolder.ShortcutKeys = System.Windows.Forms.Keys.F8;
-            this.tmsi_Dubli_MoveSelectedFilesToFolder.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_MoveSelectedFilesToFolder.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_MoveSelectedFilesToFolder.Text = "Move Selected Files to Folder";
             this.tmsi_Dubli_MoveSelectedFilesToFolder.Click += new System.EventHandler(this.tmsi_Dubli_MoveSelectedFilesToFolder_Click);
             // 
@@ -350,44 +366,45 @@ namespace DupTerminator.View
             // 
             this.tmsi_Dubli_MoveFileToNeighbour.Name = "tmsi_Dubli_MoveFileToNeighbour";
             this.tmsi_Dubli_MoveFileToNeighbour.ShortcutKeys = System.Windows.Forms.Keys.F7;
-            this.tmsi_Dubli_MoveFileToNeighbour.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_MoveFileToNeighbour.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_MoveFileToNeighbour.Text = "Move File to Neighbour";
             this.tmsi_Dubli_MoveFileToNeighbour.Click += new System.EventHandler(this.tmsi_Dubli_MoveFileToNeighbour_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(355, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(515, 6);
             // 
             // tmsi_Dubli_DeleteGroup
             // 
             this.tmsi_Dubli_DeleteGroup.Name = "tmsi_Dubli_DeleteGroup";
-            this.tmsi_Dubli_DeleteGroup.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_DeleteGroup.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_DeleteGroup.Text = "Delete Group from List";
             this.tmsi_Dubli_DeleteGroup.Click += new System.EventHandler(this.tmsi_Dubli_DeleteGroup_Click);
             // 
             // tmsi_Dubli_AddDirectoryToSkipped
             // 
             this.tmsi_Dubli_AddDirectoryToSkipped.Name = "tmsi_Dubli_AddDirectoryToSkipped";
-            this.tmsi_Dubli_AddDirectoryToSkipped.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_AddDirectoryToSkipped.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_AddDirectoryToSkipped.Text = "Add directory to skipped";
             this.tmsi_Dubli_AddDirectoryToSkipped.Click += new System.EventHandler(this.tmsi_Dubli_AddDirectoryToSkipped_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(355, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(515, 6);
             // 
             // tmsi_Dubli_Delete
             // 
             this.tmsi_Dubli_Delete.Image = global::DupTerminator.Properties.Resources.DeleteIcon16;
             this.tmsi_Dubli_Delete.Name = "tmsi_Dubli_Delete";
-            this.tmsi_Dubli_Delete.Size = new System.Drawing.Size(358, 22);
+            this.tmsi_Dubli_Delete.Size = new System.Drawing.Size(518, 32);
             this.tmsi_Dubli_Delete.Text = "Delete";
             this.tmsi_Dubli_Delete.Click += new System.EventHandler(this.tmsi_Dubli_Delete_Click);
             // 
             // cmsDirectorySearch
             // 
+            this.cmsDirectorySearch.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.cmsDirectorySearch.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsmi_Search_Add,
             this.tsmi_Search_Edit,
@@ -396,50 +413,51 @@ namespace DupTerminator.View
             this.tsmi_Search_SelectAll,
             this.tsmi_Search_DeselectAll});
             this.cmsDirectorySearch.Name = "cmsDirectorySearch";
-            this.cmsDirectorySearch.Size = new System.Drawing.Size(127, 120);
+            this.cmsDirectorySearch.Size = new System.Drawing.Size(162, 170);
             // 
             // tsmi_Search_Add
             // 
             this.tsmi_Search_Add.Name = "tsmi_Search_Add";
-            this.tsmi_Search_Add.Size = new System.Drawing.Size(126, 22);
+            this.tsmi_Search_Add.Size = new System.Drawing.Size(161, 32);
             this.tsmi_Search_Add.Text = "Add";
             this.tsmi_Search_Add.Click += new System.EventHandler(this.tsmi_Search_Add_Click);
             // 
             // tsmi_Search_Edit
             // 
             this.tsmi_Search_Edit.Name = "tsmi_Search_Edit";
-            this.tsmi_Search_Edit.Size = new System.Drawing.Size(126, 22);
+            this.tsmi_Search_Edit.Size = new System.Drawing.Size(161, 32);
             this.tsmi_Search_Edit.Text = "Edit";
             this.tsmi_Search_Edit.Click += new System.EventHandler(this.tsmi_Search_Edit_Click);
             // 
             // tsmi_Search_Delete
             // 
             this.tsmi_Search_Delete.Name = "tsmi_Search_Delete";
-            this.tsmi_Search_Delete.Size = new System.Drawing.Size(126, 22);
+            this.tsmi_Search_Delete.Size = new System.Drawing.Size(161, 32);
             this.tsmi_Search_Delete.Text = "Delete";
             this.tsmi_Search_Delete.Click += new System.EventHandler(this.tsmi_Search_Delete_Click);
             // 
             // toolStripSeparator8
             // 
             this.toolStripSeparator8.Name = "toolStripSeparator8";
-            this.toolStripSeparator8.Size = new System.Drawing.Size(123, 6);
+            this.toolStripSeparator8.Size = new System.Drawing.Size(158, 6);
             // 
             // tsmi_Search_SelectAll
             // 
             this.tsmi_Search_SelectAll.Name = "tsmi_Search_SelectAll";
-            this.tsmi_Search_SelectAll.Size = new System.Drawing.Size(126, 22);
+            this.tsmi_Search_SelectAll.Size = new System.Drawing.Size(161, 32);
             this.tsmi_Search_SelectAll.Text = "SelectAll";
             this.tsmi_Search_SelectAll.Click += new System.EventHandler(this.tsmi_Search_SelectAll_Click);
             // 
             // tsmi_Search_DeselectAll
             // 
             this.tsmi_Search_DeselectAll.Name = "tsmi_Search_DeselectAll";
-            this.tsmi_Search_DeselectAll.Size = new System.Drawing.Size(126, 22);
+            this.tsmi_Search_DeselectAll.Size = new System.Drawing.Size(161, 32);
             this.tsmi_Search_DeselectAll.Text = "DeselctAll";
             this.tsmi_Search_DeselectAll.Click += new System.EventHandler(this.tsmi_Search_DeselectAll_Click);
             // 
             // menuMain
             // 
+            this.menuMain.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem_Job,
             this.toolStripMenuItem_Options,
@@ -448,7 +466,8 @@ namespace DupTerminator.View
             this.toolStripMenuItem_VersionInfo});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(843, 24);
+            this.menuMain.Padding = new System.Windows.Forms.Padding(10, 4, 0, 4);
+            this.menuMain.Size = new System.Drawing.Size(1405, 37);
             this.menuMain.Stretch = false;
             this.menuMain.TabIndex = 24;
             this.menuMain.Text = "menuStrip1";
@@ -462,20 +481,20 @@ namespace DupTerminator.View
             this.toolStripMenuItem_CurrentText,
             this.toolStripMenuItem_Current});
             this.toolStripMenuItem_Job.Name = "toolStripMenuItem_Job";
-            this.toolStripMenuItem_Job.Size = new System.Drawing.Size(37, 20);
+            this.toolStripMenuItem_Job.Size = new System.Drawing.Size(56, 29);
             this.toolStripMenuItem_Job.Text = "Job";
             // 
             // toolStripMenuItem_Save
             // 
             this.toolStripMenuItem_Save.Name = "toolStripMenuItem_Save";
-            this.toolStripMenuItem_Save.Size = new System.Drawing.Size(117, 22);
+            this.toolStripMenuItem_Save.Size = new System.Drawing.Size(176, 34);
             this.toolStripMenuItem_Save.Text = "Save";
             this.toolStripMenuItem_Save.Click += new System.EventHandler(this.toolStripMenuItem_Save_Click);
             // 
             // toolStripMenuItem_Load
             // 
             this.toolStripMenuItem_Load.Name = "toolStripMenuItem_Load";
-            this.toolStripMenuItem_Load.Size = new System.Drawing.Size(117, 22);
+            this.toolStripMenuItem_Load.Size = new System.Drawing.Size(176, 34);
             this.toolStripMenuItem_Load.Text = "Load";
             this.toolStripMenuItem_Load.Click += new System.EventHandler(this.toolStripMenuItem_Load_Click);
             // 
@@ -483,14 +502,14 @@ namespace DupTerminator.View
             // 
             this.toolStripMenuItem_CurrentText.Enabled = false;
             this.toolStripMenuItem_CurrentText.Name = "toolStripMenuItem_CurrentText";
-            this.toolStripMenuItem_CurrentText.Size = new System.Drawing.Size(117, 22);
+            this.toolStripMenuItem_CurrentText.Size = new System.Drawing.Size(176, 34);
             this.toolStripMenuItem_CurrentText.Text = "Current:";
             // 
             // toolStripMenuItem_Current
             // 
             this.toolStripMenuItem_Current.Enabled = false;
             this.toolStripMenuItem_Current.Name = "toolStripMenuItem_Current";
-            this.toolStripMenuItem_Current.Size = new System.Drawing.Size(117, 22);
+            this.toolStripMenuItem_Current.Size = new System.Drawing.Size(176, 34);
             this.toolStripMenuItem_Current.Text = "Job";
             // 
             // toolStripMenuItem_Options
@@ -499,20 +518,20 @@ namespace DupTerminator.View
             this.toolStripMenuItem_Language,
             this.toolStripMenuItem_Settings});
             this.toolStripMenuItem_Options.Name = "toolStripMenuItem_Options";
-            this.toolStripMenuItem_Options.Size = new System.Drawing.Size(61, 20);
+            this.toolStripMenuItem_Options.Size = new System.Drawing.Size(92, 29);
             this.toolStripMenuItem_Options.Text = "Options";
             // 
             // toolStripMenuItem_Language
             // 
             this.toolStripMenuItem_Language.Name = "toolStripMenuItem_Language";
-            this.toolStripMenuItem_Language.Size = new System.Drawing.Size(126, 22);
+            this.toolStripMenuItem_Language.Size = new System.Drawing.Size(191, 34);
             this.toolStripMenuItem_Language.Text = "Language";
             // 
             // toolStripMenuItem_Settings
             // 
             this.toolStripMenuItem_Settings.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_Settings.Image")));
             this.toolStripMenuItem_Settings.Name = "toolStripMenuItem_Settings";
-            this.toolStripMenuItem_Settings.Size = new System.Drawing.Size(126, 22);
+            this.toolStripMenuItem_Settings.Size = new System.Drawing.Size(191, 34);
             this.toolStripMenuItem_Settings.Text = "Settings";
             this.toolStripMenuItem_Settings.Click += new System.EventHandler(this.MainMenuItem_Click_Setting);
             // 
@@ -522,7 +541,7 @@ namespace DupTerminator.View
             this.toolStripMenuItem_Orientation,
             this.toolStripMenuItem_FullScreen});
             this.toolStripMenuItem_View.Name = "toolStripMenuItem_View";
-            this.toolStripMenuItem_View.Size = new System.Drawing.Size(44, 20);
+            this.toolStripMenuItem_View.Size = new System.Drawing.Size(65, 29);
             this.toolStripMenuItem_View.Text = "View";
             // 
             // toolStripMenuItem_Orientation
@@ -531,14 +550,14 @@ namespace DupTerminator.View
             this.toolStripMenuItem_Horizontal,
             this.toolStripMenuItem_Vertical});
             this.toolStripMenuItem_Orientation.Name = "toolStripMenuItem_Orientation";
-            this.toolStripMenuItem_Orientation.Size = new System.Drawing.Size(158, 22);
+            this.toolStripMenuItem_Orientation.Size = new System.Drawing.Size(241, 34);
             this.toolStripMenuItem_Orientation.Text = "&Orientation";
             // 
             // toolStripMenuItem_Horizontal
             // 
             this.toolStripMenuItem_Horizontal.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_Horizontal.Image")));
             this.toolStripMenuItem_Horizontal.Name = "toolStripMenuItem_Horizontal";
-            this.toolStripMenuItem_Horizontal.Size = new System.Drawing.Size(129, 22);
+            this.toolStripMenuItem_Horizontal.Size = new System.Drawing.Size(196, 34);
             this.toolStripMenuItem_Horizontal.Text = "&Horizontal";
             this.toolStripMenuItem_Horizontal.Click += new System.EventHandler(this.MainMenuItem_Click_Horizontal);
             // 
@@ -546,7 +565,7 @@ namespace DupTerminator.View
             // 
             this.toolStripMenuItem_Vertical.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_Vertical.Image")));
             this.toolStripMenuItem_Vertical.Name = "toolStripMenuItem_Vertical";
-            this.toolStripMenuItem_Vertical.Size = new System.Drawing.Size(129, 22);
+            this.toolStripMenuItem_Vertical.Size = new System.Drawing.Size(196, 34);
             this.toolStripMenuItem_Vertical.Text = "&Vertical";
             this.toolStripMenuItem_Vertical.Click += new System.EventHandler(this.MainMenuItem_Click_Vertical);
             // 
@@ -556,7 +575,7 @@ namespace DupTerminator.View
             this.toolStripMenuItem_FullScreen.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_FullScreen.Image")));
             this.toolStripMenuItem_FullScreen.Name = "toolStripMenuItem_FullScreen";
             this.toolStripMenuItem_FullScreen.ShortcutKeys = System.Windows.Forms.Keys.F12;
-            this.toolStripMenuItem_FullScreen.Size = new System.Drawing.Size(158, 22);
+            this.toolStripMenuItem_FullScreen.Size = new System.Drawing.Size(241, 34);
             this.toolStripMenuItem_FullScreen.Text = "&Full-Screen";
             this.toolStripMenuItem_FullScreen.CheckedChanged += new System.EventHandler(this.MainMenuItem_CheckedChanged_FullScreen);
             // 
@@ -566,48 +585,49 @@ namespace DupTerminator.View
             this.toolStripMenuItem_CheckForUpdate,
             this.toolStripMenuItem_About});
             this.toolStripMenuItem_Help.Name = "toolStripMenuItem_Help";
-            this.toolStripMenuItem_Help.Size = new System.Drawing.Size(44, 20);
+            this.toolStripMenuItem_Help.Size = new System.Drawing.Size(65, 29);
             this.toolStripMenuItem_Help.Text = "&Help";
             // 
             // toolStripMenuItem_CheckForUpdate
             // 
             this.toolStripMenuItem_CheckForUpdate.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_CheckForUpdate.Image")));
             this.toolStripMenuItem_CheckForUpdate.Name = "toolStripMenuItem_CheckForUpdate";
-            this.toolStripMenuItem_CheckForUpdate.Size = new System.Drawing.Size(166, 22);
+            this.toolStripMenuItem_CheckForUpdate.Size = new System.Drawing.Size(252, 34);
             this.toolStripMenuItem_CheckForUpdate.Text = "Check for &Update";
             this.toolStripMenuItem_CheckForUpdate.Click += new System.EventHandler(this.MainMenuItem_CheckForUpdate_Click);
             // 
             // toolStripMenuItem_About
             // 
             this.toolStripMenuItem_About.Name = "toolStripMenuItem_About";
-            this.toolStripMenuItem_About.Size = new System.Drawing.Size(166, 22);
+            this.toolStripMenuItem_About.Size = new System.Drawing.Size(252, 34);
             this.toolStripMenuItem_About.Text = "&About";
             // 
             // toolStripMenuItem_VersionInfo
             // 
             this.toolStripMenuItem_VersionInfo.Image = ((System.Drawing.Image)(resources.GetObject("toolStripMenuItem_VersionInfo.Image")));
             this.toolStripMenuItem_VersionInfo.Name = "toolStripMenuItem_VersionInfo";
-            this.toolStripMenuItem_VersionInfo.Size = new System.Drawing.Size(98, 20);
+            this.toolStripMenuItem_VersionInfo.Size = new System.Drawing.Size(147, 29);
             this.toolStripMenuItem_VersionInfo.Text = "Version Info";
             this.toolStripMenuItem_VersionInfo.Visible = false;
             this.toolStripMenuItem_VersionInfo.Click += new System.EventHandler(this.MainMenuItem_VersionInfo_Click);
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.splitContainer1.Location = new System.Drawing.Point(0, 52);
+            this.splitContainer1.Location = new System.Drawing.Point(0, 100);
+            this.splitContainer1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.tabControl1);
             this.splitContainer1.Panel2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
-            this.splitContainer1.Size = new System.Drawing.Size(843, 486);
-            this.splitContainer1.SplitterDistance = 150;
-            this.splitContainer1.SplitterWidth = 3;
+            this.splitContainer1.Size = new System.Drawing.Size(1405, 935);
+            this.splitContainer1.SplitterDistance = 250;
+            this.splitContainer1.SplitterWidth = 5;
             this.splitContainer1.TabIndex = 6;
             this.splitContainer1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
             // 
@@ -618,9 +638,10 @@ namespace DupTerminator.View
             this.tabControl1.Controls.Add(this.tabPageDuplicate);
             this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(686, 482);
+            this.tabControl1.Size = new System.Drawing.Size(1146, 931);
             this.tabControl1.TabIndex = 14;
             // 
             // tabPageSearchCriteria
@@ -629,10 +650,11 @@ namespace DupTerminator.View
             this.tabPageSearchCriteria.Controls.Add(this.groupBoxFileFilter);
             this.tabPageSearchCriteria.Controls.Add(this.groupBoxLessThan);
             this.tabPageSearchCriteria.Controls.Add(this.groupBoxMoreThan);
-            this.tabPageSearchCriteria.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSearchCriteria.Location = new System.Drawing.Point(4, 34);
+            this.tabPageSearchCriteria.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPageSearchCriteria.Name = "tabPageSearchCriteria";
-            this.tabPageSearchCriteria.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSearchCriteria.Size = new System.Drawing.Size(678, 456);
+            this.tabPageSearchCriteria.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tabPageSearchCriteria.Size = new System.Drawing.Size(1138, 893);
             this.tabPageSearchCriteria.TabIndex = 3;
             this.tabPageSearchCriteria.Text = "Search Criteria";
             this.tabPageSearchCriteria.UseVisualStyleBackColor = true;
@@ -640,9 +662,10 @@ namespace DupTerminator.View
             // checkBoxSameName
             // 
             this.checkBoxSameName.AutoSize = true;
-            this.checkBoxSameName.Location = new System.Drawing.Point(307, 30);
+            this.checkBoxSameName.Location = new System.Drawing.Point(512, 58);
+            this.checkBoxSameName.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.checkBoxSameName.Name = "checkBoxSameName";
-            this.checkBoxSameName.Size = new System.Drawing.Size(103, 17);
+            this.checkBoxSameName.Size = new System.Drawing.Size(165, 29);
             this.checkBoxSameName.TabIndex = 0;
             this.checkBoxSameName.Text = "Same File Name";
             this.checkBoxSameName.UseVisualStyleBackColor = true;
@@ -652,9 +675,11 @@ namespace DupTerminator.View
             // 
             this.groupBoxFileFilter.Controls.Add(this.panel3);
             this.groupBoxFileFilter.Controls.Add(this.panel2);
-            this.groupBoxFileFilter.Location = new System.Drawing.Point(12, 128);
+            this.groupBoxFileFilter.Location = new System.Drawing.Point(20, 246);
+            this.groupBoxFileFilter.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.groupBoxFileFilter.Name = "groupBoxFileFilter";
-            this.groupBoxFileFilter.Size = new System.Drawing.Size(411, 90);
+            this.groupBoxFileFilter.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.groupBoxFileFilter.Size = new System.Drawing.Size(685, 173);
             this.groupBoxFileFilter.TabIndex = 21;
             this.groupBoxFileFilter.TabStop = false;
             this.groupBoxFileFilter.Text = "File Filter";
@@ -666,27 +691,30 @@ namespace DupTerminator.View
             this.panel3.Controls.Add(this.comboBoxExcludeExtension);
             this.panel3.Controls.Add(this.buttonSelectInclude);
             this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel3.Location = new System.Drawing.Point(66, 16);
+            this.panel3.Location = new System.Drawing.Point(110, 30);
+            this.panel3.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(342, 71);
+            this.panel3.Size = new System.Drawing.Size(570, 137);
             this.panel3.TabIndex = 22;
             // 
             // comboBoxIncludeExtension
             // 
-            this.comboBoxIncludeExtension.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBoxIncludeExtension.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxIncludeExtension.FormattingEnabled = true;
-            this.comboBoxIncludeExtension.Location = new System.Drawing.Point(3, 12);
+            this.comboBoxIncludeExtension.Location = new System.Drawing.Point(5, 23);
+            this.comboBoxIncludeExtension.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.comboBoxIncludeExtension.Name = "comboBoxIncludeExtension";
-            this.comboBoxIncludeExtension.Size = new System.Drawing.Size(261, 21);
+            this.comboBoxIncludeExtension.Size = new System.Drawing.Size(432, 33);
             this.comboBoxIncludeExtension.TabIndex = 0;
             // 
             // buttonSelectExclude
             // 
             this.buttonSelectExclude.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSelectExclude.Location = new System.Drawing.Point(271, 40);
+            this.buttonSelectExclude.Location = new System.Drawing.Point(452, 77);
+            this.buttonSelectExclude.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonSelectExclude.Name = "buttonSelectExclude";
-            this.buttonSelectExclude.Size = new System.Drawing.Size(66, 23);
+            this.buttonSelectExclude.Size = new System.Drawing.Size(110, 44);
             this.buttonSelectExclude.TabIndex = 2;
             this.buttonSelectExclude.Text = "Select";
             this.buttonSelectExclude.UseVisualStyleBackColor = true;
@@ -694,20 +722,22 @@ namespace DupTerminator.View
             // 
             // comboBoxExcludeExtension
             // 
-            this.comboBoxExcludeExtension.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBoxExcludeExtension.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.comboBoxExcludeExtension.FormattingEnabled = true;
-            this.comboBoxExcludeExtension.Location = new System.Drawing.Point(3, 43);
+            this.comboBoxExcludeExtension.Location = new System.Drawing.Point(5, 83);
+            this.comboBoxExcludeExtension.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.comboBoxExcludeExtension.Name = "comboBoxExcludeExtension";
-            this.comboBoxExcludeExtension.Size = new System.Drawing.Size(261, 21);
+            this.comboBoxExcludeExtension.Size = new System.Drawing.Size(432, 33);
             this.comboBoxExcludeExtension.TabIndex = 0;
             // 
             // buttonSelectInclude
             // 
             this.buttonSelectInclude.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSelectInclude.Location = new System.Drawing.Point(271, 10);
+            this.buttonSelectInclude.Location = new System.Drawing.Point(452, 19);
+            this.buttonSelectInclude.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonSelectInclude.Name = "buttonSelectInclude";
-            this.buttonSelectInclude.Size = new System.Drawing.Size(66, 23);
+            this.buttonSelectInclude.Size = new System.Drawing.Size(110, 44);
             this.buttonSelectInclude.TabIndex = 2;
             this.buttonSelectInclude.Text = "Select";
             this.buttonSelectInclude.UseVisualStyleBackColor = true;
@@ -719,26 +749,29 @@ namespace DupTerminator.View
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.label3);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel2.Location = new System.Drawing.Point(3, 16);
+            this.panel2.Location = new System.Drawing.Point(5, 30);
+            this.panel2.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(63, 71);
+            this.panel2.Size = new System.Drawing.Size(105, 137);
             this.panel2.TabIndex = 22;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 15);
+            this.label2.Location = new System.Drawing.Point(10, 29);
+            this.label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(51, 13);
+            this.label2.Size = new System.Drawing.Size(84, 25);
             this.label2.TabIndex = 1;
             this.label2.Text = "Included:";
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(6, 46);
+            this.label3.Location = new System.Drawing.Point(10, 88);
+            this.label3.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(54, 13);
+            this.label3.Size = new System.Drawing.Size(86, 25);
             this.label3.TabIndex = 1;
             this.label3.Text = "Excluded:";
             // 
@@ -749,31 +782,35 @@ namespace DupTerminator.View
             this.groupBoxLessThan.Controls.Add(this.rdbLMega);
             this.groupBoxLessThan.Controls.Add(this.rdbLKilo);
             this.groupBoxLessThan.Controls.Add(this.rdbLBytes);
-            this.groupBoxLessThan.Location = new System.Drawing.Point(12, 12);
+            this.groupBoxLessThan.Location = new System.Drawing.Point(20, 23);
+            this.groupBoxLessThan.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.groupBoxLessThan.Name = "groupBoxLessThan";
-            this.groupBoxLessThan.Size = new System.Drawing.Size(275, 52);
+            this.groupBoxLessThan.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.groupBoxLessThan.Size = new System.Drawing.Size(458, 100);
             this.groupBoxLessThan.TabIndex = 18;
             this.groupBoxLessThan.TabStop = false;
             this.groupBoxLessThan.Text = "Exclude sizes Less than";
             // 
             // nmMin
             // 
-            this.nmMin.Location = new System.Drawing.Point(6, 18);
+            this.nmMin.Location = new System.Drawing.Point(10, 35);
+            this.nmMin.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.nmMin.Maximum = new decimal(new int[] {
             1024,
             0,
             0,
             0});
             this.nmMin.Name = "nmMin";
-            this.nmMin.Size = new System.Drawing.Size(58, 20);
+            this.nmMin.Size = new System.Drawing.Size(97, 31);
             this.nmMin.TabIndex = 2;
             // 
             // rdbLGiga
             // 
             this.rdbLGiga.AutoSize = true;
-            this.rdbLGiga.Location = new System.Drawing.Point(219, 19);
+            this.rdbLGiga.Location = new System.Drawing.Point(365, 37);
+            this.rdbLGiga.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbLGiga.Name = "rdbLGiga";
-            this.rdbLGiga.Size = new System.Drawing.Size(39, 17);
+            this.rdbLGiga.Size = new System.Drawing.Size(60, 29);
             this.rdbLGiga.TabIndex = 1;
             this.rdbLGiga.Text = "Gb";
             this.rdbLGiga.UseVisualStyleBackColor = true;
@@ -781,9 +818,10 @@ namespace DupTerminator.View
             // rdbLMega
             // 
             this.rdbLMega.AutoSize = true;
-            this.rdbLMega.Location = new System.Drawing.Point(172, 18);
+            this.rdbLMega.Location = new System.Drawing.Point(287, 35);
+            this.rdbLMega.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbLMega.Name = "rdbLMega";
-            this.rdbLMega.Size = new System.Drawing.Size(40, 17);
+            this.rdbLMega.Size = new System.Drawing.Size(64, 29);
             this.rdbLMega.TabIndex = 1;
             this.rdbLMega.Text = "Mb";
             this.rdbLMega.UseVisualStyleBackColor = true;
@@ -791,9 +829,10 @@ namespace DupTerminator.View
             // rdbLKilo
             // 
             this.rdbLKilo.AutoSize = true;
-            this.rdbLKilo.Location = new System.Drawing.Point(127, 18);
+            this.rdbLKilo.Location = new System.Drawing.Point(212, 35);
+            this.rdbLKilo.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbLKilo.Name = "rdbLKilo";
-            this.rdbLKilo.Size = new System.Drawing.Size(38, 17);
+            this.rdbLKilo.Size = new System.Drawing.Size(58, 29);
             this.rdbLKilo.TabIndex = 1;
             this.rdbLKilo.Text = "Kb";
             this.rdbLKilo.UseVisualStyleBackColor = true;
@@ -802,9 +841,10 @@ namespace DupTerminator.View
             // 
             this.rdbLBytes.AutoSize = true;
             this.rdbLBytes.Checked = true;
-            this.rdbLBytes.Location = new System.Drawing.Point(70, 18);
+            this.rdbLBytes.Location = new System.Drawing.Point(117, 35);
+            this.rdbLBytes.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbLBytes.Name = "rdbLBytes";
-            this.rdbLBytes.Size = new System.Drawing.Size(51, 17);
+            this.rdbLBytes.Size = new System.Drawing.Size(79, 29);
             this.rdbLBytes.TabIndex = 1;
             this.rdbLBytes.TabStop = true;
             this.rdbLBytes.Text = "Bytes";
@@ -817,31 +857,35 @@ namespace DupTerminator.View
             this.groupBoxMoreThan.Controls.Add(this.rdbMMega);
             this.groupBoxMoreThan.Controls.Add(this.rdbMKilo);
             this.groupBoxMoreThan.Controls.Add(this.rdbMBytes);
-            this.groupBoxMoreThan.Location = new System.Drawing.Point(12, 70);
+            this.groupBoxMoreThan.Location = new System.Drawing.Point(20, 135);
+            this.groupBoxMoreThan.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.groupBoxMoreThan.Name = "groupBoxMoreThan";
-            this.groupBoxMoreThan.Size = new System.Drawing.Size(275, 52);
+            this.groupBoxMoreThan.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.groupBoxMoreThan.Size = new System.Drawing.Size(458, 100);
             this.groupBoxMoreThan.TabIndex = 17;
             this.groupBoxMoreThan.TabStop = false;
             this.groupBoxMoreThan.Text = "Exclude sizes More than";
             // 
             // nmMax
             // 
-            this.nmMax.Location = new System.Drawing.Point(6, 18);
+            this.nmMax.Location = new System.Drawing.Point(10, 35);
+            this.nmMax.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.nmMax.Maximum = new decimal(new int[] {
             1024,
             0,
             0,
             0});
             this.nmMax.Name = "nmMax";
-            this.nmMax.Size = new System.Drawing.Size(58, 20);
+            this.nmMax.Size = new System.Drawing.Size(97, 31);
             this.nmMax.TabIndex = 2;
             // 
             // rdbMGiga
             // 
             this.rdbMGiga.AutoSize = true;
-            this.rdbMGiga.Location = new System.Drawing.Point(218, 18);
+            this.rdbMGiga.Location = new System.Drawing.Point(363, 35);
+            this.rdbMGiga.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbMGiga.Name = "rdbMGiga";
-            this.rdbMGiga.Size = new System.Drawing.Size(39, 17);
+            this.rdbMGiga.Size = new System.Drawing.Size(60, 29);
             this.rdbMGiga.TabIndex = 1;
             this.rdbMGiga.Text = "Gb";
             this.rdbMGiga.UseVisualStyleBackColor = true;
@@ -849,9 +893,10 @@ namespace DupTerminator.View
             // rdbMMega
             // 
             this.rdbMMega.AutoSize = true;
-            this.rdbMMega.Location = new System.Drawing.Point(172, 18);
+            this.rdbMMega.Location = new System.Drawing.Point(287, 35);
+            this.rdbMMega.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbMMega.Name = "rdbMMega";
-            this.rdbMMega.Size = new System.Drawing.Size(40, 17);
+            this.rdbMMega.Size = new System.Drawing.Size(64, 29);
             this.rdbMMega.TabIndex = 1;
             this.rdbMMega.Text = "Mb";
             this.rdbMMega.UseVisualStyleBackColor = true;
@@ -859,9 +904,10 @@ namespace DupTerminator.View
             // rdbMKilo
             // 
             this.rdbMKilo.AutoSize = true;
-            this.rdbMKilo.Location = new System.Drawing.Point(127, 18);
+            this.rdbMKilo.Location = new System.Drawing.Point(212, 35);
+            this.rdbMKilo.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbMKilo.Name = "rdbMKilo";
-            this.rdbMKilo.Size = new System.Drawing.Size(38, 17);
+            this.rdbMKilo.Size = new System.Drawing.Size(58, 29);
             this.rdbMKilo.TabIndex = 1;
             this.rdbMKilo.Text = "Kb";
             this.rdbMKilo.UseVisualStyleBackColor = true;
@@ -870,9 +916,10 @@ namespace DupTerminator.View
             // 
             this.rdbMBytes.AutoSize = true;
             this.rdbMBytes.Checked = true;
-            this.rdbMBytes.Location = new System.Drawing.Point(70, 18);
+            this.rdbMBytes.Location = new System.Drawing.Point(117, 35);
+            this.rdbMBytes.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.rdbMBytes.Name = "rdbMBytes";
-            this.rdbMBytes.Size = new System.Drawing.Size(51, 17);
+            this.rdbMBytes.Size = new System.Drawing.Size(79, 29);
             this.rdbMBytes.TabIndex = 1;
             this.rdbMBytes.TabStop = true;
             this.rdbMBytes.Text = "Bytes";
@@ -882,10 +929,11 @@ namespace DupTerminator.View
             // 
             this.tabPageSearchableFolders.Controls.Add(this.tabControlFolder);
             this.tabPageSearchableFolders.Controls.Add(this.panel4);
-            this.tabPageSearchableFolders.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSearchableFolders.Location = new System.Drawing.Point(4, 34);
+            this.tabPageSearchableFolders.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPageSearchableFolders.Name = "tabPageSearchableFolders";
-            this.tabPageSearchableFolders.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSearchableFolders.Size = new System.Drawing.Size(678, 456);
+            this.tabPageSearchableFolders.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tabPageSearchableFolders.Size = new System.Drawing.Size(1135, 889);
             this.tabPageSearchableFolders.TabIndex = 0;
             this.tabPageSearchableFolders.Text = "Searchable Folders";
             this.tabPageSearchableFolders.UseVisualStyleBackColor = true;
@@ -895,19 +943,21 @@ namespace DupTerminator.View
             this.tabControlFolder.Controls.Add(this.tabPageSearchFolder);
             this.tabControlFolder.Controls.Add(this.tabPageSkipFolder);
             this.tabControlFolder.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControlFolder.Location = new System.Drawing.Point(136, 3);
+            this.tabControlFolder.Location = new System.Drawing.Point(227, 6);
+            this.tabControlFolder.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabControlFolder.Name = "tabControlFolder";
             this.tabControlFolder.SelectedIndex = 0;
-            this.tabControlFolder.Size = new System.Drawing.Size(539, 450);
+            this.tabControlFolder.Size = new System.Drawing.Size(903, 877);
             this.tabControlFolder.TabIndex = 6;
             // 
             // tabPageSearchFolder
             // 
             this.tabPageSearchFolder.Controls.Add(this.lvDirectorySearch);
-            this.tabPageSearchFolder.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSearchFolder.Location = new System.Drawing.Point(4, 34);
+            this.tabPageSearchFolder.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPageSearchFolder.Name = "tabPageSearchFolder";
-            this.tabPageSearchFolder.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSearchFolder.Size = new System.Drawing.Size(531, 424);
+            this.tabPageSearchFolder.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tabPageSearchFolder.Size = new System.Drawing.Size(895, 839);
             this.tabPageSearchFolder.TabIndex = 0;
             this.tabPageSearchFolder.Text = "Searchable Folders";
             this.tabPageSearchFolder.UseVisualStyleBackColor = true;
@@ -918,9 +968,10 @@ namespace DupTerminator.View
             this.lvDirectorySearch.CheckBoxes = true;
             this.lvDirectorySearch.ContextMenuStrip = this.cmsDirectorySearch;
             this.lvDirectorySearch.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.lvDirectorySearch.Location = new System.Drawing.Point(3, 3);
+            this.lvDirectorySearch.Location = new System.Drawing.Point(5, 6);
+            this.lvDirectorySearch.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.lvDirectorySearch.Name = "lvDirectorySearch";
-            this.lvDirectorySearch.Size = new System.Drawing.Size(525, 418);
+            this.lvDirectorySearch.Size = new System.Drawing.Size(885, 827);
             this.lvDirectorySearch.TabIndex = 6;
             this.lvDirectorySearch.UseCompatibleStateImageBehavior = false;
             this.lvDirectorySearch.View = System.Windows.Forms.View.Details;
@@ -931,10 +982,11 @@ namespace DupTerminator.View
             // tabPageSkipFolder
             // 
             this.tabPageSkipFolder.Controls.Add(this.checkedListBoxSkipFolder);
-            this.tabPageSkipFolder.Location = new System.Drawing.Point(4, 22);
+            this.tabPageSkipFolder.Location = new System.Drawing.Point(4, 34);
+            this.tabPageSkipFolder.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPageSkipFolder.Name = "tabPageSkipFolder";
-            this.tabPageSkipFolder.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSkipFolder.Size = new System.Drawing.Size(531, 424);
+            this.tabPageSkipFolder.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tabPageSkipFolder.Size = new System.Drawing.Size(890, 827);
             this.tabPageSkipFolder.TabIndex = 1;
             this.tabPageSkipFolder.Text = "Skip Folder";
             this.tabPageSkipFolder.UseVisualStyleBackColor = true;
@@ -945,9 +997,10 @@ namespace DupTerminator.View
             this.checkedListBoxSkipFolder.ContextMenuStrip = this.cmsDirectorySearch;
             this.checkedListBoxSkipFolder.Dock = System.Windows.Forms.DockStyle.Fill;
             this.checkedListBoxSkipFolder.FormattingEnabled = true;
-            this.checkedListBoxSkipFolder.Location = new System.Drawing.Point(3, 3);
+            this.checkedListBoxSkipFolder.Location = new System.Drawing.Point(5, 6);
+            this.checkedListBoxSkipFolder.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.checkedListBoxSkipFolder.Name = "checkedListBoxSkipFolder";
-            this.checkedListBoxSkipFolder.Size = new System.Drawing.Size(525, 409);
+            this.checkedListBoxSkipFolder.Size = new System.Drawing.Size(880, 815);
             this.checkedListBoxSkipFolder.TabIndex = 7;
             this.checkedListBoxSkipFolder.DragDrop += new System.Windows.Forms.DragEventHandler(this.checkedListBoxSkipFolder_DragDrop);
             this.checkedListBoxSkipFolder.DragEnter += new System.Windows.Forms.DragEventHandler(this.checkedListBoxSkipFolder_DragEnter);
@@ -960,20 +1013,22 @@ namespace DupTerminator.View
             this.panel4.Controls.Add(this.buttonEdit);
             this.panel4.Controls.Add(this.buttonDel);
             this.panel4.Dock = System.Windows.Forms.DockStyle.Left;
-            this.panel4.Location = new System.Drawing.Point(3, 3);
-            this.panel4.MinimumSize = new System.Drawing.Size(133, 0);
+            this.panel4.Location = new System.Drawing.Point(5, 6);
+            this.panel4.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.panel4.MinimumSize = new System.Drawing.Size(222, 0);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(133, 450);
+            this.panel4.Size = new System.Drawing.Size(222, 877);
             this.panel4.TabIndex = 7;
             // 
             // buttonClearNonExistent
             // 
-            this.buttonClearNonExistent.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonClearNonExistent.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonClearNonExistent.AutoSize = true;
-            this.buttonClearNonExistent.Location = new System.Drawing.Point(3, 146);
+            this.buttonClearNonExistent.Location = new System.Drawing.Point(5, 281);
+            this.buttonClearNonExistent.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonClearNonExistent.Name = "buttonClearNonExistent";
-            this.buttonClearNonExistent.Size = new System.Drawing.Size(121, 25);
+            this.buttonClearNonExistent.Size = new System.Drawing.Size(262, 67);
             this.buttonClearNonExistent.TabIndex = 26;
             this.buttonClearNonExistent.Text = "Clear nonexistent";
             this.buttonClearNonExistent.UseVisualStyleBackColor = true;
@@ -981,11 +1036,12 @@ namespace DupTerminator.View
             // 
             // buttonAddDirectory
             // 
-            this.buttonAddDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAddDirectory.Location = new System.Drawing.Point(3, 22);
+            this.buttonAddDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonAddDirectory.Location = new System.Drawing.Point(5, 42);
+            this.buttonAddDirectory.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonAddDirectory.Name = "buttonAddDirectory";
-            this.buttonAddDirectory.Size = new System.Drawing.Size(121, 25);
+            this.buttonAddDirectory.Size = new System.Drawing.Size(202, 48);
             this.buttonAddDirectory.TabIndex = 2;
             this.buttonAddDirectory.Text = "&Add Folder";
             this.buttonAddDirectory.UseVisualStyleBackColor = true;
@@ -993,11 +1049,12 @@ namespace DupTerminator.View
             // 
             // buttonClearAll
             // 
-            this.buttonClearAll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonClearAll.Location = new System.Drawing.Point(3, 115);
+            this.buttonClearAll.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonClearAll.Location = new System.Drawing.Point(5, 221);
+            this.buttonClearAll.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonClearAll.Name = "buttonClearAll";
-            this.buttonClearAll.Size = new System.Drawing.Size(121, 25);
+            this.buttonClearAll.Size = new System.Drawing.Size(202, 48);
             this.buttonClearAll.TabIndex = 2;
             this.buttonClearAll.Text = "&Clear all";
             this.buttonClearAll.UseVisualStyleBackColor = true;
@@ -1005,11 +1062,12 @@ namespace DupTerminator.View
             // 
             // buttonEdit
             // 
-            this.buttonEdit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonEdit.Location = new System.Drawing.Point(3, 53);
+            this.buttonEdit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonEdit.Location = new System.Drawing.Point(5, 102);
+            this.buttonEdit.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonEdit.Name = "buttonEdit";
-            this.buttonEdit.Size = new System.Drawing.Size(121, 25);
+            this.buttonEdit.Size = new System.Drawing.Size(202, 48);
             this.buttonEdit.TabIndex = 2;
             this.buttonEdit.Text = "&Edit";
             this.buttonEdit.UseVisualStyleBackColor = true;
@@ -1017,11 +1075,12 @@ namespace DupTerminator.View
             // 
             // buttonDel
             // 
-            this.buttonDel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDel.Location = new System.Drawing.Point(3, 84);
+            this.buttonDel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonDel.Location = new System.Drawing.Point(5, 162);
+            this.buttonDel.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.buttonDel.Name = "buttonDel";
-            this.buttonDel.Size = new System.Drawing.Size(121, 25);
+            this.buttonDel.Size = new System.Drawing.Size(202, 48);
             this.buttonDel.TabIndex = 2;
             this.buttonDel.Text = "&Delete";
             this.buttonDel.UseVisualStyleBackColor = true;
@@ -1031,10 +1090,11 @@ namespace DupTerminator.View
             // 
             this.tabPageDuplicate.Controls.Add(this.lvDuplicates);
             this.tabPageDuplicate.Controls.Add(this.panelButtons);
-            this.tabPageDuplicate.Location = new System.Drawing.Point(4, 22);
+            this.tabPageDuplicate.Location = new System.Drawing.Point(4, 34);
+            this.tabPageDuplicate.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPageDuplicate.Name = "tabPageDuplicate";
-            this.tabPageDuplicate.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageDuplicate.Size = new System.Drawing.Size(678, 456);
+            this.tabPageDuplicate.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.tabPageDuplicate.Size = new System.Drawing.Size(1135, 889);
             this.tabPageDuplicate.TabIndex = 2;
             this.tabPageDuplicate.Text = "Duplicate Results";
             this.tabPageDuplicate.UseVisualStyleBackColor = true;
@@ -1047,32 +1107,35 @@ namespace DupTerminator.View
             this.lvDuplicates.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvDuplicates.FullRowSelect = true;
             this.lvDuplicates.GridLines = true;
-            this.lvDuplicates.Location = new System.Drawing.Point(3, 3);
+            this.lvDuplicates.Location = new System.Drawing.Point(5, 6);
+            this.lvDuplicates.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.lvDuplicates.Name = "lvDuplicates";
             this.lvDuplicates.ShowGroups = false;
-            this.lvDuplicates.Size = new System.Drawing.Size(672, 450);
+            this.lvDuplicates.Size = new System.Drawing.Size(1125, 877);
             this.lvDuplicates.TabIndex = 0;
             this.lvDuplicates.UseCompatibleStateImageBehavior = false;
             this.lvDuplicates.VirtualMode = true;
-            this.lvDuplicates.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lvDuplicates_ItemChecked);
-            this.lvDuplicates.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lvDuplicates_MouseClick);
             this.lvDuplicates.AfterLabelEdit += new System.Windows.Forms.LabelEditEventHandler(this.lvDuplicates_AfterLabelEdit);
+            this.lvDuplicates.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.lvDuplicates_ColumnClick);
+            this.lvDuplicates.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lvDuplicates_ItemChecked);
+            this.lvDuplicates.RetrieveVirtualItem += new System.Windows.Forms.RetrieveVirtualItemEventHandler(this.lvDuplicates_RetrieveVirtualItem);
             this.lvDuplicates.SelectedIndexChanged += new System.EventHandler(this.lvDuplicates_SelectedIndexChanged);
             this.lvDuplicates.DoubleClick += new System.EventHandler(this.lvDuplicates_DoubleClick);
-            this.lvDuplicates.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.lvDuplicates_ColumnClick);
-            this.lvDuplicates.RetrieveVirtualItem += new System.Windows.Forms.RetrieveVirtualItemEventHandler(this.lvDuplicates_RetrieveVirtualItem);
             this.lvDuplicates.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lvDuplicates_KeyDown);
+            this.lvDuplicates.MouseClick += new System.Windows.Forms.MouseEventHandler(this.lvDuplicates_MouseClick);
             // 
             // panelButtons
             // 
             this.panelButtons.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelButtons.Location = new System.Drawing.Point(3, 3);
+            this.panelButtons.Location = new System.Drawing.Point(5, 6);
+            this.panelButtons.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.panelButtons.Name = "panelButtons";
-            this.panelButtons.Size = new System.Drawing.Size(672, 450);
+            this.panelButtons.Size = new System.Drawing.Size(1125, 877);
             this.panelButtons.TabIndex = 26;
             // 
             // cmsSelectBy
             // 
+            this.cmsSelectBy.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.cmsSelectBy.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.selectByFileSizeToolStripMenuItem1,
             this.tmsi_Select_ByLastAcess,
@@ -1080,7 +1143,7 @@ namespace DupTerminator.View
             this.tmsi_Select_ByFileNameLength,
             this.selectByNumberToolStripMenuItem});
             this.cmsSelectBy.Name = "contextMenuStrip1";
-            this.cmsSelectBy.Size = new System.Drawing.Size(228, 114);
+            this.cmsSelectBy.Size = new System.Drawing.Size(313, 164);
             // 
             // selectByFileSizeToolStripMenuItem1
             // 
@@ -1089,20 +1152,20 @@ namespace DupTerminator.View
             this.largestFilesInEachGroupToolStripMenuItem1});
             this.selectByFileSizeToolStripMenuItem1.Enabled = false;
             this.selectByFileSizeToolStripMenuItem1.Name = "selectByFileSizeToolStripMenuItem1";
-            this.selectByFileSizeToolStripMenuItem1.Size = new System.Drawing.Size(227, 22);
+            this.selectByFileSizeToolStripMenuItem1.Size = new System.Drawing.Size(312, 32);
             this.selectByFileSizeToolStripMenuItem1.Text = "Select by File Size";
             this.selectByFileSizeToolStripMenuItem1.Visible = false;
             // 
             // smallestFilesInEachGroupToolStripMenuItem1
             // 
             this.smallestFilesInEachGroupToolStripMenuItem1.Name = "smallestFilesInEachGroupToolStripMenuItem1";
-            this.smallestFilesInEachGroupToolStripMenuItem1.Size = new System.Drawing.Size(218, 22);
+            this.smallestFilesInEachGroupToolStripMenuItem1.Size = new System.Drawing.Size(330, 34);
             this.smallestFilesInEachGroupToolStripMenuItem1.Text = "Smallest files in each group";
             // 
             // largestFilesInEachGroupToolStripMenuItem1
             // 
             this.largestFilesInEachGroupToolStripMenuItem1.Name = "largestFilesInEachGroupToolStripMenuItem1";
-            this.largestFilesInEachGroupToolStripMenuItem1.Size = new System.Drawing.Size(218, 22);
+            this.largestFilesInEachGroupToolStripMenuItem1.Size = new System.Drawing.Size(330, 34);
             this.largestFilesInEachGroupToolStripMenuItem1.Text = "Largest files in each group";
             // 
             // tmsi_Select_ByLastAcess
@@ -1111,27 +1174,27 @@ namespace DupTerminator.View
             this.tmsi_Select_ByOldestFileInEachGroup,
             this.tmsi_Select_ByNewestFilesInEachGroup});
             this.tmsi_Select_ByLastAcess.Name = "tmsi_Select_ByLastAcess";
-            this.tmsi_Select_ByLastAcess.Size = new System.Drawing.Size(227, 22);
+            this.tmsi_Select_ByLastAcess.Size = new System.Drawing.Size(312, 32);
             this.tmsi_Select_ByLastAcess.Text = "Select by Last Accessed Time";
             // 
             // tmsi_Select_ByOldestFileInEachGroup
             // 
             this.tmsi_Select_ByOldestFileInEachGroup.Name = "tmsi_Select_ByOldestFileInEachGroup";
-            this.tmsi_Select_ByOldestFileInEachGroup.Size = new System.Drawing.Size(213, 22);
+            this.tmsi_Select_ByOldestFileInEachGroup.Size = new System.Drawing.Size(322, 34);
             this.tmsi_Select_ByOldestFileInEachGroup.Text = "Oldest files in each group";
             this.tmsi_Select_ByOldestFileInEachGroup.Click += new System.EventHandler(this.tmsi_Select_ByOldestFileInEachGroup_Click);
             // 
             // tmsi_Select_ByNewestFilesInEachGroup
             // 
             this.tmsi_Select_ByNewestFilesInEachGroup.Name = "tmsi_Select_ByNewestFilesInEachGroup";
-            this.tmsi_Select_ByNewestFilesInEachGroup.Size = new System.Drawing.Size(213, 22);
+            this.tmsi_Select_ByNewestFilesInEachGroup.Size = new System.Drawing.Size(322, 34);
             this.tmsi_Select_ByNewestFilesInEachGroup.Text = "Newest files in each group";
             this.tmsi_Select_ByNewestFilesInEachGroup.Click += new System.EventHandler(this.tmsi_Select_ByNewestFilesInEachGroup_Click);
             // 
             // tmsi_Select_ByFileName
             // 
             this.tmsi_Select_ByFileName.Name = "tmsi_Select_ByFileName";
-            this.tmsi_Select_ByFileName.Size = new System.Drawing.Size(227, 22);
+            this.tmsi_Select_ByFileName.Size = new System.Drawing.Size(312, 32);
             this.tmsi_Select_ByFileName.Text = "Select by File Name";
             this.tmsi_Select_ByFileName.Click += new System.EventHandler(this.tmsi_Select_ByFileName_Click);
             // 
@@ -1141,20 +1204,20 @@ namespace DupTerminator.View
             this.tmsi_Select_ByShorterFileNameInEachGroup,
             this.tmsi_Select_ByLongerFileNameInEachGroup});
             this.tmsi_Select_ByFileNameLength.Name = "tmsi_Select_ByFileNameLength";
-            this.tmsi_Select_ByFileNameLength.Size = new System.Drawing.Size(227, 22);
+            this.tmsi_Select_ByFileNameLength.Size = new System.Drawing.Size(312, 32);
             this.tmsi_Select_ByFileNameLength.Text = "Select by File Name Length";
             // 
             // tmsi_Select_ByShorterFileNameInEachGroup
             // 
             this.tmsi_Select_ByShorterFileNameInEachGroup.Name = "tmsi_Select_ByShorterFileNameInEachGroup";
-            this.tmsi_Select_ByShorterFileNameInEachGroup.Size = new System.Drawing.Size(240, 22);
+            this.tmsi_Select_ByShorterFileNameInEachGroup.Size = new System.Drawing.Size(363, 34);
             this.tmsi_Select_ByShorterFileNameInEachGroup.Text = "Shorter file name in each group";
             this.tmsi_Select_ByShorterFileNameInEachGroup.Click += new System.EventHandler(this.tmsi_Select_ByShorterFileNameLength_Click);
             // 
             // tmsi_Select_ByLongerFileNameInEachGroup
             // 
             this.tmsi_Select_ByLongerFileNameInEachGroup.Name = "tmsi_Select_ByLongerFileNameInEachGroup";
-            this.tmsi_Select_ByLongerFileNameInEachGroup.Size = new System.Drawing.Size(240, 22);
+            this.tmsi_Select_ByLongerFileNameInEachGroup.Size = new System.Drawing.Size(363, 34);
             this.tmsi_Select_ByLongerFileNameInEachGroup.Text = "Longer file name in each group";
             this.tmsi_Select_ByLongerFileNameInEachGroup.Click += new System.EventHandler(this.tmsi_Select_ByLongerFileNameLength_Click);
             // 
@@ -1164,25 +1227,26 @@ namespace DupTerminator.View
             this.tsmi_Select_biggestNumberInEachGroup,
             this.tsmi_Select_lowestNumberInEachGroup});
             this.selectByNumberToolStripMenuItem.Name = "selectByNumberToolStripMenuItem";
-            this.selectByNumberToolStripMenuItem.Size = new System.Drawing.Size(227, 22);
+            this.selectByNumberToolStripMenuItem.Size = new System.Drawing.Size(312, 32);
             this.selectByNumberToolStripMenuItem.Text = "Select by Number";
             // 
             // tsmi_Select_biggestNumberInEachGroup
             // 
             this.tsmi_Select_biggestNumberInEachGroup.Name = "tsmi_Select_biggestNumberInEachGroup";
-            this.tsmi_Select_biggestNumberInEachGroup.Size = new System.Drawing.Size(234, 22);
+            this.tsmi_Select_biggestNumberInEachGroup.Size = new System.Drawing.Size(354, 34);
             this.tsmi_Select_biggestNumberInEachGroup.Text = "Biggest number in each group";
             this.tsmi_Select_biggestNumberInEachGroup.Click += new System.EventHandler(this.tsmi_Select_biggestNumberInEachGroup_Click);
             // 
             // tsmi_Select_lowestNumberInEachGroup
             // 
             this.tsmi_Select_lowestNumberInEachGroup.Name = "tsmi_Select_lowestNumberInEachGroup";
-            this.tsmi_Select_lowestNumberInEachGroup.Size = new System.Drawing.Size(234, 22);
+            this.tsmi_Select_lowestNumberInEachGroup.Size = new System.Drawing.Size(354, 34);
             this.tsmi_Select_lowestNumberInEachGroup.Text = "Lowest number in each group";
             this.tsmi_Select_lowestNumberInEachGroup.Click += new System.EventHandler(this.tsmi_Select_lowestNumberInEachGroup_Click);
             // 
             // toolStrip1
             // 
+            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButtonStart,
             this.toolStripButtonCancel,
@@ -1196,9 +1260,10 @@ namespace DupTerminator.View
             this.toolStripButtonSelectBy,
             this.toolStripButtonSettings,
             this.toolStripButtonRefresh});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 24);
+            this.toolStrip1.Location = new System.Drawing.Point(0, 37);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(843, 25);
+            this.toolStrip1.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
+            this.toolStrip1.Size = new System.Drawing.Size(1405, 43);
             this.toolStrip1.TabIndex = 25;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -1208,7 +1273,7 @@ namespace DupTerminator.View
             this.toolStripButtonStart.Image = global::DupTerminator.Properties.Resources.play_32;
             this.toolStripButtonStart.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonStart.Name = "toolStripButtonStart";
-            this.toolStripButtonStart.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonStart.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonStart.Text = "toolStripButton1";
             this.toolStripButtonStart.Click += new System.EventHandler(this.btnStart_Click);
             // 
@@ -1219,14 +1284,14 @@ namespace DupTerminator.View
             this.toolStripButtonCancel.Image = global::DupTerminator.Properties.Resources.stop_32;
             this.toolStripButtonCancel.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonCancel.Name = "toolStripButtonCancel";
-            this.toolStripButtonCancel.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonCancel.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonCancel.Text = "toolStripButton1";
             this.toolStripButtonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(6, 43);
             // 
             // toolStripButtonUndo
             // 
@@ -1235,7 +1300,7 @@ namespace DupTerminator.View
             this.toolStripButtonUndo.Image = global::DupTerminator.Properties.Resources.undo_3_32;
             this.toolStripButtonUndo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonUndo.Name = "toolStripButtonUndo";
-            this.toolStripButtonUndo.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonUndo.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonUndo.Text = "toolStripButton1";
             this.toolStripButtonUndo.Click += new System.EventHandler(this.buttonUndo_Click);
             // 
@@ -1246,19 +1311,19 @@ namespace DupTerminator.View
             this.toolStripButtonRedo.Image = global::DupTerminator.Properties.Resources.redo_3_32;
             this.toolStripButtonRedo.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonRedo.Name = "toolStripButtonRedo";
-            this.toolStripButtonRedo.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonRedo.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonRedo.Text = "toolStripButton1";
             this.toolStripButtonRedo.Click += new System.EventHandler(this.toolStripButtonRedo_Click);
             // 
             // progressBar1
             // 
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(100, 22);
+            this.progressBar1.Size = new System.Drawing.Size(167, 38);
             // 
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(6, 43);
             // 
             // toolStripButtonDeleteSelectedFiles
             // 
@@ -1266,7 +1331,7 @@ namespace DupTerminator.View
             this.toolStripButtonDeleteSelectedFiles.Image = global::DupTerminator.Properties.Resources.DeleteSelected16;
             this.toolStripButtonDeleteSelectedFiles.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonDeleteSelectedFiles.Name = "toolStripButtonDeleteSelectedFiles";
-            this.toolStripButtonDeleteSelectedFiles.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonDeleteSelectedFiles.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonDeleteSelectedFiles.Text = "toolStripButton1";
             this.toolStripButtonDeleteSelectedFiles.Click += new System.EventHandler(this.buttonDeleteSelectedFiles_Click);
             // 
@@ -1276,7 +1341,7 @@ namespace DupTerminator.View
             this.toolStripButtonMove.Image = global::DupTerminator.Properties.Resources.moveto16;
             this.toolStripButtonMove.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonMove.Name = "toolStripButtonMove";
-            this.toolStripButtonMove.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonMove.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonMove.Text = "toolStripButton1";
             this.toolStripButtonMove.Click += new System.EventHandler(this.buttonMove_Click);
             // 
@@ -1286,7 +1351,7 @@ namespace DupTerminator.View
             this.toolStripButtonSelectBy.Image = global::DupTerminator.Properties.Resources.Checked_checkbox16;
             this.toolStripButtonSelectBy.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSelectBy.Name = "toolStripButtonSelectBy";
-            this.toolStripButtonSelectBy.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonSelectBy.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonSelectBy.Text = "toolStripButton1";
             this.toolStripButtonSelectBy.Click += new System.EventHandler(this.buttonSelectBy_Click);
             // 
@@ -1296,7 +1361,7 @@ namespace DupTerminator.View
             this.toolStripButtonSettings.Image = global::DupTerminator.Properties.Resources.Setting;
             this.toolStripButtonSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonSettings.Name = "toolStripButtonSettings";
-            this.toolStripButtonSettings.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonSettings.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonSettings.Text = "toolStripButton1";
             this.toolStripButtonSettings.Click += new System.EventHandler(this.toolStripButtonSettings_Click);
             // 
@@ -1306,22 +1371,15 @@ namespace DupTerminator.View
             this.toolStripButtonRefresh.Image = global::DupTerminator.Properties.Resources.sinchronize_32;
             this.toolStripButtonRefresh.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButtonRefresh.Name = "toolStripButtonRefresh";
-            this.toolStripButtonRefresh.Size = new System.Drawing.Size(23, 22);
+            this.toolStripButtonRefresh.Size = new System.Drawing.Size(34, 38);
             this.toolStripButtonRefresh.Text = "toolStripButton1";
             this.toolStripButtonRefresh.Click += new System.EventHandler(this.toolStripButtonRefresh_Click);
             // 
-            // tmsi_Dubli_SelectGroup
+            // MainForm
             // 
-            this.tmsi_Dubli_SelectGroup.Name = "tmsi_Dubli_SelectGroup";
-            this.tmsi_Dubli_SelectGroup.Size = new System.Drawing.Size(358, 22);
-            this.tmsi_Dubli_SelectGroup.Text = "Select group";
-            this.tmsi_Dubli_SelectGroup.Click += new System.EventHandler(this.tmsi_Dubli_SelectGroup_Click);
-            // 
-            // FormMain
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(843, 563);
+            this.ClientSize = new System.Drawing.Size(1405, 1083);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuMain);
@@ -1329,19 +1387,20 @@ namespace DupTerminator.View
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MainMenuStrip = this.menuMain;
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.Name = "FormMain";
+            this.Margin = new System.Windows.Forms.Padding(7, 8, 7, 8);
+            this.Name = "MainForm";
             this.Text = "DupTerminator";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.Shown += new System.EventHandler(this.FormMain_Shown);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
             this.FontChanged += new System.EventHandler(this.FormMain_FontChanged);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
             this.cmsDuplicates.ResumeLayout(false);
             this.cmsDirectorySearch.ResumeLayout(false);
             this.menuMain.ResumeLayout(false);
             this.menuMain.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPageSearchCriteria.ResumeLayout(false);
@@ -1473,7 +1532,7 @@ namespace DupTerminator.View
         private System.Windows.Forms.Button buttonClearNonExistent;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private Control.BindableToolStripButton toolStripButtonStart;
-        private System.Windows.Forms.ToolStripButton toolStripButtonCancel;
+        private Control.BindableToolStripButton toolStripButtonCancel;
         private System.Windows.Forms.ToolStripButton toolStripButtonUndo;
         private System.Windows.Forms.ToolStripButton toolStripButtonRedo;
         private System.Windows.Forms.ToolStripProgressBar progressBar1;

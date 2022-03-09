@@ -1,8 +1,8 @@
-using System;
-using NativeLib = DupTerminator.Native.NativeLib;
-
 namespace DupTerminator.Util
 {
+    using DupTerminator.Native;
+    using System;
+
 	public static class WinUtil
 	{
 		private const int ERROR_ACCESS_DENIED = 5;
@@ -64,10 +64,8 @@ namespace DupTerminator.Util
 
 		public static string GetOSStr()
 		{
-			if(NativeLib.IsUnix()) return "Unix";
+			if (NativeLib.IsUnix()) return "Unix";
 			return "Windows";
 		}
-
-
 	}
 }
