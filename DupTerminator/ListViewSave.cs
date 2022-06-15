@@ -58,35 +58,35 @@ namespace DupTerminator
 
             ListViewItemSave itemLVSave = new ListViewItemSave(6);
             itemLVSave.Name = "FileName";
-            itemLVSave.Text = efi.fileInfo.Name;
+            itemLVSave.Text = efi.Name;
             itemLVSave.Group = efi.GetCheckSum(_dbManager);
             itemLVSave.Checked = false;
             itemLVSave.Color = Settings.GetInstance().Fields.ColorRow1;
 
             ListViewItemSaveSubItem subItem = new ListViewItemSaveSubItem();
             subItem.Name = "FileName";
-            subItem.Text = efi.fileInfo.Name;
+            subItem.Text = efi.Name;
             itemLVSave.SubItems[0] = subItem;
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "Directory";
-            subItem.Text = efi.fileInfo.DirectoryName;
+            subItem.Text = efi.DirectoryName;
             itemLVSave.SubItems[1] = subItem;
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "Size";
-            subItem.Text = efi.fileInfo.Length.ToString();
+            subItem.Text = efi.Size.ToString();
             itemLVSave.SubItems[2] = subItem;
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "FileType";
             //subItem.Text = efi.fileInfo.Extension.Replace(".", string.Empty).ToUpper() + " File";
-            subItem.Text = efi.fileInfo.Extension.Replace(".", string.Empty).ToUpper();
+            subItem.Text = efi.Extension.Replace(".", string.Empty).ToUpper();
             itemLVSave.SubItems[3] = subItem;
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "LastAccessed";
-            subItem.Text = efi.fileInfo.LastAccessTime.ToString();
+            subItem.Text = efi.LastAccessTime.ToString();
             itemLVSave.SubItems[4] = subItem;
 
             subItem = new ListViewItemSaveSubItem();

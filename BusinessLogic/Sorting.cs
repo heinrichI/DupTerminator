@@ -23,7 +23,7 @@ namespace DupTerminator.BusinessLogic
         {
             ExtendedFileInfo fi1 = (ExtendedFileInfo)object1;
             ExtendedFileInfo fi2 = (ExtendedFileInfo)object2;
-            return (int)(fi1.fileInfo.Length - fi2.fileInfo.Length);
+            return (int)(fi1.Size - fi2.Size);
         }
     }
 
@@ -33,7 +33,7 @@ namespace DupTerminator.BusinessLogic
         {
             ExtendedFileInfo efi1 = (ExtendedFileInfo)object1;
             ExtendedFileInfo efi2 = (ExtendedFileInfo)object2;
-            return (int)string.Compare(efi1.fileInfo.Name, efi2.fileInfo.Name);
+            return (int)string.Compare(efi1.Name, efi2.Name);
         }
     }
 

@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator.Test", "DupTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.TestOld", "DupTerminator.TestOld\DupTerminator.TestOld.csproj", "{1CA5D2E8-0EAA-42FD-9111-92DD7F0DAC7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.IntegrationTest", "DupTerminator.IntegrationTest\DupTerminator.IntegrationTest.csproj", "{9C9FACEB-6DAC-4638-877E-2709629C7AB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator.IntegrationTest", "DupTerminator.IntegrationTest\DupTerminator.IntegrationTest.csproj", "{9C9FACEB-6DAC-4638-877E-2709629C7AB8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SevenZipExtractor", "SevenZipExtractor\SevenZipExtractor.csproj", "{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,6 +127,18 @@ Global
 		{9C9FACEB-6DAC-4638-877E-2709629C7AB8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9C9FACEB-6DAC-4638-877E-2709629C7AB8}.Release|x86.ActiveCfg = Release|Any CPU
 		{9C9FACEB-6DAC-4638-877E-2709629C7AB8}.Release|x86.Build.0 = Release|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Debug|x86.Build.0 = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.DebugNUnit|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.DebugNUnit|Any CPU.Build.0 = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.DebugNUnit|x86.ActiveCfg = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.DebugNUnit|x86.Build.0 = Debug|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Release|x86.ActiveCfg = Release|Any CPU
+		{FBB5C6BF-1BAE-49CD-AC1D-C7726514398E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

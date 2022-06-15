@@ -11,11 +11,11 @@ namespace DupTerminator.View
     {
         public FileViewModel(ExtendedFileInfo file)
         {
-            Path = file.fileInfo.FullName;
-            Size = file.fileInfo.Length;
+            Path = file.FullName;
+            Size = file.Size;
         }
 
-        public FileViewModel(string path, long size)
+        public FileViewModel(string path, ulong size)
         {
             Path = path;
             Size = size;
@@ -33,7 +33,7 @@ namespace DupTerminator.View
         }
 
         public string Path { get; }
-        public long Size { get; }
+        public ulong Size { get; }
         public string Checksum { get; internal set; }
     }
 }

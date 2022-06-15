@@ -22,7 +22,8 @@ namespace DupTerminator.IntegrationTest
                 null,
                 new SearchSetting(),
                 dbManager.Object,
-                new WindowsUtil()))
+                new WindowsUtil(),
+                null))
             {
                 await searcher.Start();
 

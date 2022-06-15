@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SevenZipExtractor;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -130,8 +131,8 @@ namespace DupTerminator.BusinessLogic
 
         private void CompareBySize(ReadOnlyCollection<ExtendedFileInfo> foundedFiles, BlockingCollection<ExtendedFileInfo> filesWithEqualSize)
         {
-            IEnumerable<IGrouping<long, ExtendedFileInfo>>? groupsFilesWithEqualSize = foundedFiles.GroupBy(fi => fi.Size).Where(group => group.Count() > 1);
-            foreach (IGrouping<long, ExtendedFileInfo>? items in groupsFilesWithEqualSize)
+            IEnumerable<IGrouping<ulong, ExtendedFileInfo>>? groupsFilesWithEqualSize = foundedFiles.GroupBy(fi => fi.Size).Where(group => group.Count() > 1);
+            foreach (IGrouping<ulong, ExtendedFileInfo>? items in groupsFilesWithEqualSize)
             {
                 foreach (ExtendedFileInfo item in items)
                 {
@@ -162,10 +163,10 @@ namespace DupTerminator.BusinessLogic
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
-        private void CalculateCheckSum(BlockingCollection<ExtendedFileInfo> bc, object progress2)
+        private void CalculateCheckSum(BlockingCollection<ExtendedFileInfo> blockingCollection, object progress2)
         {
-            if (bc == null)
-                throw new ArgumentNullException(nameof(bc));
+            if (blockingCollection == null)
+                throw new ArgumentNullException(nameof(blockingCollection));
 
             //var timeout = TimeSpan.FromMilliseconds(1000);
             //int localSum = 0;
@@ -174,7 +175,7 @@ namespace DupTerminator.BusinessLogic
             //    localSum++;
             //}
 
-            while (!bc.IsCompleted)
+            while (!blockingCollection.IsCompleted)
             {
                 ExtendedFileInfo data = null;
                 // Blocks if number.Count == 0
@@ -183,23 +184,61 @@ namespace DupTerminator.BusinessLogic
                 // IsCompleted check but before we call Take. 
                 // In this example, we can simply catch the exception since the 
                 // loop will break on the next iteration.
-                data = bc.Take();
+                data = blockingCollection.Take();
 
                 if (data != null)
                 {
                     string checksum = data.GetCheckSum(_dbManager);
                     _checksumDictionary.AddOrUpdate(checksum,
-                        (checksum) =>
+                        addValueFactory: (checksum) =>
                         {
                             var list = new List<ExtendedFileInfo>();
                             list.Add(data);
                             return list;
                         },
-                        (checksum, list) =>
+                        updateValueFactory: (checksum, list) =>
                         {
                             list.Add(data);
                             return list;
                         });
+
+
+                    if (ArchiveFile.IsArchive(data.FullName))
+                    {
+                        using (ArchiveFile archiveFile = new ArchiveFile(data.FullName))
+                        {
+                            foreach (var entry in archiveFile.Entries)
+                            {
+                                //Entry entry = archiveFile.Entries.FirstOrDefault(e => e.FileName == testEntry.Name && e.IsFolder == testEntry.IsFolder);
+                                if (entry.IsFolder)
+                                {
+                                    continue;
+                                }
+
+                                using (MemoryStream entryMemoryStream = new MemoryStream())
+                                {
+                                    entry.Extract(entryMemoryStream);
+
+                                    string checksumInArchive = entryMemoryStream.ToArray().MD5String();
+
+                                    ExtendedFileInfo archiveInfo = new ExtendedFileInfo(data, entry);
+
+                                    _checksumDictionary.AddOrUpdate(checksumInArchive,
+                                        addValueFactory: (checksum) =>
+                                        {
+                                            var list = new List<ExtendedFileInfo>();
+                                            list.Add(archiveInfo);
+                                            return list;
+                                        },
+                                        updateValueFactory: (checksum, list) =>
+                                        {
+                                            list.Add(archiveInfo);
+                                            return list;
+                                        });
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

@@ -225,7 +225,7 @@ namespace DupTerminator
         /// <returns>a collection of fileinfo array lists</returns>
         private ArrayList ParseBySize(ArrayList inputList)
         {
-            long currentFileSize;
+            ulong currentFileSize;
             ArrayList completeFileList = new ArrayList();
             ArrayList fileSizeMatchList = new ArrayList();
 
@@ -234,13 +234,13 @@ namespace DupTerminator
 
             inputList.Sort(new SortBySize());
 
-            currentFileSize = ((ExtendedFileInfo)inputList[0]).fileInfo.Length;
+            currentFileSize = ((ExtendedFileInfo)inputList[0]).Size;
             fileSizeMatchList.Add(inputList[0]);
 
             // Enumerate through all of the files in the listForCompare
             for (int i = 1; i < inputList.Count; i++)
             {
-                if (currentFileSize == ((ExtendedFileInfo)inputList[i]).fileInfo.Length)
+                if (currentFileSize == ((ExtendedFileInfo)inputList[i]).Size)
                 {
                     fileSizeMatchList.Add(inputList[i]);  //содержит файлы с одинаковым размером
                 }
@@ -250,7 +250,7 @@ namespace DupTerminator
                     fileSizeMatchList.Clear();
                     fileSizeMatchList.Add(inputList[i]);
                 }
-                currentFileSize = ((ExtendedFileInfo)inputList[i]).fileInfo.Length;
+                currentFileSize = ((ExtendedFileInfo)inputList[i]).Size;
             }
             completeFileList.Add(fileSizeMatchList.Clone());
             return completeFileList;
@@ -268,13 +268,13 @@ namespace DupTerminator
                 {
                     array.Sort(new SortByName());
 
-                    currentFileName = ((ExtendedFileInfo)array[0]).fileInfo.Name;
+                    currentFileName = ((ExtendedFileInfo)array[0]).Name;
                     fileNameMatchList.Add(array[0]);
 
                     // Enumerate through all of the files in the listForCompare
                     for (int i = 1; i < array.Count; i++)
                     {
-                        if (string.Compare(currentFileName, ((ExtendedFileInfo)array[i]).fileInfo.Name) == 0)
+                        if (string.Compare(currentFileName, ((ExtendedFileInfo)array[i]).Name) == 0)
                         {
                             fileNameMatchList.Add(array[i]);
                         }
@@ -284,7 +284,7 @@ namespace DupTerminator
                             fileNameMatchList.Clear();
                             fileNameMatchList.Add(array[i]);
                         }
-                        currentFileName = ((ExtendedFileInfo)array[i]).fileInfo.Name;
+                        currentFileName = ((ExtendedFileInfo)array[i]).Name;
                     }
                     nameSortedGroup.Add(fileNameMatchList.Clone());
                     fileNameMatchList.Clear();
@@ -443,9 +443,9 @@ namespace DupTerminator
                                 }
 
                                 if (FileCheckInProgressEvent != null)
-                                    FileCheckInProgressEvent(efiGroup.fileInfo.FullName, currentFileCount);
+                                    FileCheckInProgressEvent(efiGroup.FullName, currentFileCount);
                                 _duplicateFileList.Add(efiGroup);
-                                _DuplicateFileSize += Convert.ToUInt64(efiGroup.fileInfo.Length);
+                                _DuplicateFileSize += Convert.ToUInt64(efiGroup.Size);
                                 _DuplicateCount++;
 
                                 //currentFileSize = efiGroup.fileInfo.Length;

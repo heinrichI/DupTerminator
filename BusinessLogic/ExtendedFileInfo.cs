@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using DupTerminator.BusinessLogic;
+using SevenZipExtractor;
 //using SQLite;
 
 namespace DupTerminator.BusinessLogic
@@ -18,21 +19,43 @@ namespace DupTerminator.BusinessLogic
         private FileInfo _fileInfo;
 
         public byte[] Chunk;
+        private ExtendedFileInfo _archiveFileItself;
+        private Entry _entry;
 
         public ExtendedFileInfo(System.IO.FileInfo fi)
         {
             _fileInfo = fi;
+
+            Size = Convert.ToUInt64(_fileInfo.Length);
+            Name = fi.Name;
+            FullName = fi.FullName;
+            LastAccessTime = fi.LastAccessTime;
+            DirectoryName = fi.DirectoryName;
+            Extension = fi.Extension;
         }
 
-        /// <summary>
-        /// Return fileinfo object.
-        /// </summary>
-        public System.IO.FileInfo fileInfo
+        public ExtendedFileInfo(ExtendedFileInfo archiveFileItself, Entry archiveEntry)
         {
-            get { return _fileInfo; }
+            _archiveFileItself = archiveFileItself;
+            _entry = archiveEntry;
+
+            Size = archiveEntry.Size;
+            Name = archiveEntry.FileName;
+            LastAccessTime = archiveEntry.LastAccessTime;
+            Extension = Path.GetExtension(archiveEntry.FileName);
         }
 
-        public long Size => _fileInfo.Length;
+        public ulong Size { get; private set; }
+
+        public string Name { get; private set; }
+
+        public string? FullName { get; }
+
+        public DateTime LastAccessTime { get; private set; }
+
+        public string? DirectoryName { get; }
+        public string Extension { get; }
+
 
         /// <summary>
         /// Return MD5 Checksum for file.
