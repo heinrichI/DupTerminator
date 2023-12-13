@@ -1,5 +1,4 @@
-﻿using SevenZipExtractor;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +15,7 @@ namespace DupTerminator.BusinessLogic
         private readonly IDBManager _dbManager;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IProgress<ProgressDto> _progress;
+        private readonly IArchiveService _archiveService;
         private readonly ConcurrentDictionary<string, List<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<string, List<ExtendedFileInfo>>();
         public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
@@ -35,13 +35,15 @@ namespace DupTerminator.BusinessLogic
             SearchSetting searchSetting,
             IDBManager dbManager,
             IWindowsUtil windowsUtil,
-            IProgress<ProgressDto> progress)
+            IProgress<ProgressDto> progress,
+            IArchiveService archiveService)
         {
             _directorySearchCollection = directorySearchCollection;
             _fileSearch = fileSearch;
             _dbManager = dbManager;
             _windowsUtil = windowsUtil;
             _progress = progress;
+            _archiveService = archiveService;
         }
 
         public async Task Start()
@@ -202,7 +204,7 @@ namespace DupTerminator.BusinessLogic
                             return list;
                         });
 
-
+                    _archiveService.IsArchiveFile(data.FullName)
                     if (ArchiveFile.IsArchive(data.FullName))
                     {
                         using (ArchiveFile archiveFile = new ArchiveFile(data.FullName))

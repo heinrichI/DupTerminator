@@ -21,6 +21,7 @@ using System.Collections.ObjectModel;
 using DupTerminator.WindowsSpecific;
 using Microsoft.Extensions.Localization;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace DupTerminator.View
 {
@@ -371,10 +372,8 @@ namespace DupTerminator.View
             {
                 try
                 {
-                    List<ListViewItemSearchDir> listDir = new List<ListViewItemSearchDir>();
-                    Stream file = new System.IO.FileStream(filePath, FileMode.OpenOrCreate);
-                    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    listDir = (List<ListViewItemSearchDir>)formatter.Deserialize(file);
+                    string jsonString = File.ReadAllText(filePath);
+                    List<ListViewItemSearchDir> listDir = JsonSerializer.Deserialize<List<ListViewItemSearchDir>>(jsonString)!;
                     lvDirectorySearch.Items.Clear();
                     foreach (ListViewItemSearchDir item in listDir)
                     {
@@ -413,7 +412,6 @@ namespace DupTerminator.View
                             new CrashReport(ice, _settings, lvDirectorySearch).ShowDialog();
                         }
                     }
-                    file.Close();
                 }
                 catch (UnauthorizedAccessException ex)
                 {
@@ -433,9 +431,8 @@ namespace DupTerminator.View
                 try
                 {
                     System.Collections.ArrayList al;
-                    Stream file = new System.IO.FileStream(filePath, FileMode.OpenOrCreate);
-                    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    al = (System.Collections.ArrayList)formatter.Deserialize(file);
+                    string jsonString = File.ReadAllText(filePath);
+                    al = JsonSerializer.Deserialize<System.Collections.ArrayList>(jsonString)!;
                     checkedListBoxSkipFolder.Items.Clear();
                     foreach (object o in al)
                     {
@@ -451,7 +448,6 @@ namespace DupTerminator.View
                             MessageBox.Show(ice.Message);
                         }
                     }
-                    file.Close();
                 }
                 catch (UnauthorizedAccessException ex)
                 {
@@ -488,10 +484,10 @@ namespace DupTerminator.View
                     Application.DoEvents();
 
                     lvDuplicates.BeginUpdate();
-                    Stream fileOfListDupl = new System.IO.FileStream(fileNameOfListDupl, FileMode.OpenOrCreate);
-                    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                    ListViewSave saved = formatter.Deserialize(fileOfListDupl) as ListViewSave;
-                    fileOfListDupl.Close();
+
+                    string jsonString = File.ReadAllText(fileNameOfListDupl);
+                    ListViewSave saved = JsonSerializer.Deserialize<ListViewSave>(jsonString)!;
+
                     if (saved.Items != null)
                     {
                         _undoRedoEngine.ListDuplicates = saved;
@@ -633,10 +629,8 @@ namespace DupTerminator.View
             string filePath = CreatePathForDirectory(ref directory, Const.fileNameDirectorySearch);
             try
             {
-                Stream file = new System.IO.FileStream(filePath, FileMode.OpenOrCreate);
-                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                formatter.Serialize(file, listDir);
-                file.Close();
+                string jsonString = JsonSerializer.Serialize(listDir);
+                File.WriteAllText(filePath, jsonString);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -663,10 +657,8 @@ namespace DupTerminator.View
 
             try
             {
-                Stream file = new System.IO.FileStream(filePathOfListSkipped, FileMode.OpenOrCreate);
-                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                formatter.Serialize(file, al);
-                file.Close();
+                string jsonString = JsonSerializer.Serialize(al);
+                File.WriteAllText(filePathOfListSkipped, jsonString);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -686,11 +678,8 @@ namespace DupTerminator.View
             {
                 string filePathOfListDupl = CreatePathForDirectory(ref directory, Const.fileNameListDuplicate);
 
-                Stream fileOfListDupl = new System.IO.FileStream(filePathOfListDupl, FileMode.Create);
-                System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter3 =
-                    new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-                formatter3.Serialize(fileOfListDupl, _undoRedoEngine.ListDuplicates);
-                fileOfListDupl.Close();
+                string jsonString = JsonSerializer.Serialize(_undoRedoEngine.ListDuplicates);
+                File.WriteAllText(filePathOfListDupl, jsonString);
             }
             catch (Exception ex)
             {

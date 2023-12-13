@@ -7,8 +7,4 @@
     <DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj" />
-  </ItemGroup>
-
 </Project>
