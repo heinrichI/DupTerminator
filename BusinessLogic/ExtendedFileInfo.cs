@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using DupTerminator.BusinessLogic;
-using SevenZipExtractor;
-//using SQLite;
+using System.Diagnostics;
 
 namespace DupTerminator.BusinessLogic
 {
@@ -13,14 +12,24 @@ namespace DupTerminator.BusinessLogic
     /// Extension of system.IO.FileInfo to contain the file checksum as well. 
     /// FileInfo can not be inherited since it is sealed.
     /// </summary>
+    [DebuggerDisplay("{CheckSum} {Name}")]
     public class ExtendedFileInfo
     {
         private string _checkSum;
         private FileInfo _fileInfo;
 
         public byte[] Chunk;
-        private ExtendedFileInfo _archiveFileItself;
-        private Entry _entry;
+
+        public string CheckSum
+        {
+            get { return _checkSum; }
+            set { _checkSum = value; }
+        }
+
+
+        public ExtendedFileInfo()
+        {            
+        }
 
         public ExtendedFileInfo(System.IO.FileInfo fi)
         {
@@ -34,27 +43,18 @@ namespace DupTerminator.BusinessLogic
             Extension = fi.Extension;
         }
 
-        public ExtendedFileInfo(ExtendedFileInfo archiveFileItself, Entry archiveEntry)
-        {
-            _archiveFileItself = archiveFileItself;
-            _entry = archiveEntry;
+        public ulong Size { get; set; }
 
-            Size = archiveEntry.Size;
-            Name = archiveEntry.FileName;
-            LastAccessTime = archiveEntry.LastAccessTime;
-            Extension = Path.GetExtension(archiveEntry.FileName);
-        }
-
-        public ulong Size { get; private set; }
-
-        public string Name { get; private set; }
+        public string Name { get; set; }
 
         public string? FullName { get; }
 
-        public DateTime LastAccessTime { get; private set; }
+        public DateTime LastAccessTime { get; set; }
 
         public string? DirectoryName { get; }
         public string Extension { get; }
+        public bool InArchive { get; set; }
+        public uint ArchiveCRC { get; set; }
 
 
         /// <summary>

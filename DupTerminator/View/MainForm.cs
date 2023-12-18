@@ -1,4 +1,4 @@
-//#define ExtLang  //извлечь языки в xml
+﻿//#define ExtLang  //извлечь языки в xml
 
 using System;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ namespace DupTerminator.View
 
         public event EventHandler<AddFolderEventArgs> AddFolderEvent;
 
-        private ToolTip ttMainForm;
+        private ToolTip _ttMainForm;
         private readonly IServiceProvider _serviceProvider;
         private readonly MainViewModel _model;
 
@@ -50,20 +50,21 @@ namespace DupTerminator.View
 
         //обработчки сортировки колонок
         //private ListViewGroupSorter lvwGroupSorter;
-        private ListViewSaveGroupSorter lvwGroupSorter;
+        private ListViewSaveGroupSorter _lvwGroupSorter;
 
         //public const string defaultDirectory = "default";
-        private VersionManager.UpdateChecker updateChecker = null;
-        private VersionManager.VersionInfo versionInfo = null;
+        private VersionManager.UpdateChecker _updateChecker = null;
+        private VersionManager.VersionInfo _versionInfo = null;
 
         // The smaller the number the less sensitive
         const uint SHOW_SENSITIVITY = 5;
 
-        private ITaskbarList3 taskbarProgress;
+        private ITaskbarList3 _taskbarProgress;
 
         private UndoRedoEngine _undoRedoEngine;
         private readonly IDBManager _dbManager;
         private readonly IStringLocalizer<MainForm> _stringLocalizer;
+        private readonly IArchiveService _archiveService;
         private bool _beginUpdate = false;
 
         private enum StatusState
@@ -78,9 +79,9 @@ namespace DupTerminator.View
         /*private PictureBox pictureBoxNext;
         private PictureBox pictureBoxPrev;
         private PictureBox pictureBox1;*/
-        private FileViewer pictureBox1;
-        private FileViewer pictureBoxNext;
-        private FileViewer pictureBoxPrev;
+        private FileViewer _pictureBox1;
+        private FileViewer _pictureBoxNext;
+        private FileViewer _pictureBoxPrev;
 
         public event EventHandler AboutClick;
 
@@ -89,7 +90,8 @@ namespace DupTerminator.View
             MainViewModel model,
             UndoRedoEngine undoRedoEngine,
             IDBManager dbManager,
-            IStringLocalizer<MainForm> stringLocalizer)
+            IStringLocalizer<MainForm> stringLocalizer,
+            IArchiveService archiveService)
         {
             InitializeComponent();
             //dataGridView1.DataBindingComplete += (o, _) =>
@@ -112,14 +114,15 @@ namespace DupTerminator.View
             _undoRedoEngine = undoRedoEngine ?? throw new ArgumentNullException(nameof(undoRedoEngine));
             _dbManager = dbManager;
             _stringLocalizer = stringLocalizer;
+            _archiveService = archiveService;
             if ((Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1)
                 || Environment.OSVersion.Version.Major > 6)
-                taskbarProgress = (ITaskbarList3)new ProgressTaskbar();
+                _taskbarProgress = (ITaskbarList3)new ProgressTaskbar();
 
             // Create an instance of a ListView column sorter and assign it 
             // to the ListView control.
             //lvwGroupSorter = new ListViewGroupSorter();
-            lvwGroupSorter = new ListViewSaveGroupSorter();
+            _lvwGroupSorter = new ListViewSaveGroupSorter();
             //_listDuplicates = new ListViewSave();
             _settings = Settings.GetInstance();
             //_listDuplicates = new ListViewSave();
@@ -234,13 +237,13 @@ namespace DupTerminator.View
             if (_settings.Fields.IsCheckUpdate)
             {
                 toolStripMenuItem_CheckForUpdate.Enabled = false;
-                updateChecker = new VersionManager.UpdateChecker(false);
-                updateChecker.VersionChecked += new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
+                _updateChecker = new VersionManager.UpdateChecker(false);
+                _updateChecker.VersionChecked += new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
             }
 
             SetStatusState(StatusState.Search);
 
-            ttMainForm = new ToolTip();
+            _ttMainForm = new ToolTip();
             toolStripButtonCancel.ToolTipText = LanguageManager.GetString("toolTip_buttonCancel");
             toolStripButtonUndo.ToolTipText = LanguageManager.GetString("toolTip_buttonUndo");
             toolStripButtonRedo.ToolTipText = LanguageManager.GetString("toolTip_buttonRedo");
@@ -249,9 +252,9 @@ namespace DupTerminator.View
             toolStripButtonSelectBy.ToolTipText = LanguageManager.GetString("toolTip_buttonSelectBy");
             toolStripButtonSettings.ToolTipText = LanguageManager.GetString("toolTip_buttonSettings");
             toolStripButtonRefresh.ToolTipText = LanguageManager.GetString("toolTip_buttonRefresh");
-            ttMainForm.SetToolTip(buttonAddDirectory, LanguageManager.GetString("toolTip_buttonAddDirectory"));
-            ttMainForm.SetToolTip(comboBoxIncludeExtension, LanguageManager.GetString("toolTip_comboBoxIncludeExtension"));
-            ttMainForm.SetToolTip(comboBoxExcludeExtension, LanguageManager.GetString("toolTip_comboBoxExcludeExtension"));
+            _ttMainForm.SetToolTip(buttonAddDirectory, LanguageManager.GetString("toolTip_buttonAddDirectory"));
+            _ttMainForm.SetToolTip(comboBoxIncludeExtension, LanguageManager.GetString("toolTip_comboBoxIncludeExtension"));
+            _ttMainForm.SetToolTip(comboBoxExcludeExtension, LanguageManager.GetString("toolTip_comboBoxExcludeExtension"));
 
 
             toolStripMenuItem_Current.Text = _settings.Fields.LastJob;
@@ -303,7 +306,7 @@ namespace DupTerminator.View
             // pictureBox1
             // 
             //pictureBox1 = new System.Windows.Forms.PictureBox();
-            pictureBox1 = new FileViewer();
+            _pictureBox1 = new FileViewer();
             /*this.pictureBox1.Anchor = System.Windows.Forms.AnchorStyles.Left;
             this.pictureBox1.Location = new System.Drawing.Point(1, 168);
             this.pictureBox1.Name = "pictureBox1";
@@ -312,8 +315,8 @@ namespace DupTerminator.View
             this.pictureBox1.TabIndex = 6;
             this.pictureBox1.TabStop = false;*/
             //this.pictureBox1.DoubleClick += new System.EventHandler(this.pictureBox_DoubleClick);
-            this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
-            pictureBox1.Dock = DockStyle.Fill;
+            this._pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
+            _pictureBox1.Dock = DockStyle.Fill;
             //pictureBox1.Parent = this;
             //this.pictureBox1.AutoScroll = true;
             // 
@@ -331,7 +334,7 @@ namespace DupTerminator.View
             this.pictureBoxNext.DoubleClick += new System.EventHandler(this.pictureBox_DoubleClick);*/
 
             //this.splitContainer1.Panel1.Controls.Add(this.pictureBoxPrev);
-            this.splitContainer1.Panel1.Controls.Add(this.pictureBox1);
+            this.splitContainer1.Panel1.Controls.Add(this._pictureBox1);
             //this.splitContainer1.Panel1.Controls.Add(this.pictureBoxNext);
             this.splitContainer1.Panel1.Resize += new System.EventHandler(this.splitContainer1_Panel1_Resize);
             //this.splitContainer1.Panel1 = pictureBox1;*/
@@ -341,21 +344,21 @@ namespace DupTerminator.View
         {
             splitContainer1.Panel1.Controls.Clear();
 
-            pictureBox1 = new FileViewer();
-            this.pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
+            _pictureBox1 = new FileViewer();
+            this._pictureBox1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Generic_MouseMove);
 
             if (_settings.Fields.ShowNeighboringFiles)
             {
-                pictureBoxPrev = new FileViewer();
-                pictureBoxNext = new FileViewer();
-                this.splitContainer1.Panel1.Controls.Add(this.pictureBoxPrev);
-                this.splitContainer1.Panel1.Controls.Add(this.pictureBoxNext);
+                _pictureBoxPrev = new FileViewer();
+                _pictureBoxNext = new FileViewer();
+                this.splitContainer1.Panel1.Controls.Add(this._pictureBoxPrev);
+                this.splitContainer1.Panel1.Controls.Add(this._pictureBoxNext);
             }
             else
             {
-                pictureBox1.Dock = DockStyle.Fill;
+                _pictureBox1.Dock = DockStyle.Fill;
             }
-            this.splitContainer1.Panel1.Controls.Add(this.pictureBox1);
+            this.splitContainer1.Panel1.Controls.Add(this._pictureBox1);
 
             splitContainer1_Panel1_Resize(splitContainer1.Panel1, new EventArgs());
         }
@@ -387,7 +390,7 @@ namespace DupTerminator.View
                             lvi.Checked = item.IsChecked;
 
                             lvsi = new ListViewItem.ListViewSubItem();
-                            if (item.IsSubDir)
+                            if (item.IsSearchInSubDir)
                             {
                                 lvsi.Text = LanguageManager.GetString("Yes");
                                 lvsi.Tag = 1;
@@ -579,9 +582,9 @@ namespace DupTerminator.View
             _fFunctions.SearchCancelledEvent -= new FileFunctions.SearchCancelledDelegate(SearchCancelledEventHandler);
             _undoRedoEngine.OnActoinAppledEvent -= new UndoRedoEngine.ActoinAppledHandler(OnAction);
 
-            if (updateChecker != null)
+            if (_updateChecker != null)
             {
-                updateChecker.VersionChecked -= new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
+                _updateChecker.VersionChecked -= new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
             }
 
             Save_ListDirectorySearch(_settings.Fields.LastJob);
@@ -621,7 +624,7 @@ namespace DupTerminator.View
                     new CrashReport("Save_ListDirectorySearch lv.SubItems[SubDir].Tag == null", _settings, lvDirectorySearch).ShowDialog();
 
                 lvisd.Path = dir;
-                lvisd.IsSubDir = isSubDir;
+                lvisd.IsSearchInSubDir = isSubDir;
                 lvisd.IsChecked = lvi.Checked;
                 listDir.Add(lvisd);
             }
@@ -890,7 +893,7 @@ namespace DupTerminator.View
             //lvDuplicates.OwnerDraw = true;
             //lvDuplicates.FullRowSelect = true;
 
-            _undoRedoEngine.ListDuplicates.Sort(lvwGroupSorter);
+            _undoRedoEngine.ListDuplicates.Sort(_lvwGroupSorter);
             UpdateColumnSortingIcons();
 
             _undoRedoEngine.ListDuplicates.ColoringOfGroups();
@@ -955,7 +958,7 @@ namespace DupTerminator.View
                     msg = LanguageManager.GetString("NewVersion") + versionInfo.VersionString() + LanguageManager.GetString("released");
                     toolStripMenuItem_VersionInfo.Text = msg;
                     toolStripMenuItem_VersionInfo.Visible = true;
-                    this.versionInfo = versionInfo;
+                    this._versionInfo = versionInfo;
 
                     if (showFormVersion)
                     {
@@ -1009,13 +1012,13 @@ namespace DupTerminator.View
         private void SetVistaProgressState(ThumbnailProgressState thumbnailProgressState)
         {
             if (Environment.OSVersion.Version >= new Version(6, 1))
-                taskbarProgress.SetProgressState(this.Handle, thumbnailProgressState);
+                _taskbarProgress.SetProgressState(this.Handle, thumbnailProgressState);
         }
 
         private void SetVistaProgressValue(ulong value, ulong maximum)
         {
             if (Environment.OSVersion.Version >= new Version(6, 1))
-                taskbarProgress.SetProgressValue(this.Handle, value, maximum);
+                _taskbarProgress.SetProgressValue(this.Handle, value, maximum);
         }
 
         #region Main Menu
@@ -1028,14 +1031,14 @@ namespace DupTerminator.View
         {
             toolStripMenuItem_CheckForUpdate.Enabled = false;
 
-            updateChecker = new VersionManager.UpdateChecker(true);
-            updateChecker.VersionChecked += new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
+            _updateChecker = new VersionManager.UpdateChecker(true);
+            _updateChecker.VersionChecked += new VersionManager.UpdateChecker.NewVersionCheckedHandler(versionChecker_NewVersionChecked);
             //updateChecker.EndVersionChecked += new VersionManager.UpdateChecker.EndVersionCheckedHandler(EndVersionChecked);
         }
 
         private void MainMenuItem_VersionInfo_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(versionInfo.DownloadWebPageAddress);
+            System.Diagnostics.Process.Start(_versionInfo.DownloadWebPageAddress);
         }
 
         private void MainMenuItem_Click_Horizontal(object sender, EventArgs e)
@@ -1266,7 +1269,8 @@ namespace DupTerminator.View
                     new SearchSetting(),
                     _dbManager,
                     new WindowsUtil(),
-                    progress);
+                    progress,
+                    _archiveService);
 
                 progressForm.Cancelled += (s, e) => _searcher.Cancell();
                 var progressFormTask = progressForm.ShowDialogAsync();
@@ -1325,7 +1329,7 @@ namespace DupTerminator.View
             //lvDuplicates.OwnerDraw = true;
             //lvDuplicates.FullRowSelect = true;
 
-            _undoRedoEngine.ListDuplicates.Sort(lvwGroupSorter);
+            _undoRedoEngine.ListDuplicates.Sort(_lvwGroupSorter);
             UpdateColumnSortingIcons();
 
             _undoRedoEngine.ListDuplicates.ColoringOfGroups();
@@ -2026,28 +2030,28 @@ namespace DupTerminator.View
             {
                 if (splitContainer1.Orientation == Orientation.Vertical)
                 {
-                    pictureBox1.Width = panel.Width;
-                    pictureBox1.Height = panel.Height / 3 - MARGIN_BETWEEN_PB * 2;
-                    if (pictureBoxPrev != null && pictureBoxNext != null)
+                    _pictureBox1.Width = panel.Width;
+                    _pictureBox1.Height = panel.Height / 3 - MARGIN_BETWEEN_PB * 2;
+                    if (_pictureBoxPrev != null && _pictureBoxNext != null)
                     {
-                        pictureBoxPrev.Width = pictureBoxNext.Width = panel.Width;
-                        pictureBoxPrev.Height = pictureBoxNext.Height = pictureBox1.Height;
-                        pictureBoxPrev.Location = new Point(0, 0);
-                        pictureBox1.Location = new Point(0, pictureBoxPrev.Location.Y + pictureBoxPrev.Height + MARGIN_BETWEEN_PB);
-                        pictureBoxNext.Location = new Point(0, pictureBox1.Location.Y + pictureBox1.Height + MARGIN_BETWEEN_PB);
+                        _pictureBoxPrev.Width = _pictureBoxNext.Width = panel.Width;
+                        _pictureBoxPrev.Height = _pictureBoxNext.Height = _pictureBox1.Height;
+                        _pictureBoxPrev.Location = new Point(0, 0);
+                        _pictureBox1.Location = new Point(0, _pictureBoxPrev.Location.Y + _pictureBoxPrev.Height + MARGIN_BETWEEN_PB);
+                        _pictureBoxNext.Location = new Point(0, _pictureBox1.Location.Y + _pictureBox1.Height + MARGIN_BETWEEN_PB);
                     }
                 }
                 else if (splitContainer1.Orientation == Orientation.Horizontal)
                 {
-                    pictureBox1.Height = panel.Height;
-                    pictureBox1.Width = panel.Width / 3 - MARGIN_BETWEEN_PB * 2;
-                    pictureBox1.Location = new Point(pictureBoxPrev.Location.X + pictureBoxPrev.Width + MARGIN_BETWEEN_PB, 0);
-                    if (pictureBoxPrev != null && pictureBoxNext != null)
+                    _pictureBox1.Height = panel.Height;
+                    _pictureBox1.Width = panel.Width / 3 - MARGIN_BETWEEN_PB * 2;
+                    _pictureBox1.Location = new Point(_pictureBoxPrev.Location.X + _pictureBoxPrev.Width + MARGIN_BETWEEN_PB, 0);
+                    if (_pictureBoxPrev != null && _pictureBoxNext != null)
                     {
-                        pictureBoxPrev.Height = pictureBoxNext.Height = panel.Height;
-                        pictureBoxPrev.Width = pictureBoxNext.Width = pictureBox1.Width;
-                        pictureBoxPrev.Location = new Point(0, 0);
-                        pictureBoxNext.Location = new Point(pictureBox1.Location.X + pictureBox1.Width + MARGIN_BETWEEN_PB, 0);
+                        _pictureBoxPrev.Height = _pictureBoxNext.Height = panel.Height;
+                        _pictureBoxPrev.Width = _pictureBoxNext.Width = _pictureBox1.Width;
+                        _pictureBoxPrev.Location = new Point(0, 0);
+                        _pictureBoxNext.Location = new Point(_pictureBox1.Location.X + _pictureBox1.Width + MARGIN_BETWEEN_PB, 0);
                     }
                 }
             }
@@ -2439,7 +2443,7 @@ namespace DupTerminator.View
                     viewer.Dock = DockStyle.Fill;
                     this.splitContainer1.Panel1.Controls.Add(viewer);*/
 
-                    pictureBox1.UpdateImage(filePreview);
+                    _pictureBox1.UpdateImage(filePreview);
                     //pictureBox1.UpdateImagePadding();
 
                     if (_settings.Fields.ShowNeighboringFiles)
@@ -2474,11 +2478,11 @@ namespace DupTerminator.View
                         if (File.Exists(files[i - 1].FullName))
                         {
                             //LoadPictureBox(pictureBoxPrev, files[i - 1].FullName);
-                            pictureBoxPrev.UpdateImage(files[i - 1].FullName);
+                            _pictureBoxPrev.UpdateImage(files[i - 1].FullName);
                         }
                     if (i < files.Count - 1) //next
                         if (File.Exists(files[i + 1].FullName))
-                            pictureBoxNext.UpdateImage(files[i + 1].FullName);
+                            _pictureBoxNext.UpdateImage(files[i + 1].FullName);
                     //LoadPictureBox(pictureBoxNext, files[i + 1].FullName);
                     break;
                 }
@@ -2983,8 +2987,8 @@ namespace DupTerminator.View
 
         private void UpdateColumnSortingIcons()
         {
-            if (SetSortIcon(lvDuplicates, lvwGroupSorter.SortColumn,
-                lvwGroupSorter.Order))
+            if (SetSortIcon(lvDuplicates, _lvwGroupSorter.SortColumn,
+                _lvwGroupSorter.Order))
                 return;
 
             /*if (lvwGroupSorter.SortColumn < 0)
@@ -3016,12 +3020,12 @@ namespace DupTerminator.View
                     strCur = strNew;
                 }
 
-                if ((ch.Index == lvwGroupSorter.SortColumn) &&
-                    (lvwGroupSorter.Order != SortOrder.None))
+                if ((ch.Index == _lvwGroupSorter.SortColumn) &&
+                    (_lvwGroupSorter.Order != SortOrder.None))
                 {
-                    if (lvwGroupSorter.Order == SortOrder.Ascending)
+                    if (_lvwGroupSorter.Order == SortOrder.Ascending)
                         strNew = strCur + strAsc;
-                    else if (lvwGroupSorter.Order == SortOrder.Descending)
+                    else if (_lvwGroupSorter.Order == SortOrder.Descending)
                         strNew = strCur + strDsc;
                 }
 
@@ -3034,18 +3038,18 @@ namespace DupTerminator.View
         private void lvDuplicates_ColumnClick(object sender, ColumnClickEventArgs e)
         {
             // Determine if clicked column is already the column that is being sorted.
-            if (e.Column == lvwGroupSorter.SortColumn)
+            if (e.Column == _lvwGroupSorter.SortColumn)
             {
                 // Reverse the current sort direction for this column.
-                if (lvwGroupSorter.Order == SortOrder.Ascending)
-                    lvwGroupSorter.Order = SortOrder.Descending;
+                if (_lvwGroupSorter.Order == SortOrder.Ascending)
+                    _lvwGroupSorter.Order = SortOrder.Descending;
                 else
-                    lvwGroupSorter.Order = SortOrder.Ascending;
+                    _lvwGroupSorter.Order = SortOrder.Ascending;
             }
             else
             {
-                lvwGroupSorter.Order = SortOrder.Ascending;
-                lvwGroupSorter.SortColumn = e.Column;
+                _lvwGroupSorter.Order = SortOrder.Ascending;
+                _lvwGroupSorter.SortColumn = e.Column;
                 /*switch (e.Column)
                 { 
                     case 0:
@@ -3055,7 +3059,7 @@ namespace DupTerminator.View
 
             this.Cursor = Cursors.WaitCursor;
 
-            _undoRedoEngine.ListDuplicates.Sort(lvwGroupSorter);
+            _undoRedoEngine.ListDuplicates.Sort(_lvwGroupSorter);
             lvDuplicates.Invalidate(); //все перерисовывается
 
             UpdateColumnSortingIcons();

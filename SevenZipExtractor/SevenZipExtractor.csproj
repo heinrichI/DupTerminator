@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0-windows</TargetFrameworks>
     <AssemblyTitle>SevenZipWrapper</AssemblyTitle>
     <Product>SevenZipWrapper</Product>
     <Description>C# wrapper for 7z.dll (included)</Description>
@@ -25,9 +25,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Pack>true</Pack>
     </None>
+  </ItemGroup>
 
-    <None Include="SevenZipExtractor.targets" Pack="true" PackagePath="build\">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessLogic\DupTerminator.BusinessLogic.csproj" />
   </ItemGroup>
 </Project>

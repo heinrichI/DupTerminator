@@ -204,42 +204,25 @@ namespace DupTerminator.BusinessLogic
                             return list;
                         });
 
-                    _archiveService.IsArchiveFile(data.FullName)
-                    if (ArchiveFile.IsArchive(data.FullName))
+                    if (_archiveService.IsArchiveFile(data.FullName))
                     {
-                        using (ArchiveFile archiveFile = new ArchiveFile(data.FullName))
+                        var files = _archiveService.GetInfoFromArchive(data.FullName);
+                        foreach (ExtendedFileInfo file in files)
                         {
-                            foreach (var entry in archiveFile.Entries)
-                            {
-                                //Entry entry = archiveFile.Entries.FirstOrDefault(e => e.FileName == testEntry.Name && e.IsFolder == testEntry.IsFolder);
-                                if (entry.IsFolder)
-                                {
-                                    continue;
-                                }
-
-                                using (MemoryStream entryMemoryStream = new MemoryStream())
-                                {
-                                    entry.Extract(entryMemoryStream);
-
-                                    string checksumInArchive = entryMemoryStream.ToArray().MD5String();
-
-                                    ExtendedFileInfo archiveInfo = new ExtendedFileInfo(data, entry);
-
-                                    _checksumDictionary.AddOrUpdate(checksumInArchive,
-                                        addValueFactory: (checksum) =>
-                                        {
-                                            var list = new List<ExtendedFileInfo>();
-                                            list.Add(archiveInfo);
-                                            return list;
-                                        },
-                                        updateValueFactory: (checksum, list) =>
-                                        {
-                                            list.Add(archiveInfo);
-                                            return list;
-                                        });
-                                }
-                            }
+                            _checksumDictionary.AddOrUpdate(file.CheckSum,
+                                 addValueFactory: (checksum) =>
+                                 {
+                                     var list = new List<ExtendedFileInfo>();
+                                     list.Add(file);
+                                     return list;
+                                 },
+                                 updateValueFactory: (checksum, list) =>
+                                 {
+                                     list.Add(file);
+                                     return list;
+                                 });
                         }
+                      
                     }
                 }
             }

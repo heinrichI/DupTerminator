@@ -5,13 +5,13 @@ namespace SevenZipExtractor
 {
     public class Entry
     {
-        private readonly IInArchive archive;
-        private readonly uint index;
+        private readonly IInArchive _archive;
+        private readonly uint _index;
 
         internal Entry(IInArchive archive, uint index)
         {
-            this.archive = archive;
-            this.index = index;
+            _archive = archive;
+            _index = index;
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace SevenZipExtractor
         }
         public void Extract(Stream stream)
         {
-            this.archive.Extract(new[] { this.index }, 1, 0, new ArchiveStreamCallback(this.index, stream));
+            this._archive.Extract(new[] { this._index }, 1, 0, new ArchiveStreamCallback(this._index, stream));
         }
     }
 }

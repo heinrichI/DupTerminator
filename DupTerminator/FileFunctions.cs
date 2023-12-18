@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
@@ -19,7 +19,7 @@ namespace DupTerminator
     class FileFunctions
     {
         #region "Declarations"
-        private Thread thFileCount;
+        private Thread _thFileCount;
 
         private Dictionary<string, bool> _directorySearchList = new Dictionary<string, bool>();
         private List<string> _directorySkipList = new List<string>();
@@ -27,9 +27,9 @@ namespace DupTerminator
         private ArrayList _duplicateFileList = new ArrayList();
 
         private static bool _cancelSearch = false;
-        private int _DuplicateCount = 0;
+        private int _duplicateCount = 0;
         private int _fileFoundCount = 0;
-        private ulong _DuplicateFileSize = 0;
+        private ulong _duplicateFileSize = 0;
         private List<string> _includePattern = new List<string>();
         private List<string> _excludePattern = new List<string>();
         private string[] _separators = new string[] { "|", ";" };
@@ -339,22 +339,22 @@ namespace DupTerminator
         public void BeginSearch()
         {
             //Thread thFileCount = new Thread(ScanForDuplicates);
-            thFileCount = new Thread(ScanForDuplicates);
-            thFileCount.Name = "DupTerminator: File Comparison";
+            _thFileCount = new Thread(ScanForDuplicates);
+            _thFileCount.Name = "DupTerminator: File Comparison";
 
             //Start the file search and check on a new thread.
-            thFileCount.Start();
+            _thFileCount.Start();
         }
 
         public void PauseSearch()
         {
-            thFileCount.Suspend();
+            _thFileCount.Suspend();
             //m_EvSuspend.Reset();
         }
 
         public void ResumeSearch()
         {
-            thFileCount.Resume();
+            _thFileCount.Resume();
             //m_EvSuspend.Set();
         }
 
@@ -445,8 +445,8 @@ namespace DupTerminator
                                 if (FileCheckInProgressEvent != null)
                                     FileCheckInProgressEvent(efiGroup.FullName, currentFileCount);
                                 _duplicateFileList.Add(efiGroup);
-                                _DuplicateFileSize += Convert.ToUInt64(efiGroup.Size);
-                                _DuplicateCount++;
+                                _duplicateFileSize += Convert.ToUInt64(efiGroup.Size);
+                                _duplicateCount++;
 
                                 //currentFileSize = efiGroup.fileInfo.Length;
                             }
@@ -554,7 +554,7 @@ namespace DupTerminator
             //_directoriesSearched.Clear();
             //_groupCount = 0;
             //_totalDuplicateFileSize = 0;
-            _DuplicateFileSize = 0;
+            _duplicateFileSize = 0;
             //if (_includePattern != null) _includePattern.Clear();
             //if (_excludePattern != null) _excludePattern.Clear();
             _includePattern.Clear();
@@ -610,7 +610,7 @@ namespace DupTerminator
         /// </summary>
         public ulong DuplicateFileSize
         {
-            get { return _DuplicateFileSize; }
+            get { return _duplicateFileSize; }
         }
 
         /// <summary>

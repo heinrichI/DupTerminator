@@ -8,5 +8,7 @@ namespace DupTerminator.BusinessLogic
 {
     public interface IArchiveService
     {
+        IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string path);
+        bool IsArchiveFile(string? fullName);
     }
 }

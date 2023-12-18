@@ -1,8 +1,9 @@
-using DupTerminator.BusinessLogic;
+﻿using DupTerminator.BusinessLogic;
 using DupTerminator.DataBase;
 using DupTerminator.View;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
+using SevenZipExtractor.Extensions;
 
 namespace DupTerminator
 {
@@ -14,16 +15,9 @@ namespace DupTerminator
         [STAThread]
         static void Main()
         {
-#if NET6_0_OR_GREATER
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-#else
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-#endif
-
 
             var services = new ServiceCollection();
 
@@ -63,6 +57,8 @@ namespace DupTerminator
             });
 
             services.AddLocalization(o => o.ResourcesPath = "Resources");
+
+            services.AddArchive();
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

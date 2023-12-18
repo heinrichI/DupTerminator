@@ -15,9 +15,11 @@ namespace DupTerminator
     [Serializable]
     public class ListViewItemSearchDir
     {
-        public bool IsChecked;
-        public bool IsSubDir;
-        public string Path;
+        public bool IsChecked { get; set; }
+
+        public bool IsSearchInSubDir { get; set; }
+
+        public string Path { get; set; }
 
         public ListViewItemSearchDir()
         { }
@@ -145,26 +147,26 @@ namespace DupTerminator
     public class CheckedItemList : ISerializable
     {
         bool _checked;
-        string _Directory;
+        string _directory;
 
         public CheckedItemList(string dir, bool chk)
         {
             _checked = chk;
-            _Directory = dir;
+            _directory = dir;
         }
 
         //Load
         public CheckedItemList(SerializationInfo info, StreamingContext context)
         {
             _checked = (bool)info.GetValue("Checked", typeof(bool));
-            _Directory = (string)info.GetValue("Directory", typeof(string));
+            _directory = (string)info.GetValue("Directory", typeof(string));
         }
 
         //Save
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("Checked", _checked);
-            info.AddValue("Directory", _Directory);
+            info.AddValue("Directory", _directory);
         }
 
         public bool IsChecked
@@ -175,8 +177,8 @@ namespace DupTerminator
 
         public string Directory
         {
-            get { return _Directory; }
-            set { _Directory = (string)value; }
+            get { return _directory; }
+            set { _directory = (string)value; }
         }
     }
 
