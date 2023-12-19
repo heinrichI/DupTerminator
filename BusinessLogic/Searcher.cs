@@ -12,6 +12,7 @@ namespace DupTerminator.BusinessLogic
     {
         private readonly ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> _directorySearchCollection;
         private readonly ReadOnlyCollection<string> _fileSearch;
+        private readonly SearchSetting _searchSetting;
         private readonly IDBManager _dbManager;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IProgress<ProgressDto> _progress;
@@ -40,6 +41,7 @@ namespace DupTerminator.BusinessLogic
         {
             _directorySearchCollection = directorySearchCollection;
             _fileSearch = fileSearch;
+            _searchSetting = searchSetting;
             _dbManager = dbManager;
             _windowsUtil = windowsUtil;
             _progress = progress;
@@ -144,6 +146,7 @@ namespace DupTerminator.BusinessLogic
             filesWithEqualSize.CompleteAdding();
         }
 
+        // из разных потоков
         private ReadOnlyCollection<ExtendedFileInfo> SearchFileOnPhisicalDrive(
             IProgress<ProgressDto> progress,
             CancellationToken token,
@@ -186,7 +189,15 @@ namespace DupTerminator.BusinessLogic
                 // IsCompleted check but before we call Take. 
                 // In this example, we can simply catch the exception since the 
                 // loop will break on the next iteration.
-                data = blockingCollection.Take();
+
+                try
+                {
+                    data = blockingCollection.Take();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Task.Delay(500);
+                }
 
                 if (data != null)
                 {
@@ -292,29 +303,29 @@ namespace DupTerminator.BusinessLogic
                 }
 
                 //расширения
-                /*if (_includePattern.Count > 0)
+                if (_searchSetting.IncludePattern.Count > 0)
                 {
-                    foreach (string pattern in _includePattern)
-                        files.AddRange(di.GetFiles(pattern, SearchOption.TopDirectoryOnly));
+                    foreach (string pattern in _searchSetting.IncludePattern)
+                        files.AddRange(di.GetFiles(pattern, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f)));
                 }
                 else
-                    files.AddRange(di.GetFiles());
+                    files.AddRange(di.GetFiles().Select(f => new ExtendedFileInfo(f)));
 
-                if (_excludePattern.Count > 0)
+                if (_searchSetting.ExcludePattern.Count > 0)
                 {
                     List<FileInfo> excludeFiles = new List<FileInfo>();
 
-                    foreach (string patternExclude in _excludePattern)
+                    foreach (string patternExclude in _searchSetting.ExcludePattern)
                         excludeFiles.AddRange(di.GetFiles(patternExclude, SearchOption.TopDirectoryOnly));
 
                     if (excludeFiles.Count != 0)
                     {
-                        Debug.WriteLine("Не подошли по паттернам файлы: " + String.Join(", ", excludeFiles.Select(f => f.FullName).ToArray()));
+                        System.Diagnostics.Debug.WriteLine("Не подошли по паттернам файлы: " + String.Join(", ", excludeFiles.Select(f => f.FullName).ToArray()));
                         int deleted = files.RemoveAll(delegate (FileInfo file)
                         {
                             return (excludeFiles.Any(f => f.FullName == file.FullName));
                         });
-                        Debug.WriteLine("Удалено: " + deleted);
+                        System.Diagnostics.Debug.WriteLine("Удалено: " + deleted);
                         //if (deleted != excludeFiles.Count)
                         //    throw new Exception("Количество удаленных не равно количеству для удаления файлов");
                     }
@@ -323,7 +334,7 @@ namespace DupTerminator.BusinessLogic
                 //пропускаем не подходящие по размерам
                 for (int i = 0; i < files.Count; i++)
                 {
-                    if (files[i].Length > settings.Fields.limits[0] && files[i].Length < settings.Fields.limits[1])
+                    if (files[i].Size > _searchSetting.MinFileSize && files[i].Size < _searchSetting.MaxFileSize)
                     {
                         returnFiles.Add(new ExtendedFileInfo(files[i]));
 
@@ -344,7 +355,7 @@ namespace DupTerminator.BusinessLogic
                 //m_EvSuspend.WaitOne(); //pause
 
                 //_directoriesSearched.Add((string)di.FullName.ToString());
-                */
+                
             }
             catch (System.IO.FileNotFoundException)
             {

@@ -8,5 +8,7 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearchSetting
     {
+        public List<string> IncludePattern { get; set; } = new List<string>();
+        public List<string> ExcludePattern { get; set; } = new List<string>();
     }
 }
