@@ -409,5 +409,16 @@ namespace SevenZipExtractor
 
             return false;
         }
+
+        internal static bool IsArchiveByStream(Stream stream)
+        {
+            if (GuessFormatFromSignature(stream, out _))
+            {
+                // success
+                return true;
+            }
+
+            return false;
+        }
     }
 }
