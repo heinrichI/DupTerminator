@@ -261,8 +261,6 @@ namespace DupTerminator.BusinessLogic
         {
             try
             {
-                files.AddRange(di.GetFiles("*", SearchOption.TopDirectoryOnly).Select(fi => new ExtendedFileInfo(fi)));
-
                 //Add subdirectories
                 if (isRecurse)
                 {
@@ -313,15 +311,15 @@ namespace DupTerminator.BusinessLogic
 
                 if (_searchSetting.ExcludePattern.Count > 0)
                 {
-                    List<FileInfo> excludeFiles = new List<FileInfo>();
+                    List<ExtendedFileInfo> excludeFiles = new List<ExtendedFileInfo>();
 
                     foreach (string patternExclude in _searchSetting.ExcludePattern)
-                        excludeFiles.AddRange(di.GetFiles(patternExclude, SearchOption.TopDirectoryOnly));
+                        excludeFiles.AddRange(di.GetFiles(patternExclude, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f)));
 
                     if (excludeFiles.Count != 0)
                     {
                         System.Diagnostics.Debug.WriteLine("Не подошли по паттернам файлы: " + String.Join(", ", excludeFiles.Select(f => f.FullName).ToArray()));
-                        int deleted = files.RemoveAll(delegate (FileInfo file)
+                        int deleted = files.RemoveAll(delegate (ExtendedFileInfo file)
                         {
                             return (excludeFiles.Any(f => f.FullName == file.FullName));
                         });
@@ -332,26 +330,13 @@ namespace DupTerminator.BusinessLogic
                 }
 
                 //пропускаем не подходящие по размерам
-                for (int i = 0; i < files.Count; i++)
-                {
-                    if (files[i].Size > _searchSetting.MinFileSize && files[i].Size < _searchSetting.MaxFileSize)
-                    {
-                        returnFiles.Add(new ExtendedFileInfo(files[i]));
 
-                        if (settings.Fields.IsScanMax)
-                            if (returnFiles.Count >= settings.Fields.MaxFile)
-                            {
-                                Debug.WriteLine("Слишком много файлов = " + returnFiles.Count);
-                                return;
-                            }
-                    }
-                }
 
-                Debug.WriteLine(String.Format("Директория {0}, добавлено {1} файлов", di.FullName, returnFiles.Count));
+                //System.Diagnostics.Debug.WriteLine(String.Format("Директория {0}, добавлено {1} файлов", di.FullName, returnFiles.Count));
 
-                _fileFoundCount += files.Count;
-                if (FolderChangedEvent != null)
-                    FolderChangedEvent(_fileFoundCount, di.FullName);
+                //_fileFoundCount += files.Count;
+                //if (FolderChangedEvent != null)
+                //    FolderChangedEvent(_fileFoundCount, di.FullName);
                 //m_EvSuspend.WaitOne(); //pause
 
                 //_directoriesSearched.Add((string)di.FullName.ToString());
