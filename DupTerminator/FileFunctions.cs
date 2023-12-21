@@ -110,7 +110,15 @@ namespace DupTerminator
                 {
                     if (files[i].Length > settings.Fields.limits[0] && files[i].Length < settings.Fields.limits[1])
                     {
-                        returnFiles.Add(new ExtendedFileInfo(files[i]));
+                        returnFiles.Add(new ExtendedFileInfo()
+                        {
+                            Size = Convert.ToUInt64(files[i].Length),
+                            Name = files[i].Name,
+                            Path = files[i].FullName,
+                            LastAccessTime = files[i].LastAccessTime,
+                            DirectoryName = files[i].DirectoryName,
+                            Extension = files[i].Extension,
+                        });
 
                         if (settings.Fields.IsScanMax)
                             if (returnFiles.Count >= settings.Fields.MaxFile)
@@ -304,18 +312,18 @@ namespace DupTerminator
             ArrayList completeFileList = new ArrayList();
             ArrayList fileChecksumMatchList = new ArrayList();
 
-            SortByChecksum sortByChecksum = new SortByChecksum(_dbManager);
+            SortByChecksum sortByChecksum = new SortByChecksum();
             sortByChecksum.FastCheck = settings.Fields.FastCheck;
             sortByChecksum.FastCheckFileSize = settings.Fields.FastCheckFileSizeMb * 1024 * 1024;
             sortByChecksum.chunkSize = settings.Fields.FastCheckBufferKb * 1024;
             alFiles.Sort(sortByChecksum);
-            currentChecksum = ((ExtendedFileInfo)alFiles[0]).GetCheckSum(_dbManager);
+            currentChecksum = ((ExtendedFileInfo)alFiles[0]).CheckSum;
             fileChecksumMatchList.Add(alFiles[0]);
             for (int i = 1; i < alFiles.Count; i++)
             {
-                if (String.IsNullOrEmpty(((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager)))
+                if (String.IsNullOrEmpty(((ExtendedFileInfo)alFiles[i]).CheckSum))
                     continue;
-                if (string.Compare(currentChecksum, ((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager)) == 0)
+                if (string.Compare(currentChecksum, ((ExtendedFileInfo)alFiles[i]).CheckSum) == 0)
                 {
                     fileChecksumMatchList.Add(alFiles[i]);
                 }
@@ -325,7 +333,7 @@ namespace DupTerminator
                     fileChecksumMatchList.Clear();
                     fileChecksumMatchList.Add(alFiles[i]);
                 }
-                currentChecksum = ((ExtendedFileInfo)alFiles[i]).GetCheckSum(_dbManager);
+                currentChecksum = ((ExtendedFileInfo)alFiles[i]).CheckSum;
             }
             completeFileList.Add(fileChecksumMatchList.Clone());
             return completeFileList;
@@ -443,7 +451,7 @@ namespace DupTerminator
                                 }
 
                                 if (FileCheckInProgressEvent != null)
-                                    FileCheckInProgressEvent(efiGroup.FullName, currentFileCount);
+                                    FileCheckInProgressEvent(efiGroup.Path, currentFileCount);
                                 _duplicateFileList.Add(efiGroup);
                                 _duplicateFileSize += Convert.ToUInt64(efiGroup.Size);
                                 _duplicateCount++;

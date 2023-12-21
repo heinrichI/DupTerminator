@@ -26,7 +26,21 @@ namespace DupTerminator.View
 
         internal void UpdateProgress(ProgressDto progressDto)
         {
-            if (!_models.ContainsKey(progressDto.PhisicalDrive))
+            if (progressDto.PhisicalDrive is null)
+            {
+                if (!_models.ContainsKey("Unknown"))
+                {
+                    var progressModel = new ProgressModel { Status = progressDto.Status, PhisicalDrive = "Unknown" };
+                    _models.Add("Unknown", progressModel);
+
+                    CreatePanel(progressModel);
+                }
+                else
+                {
+                    _models["Unknown"].Status = progressDto.Status;
+                }
+            }
+            else if (!_models.ContainsKey(progressDto.PhisicalDrive))
             {
                 var progressModel = new ProgressModel { Status = progressDto.Status, PhisicalDrive = progressDto.PhisicalDrive };
                 _models.Add(progressDto.PhisicalDrive, progressModel);

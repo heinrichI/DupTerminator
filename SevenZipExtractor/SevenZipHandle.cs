@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -6,23 +6,23 @@ namespace SevenZipExtractor
 {
     internal class SevenZipHandle : IDisposable
     {
-        private SafeLibraryHandle sevenZipSafeHandle;
+        private SafeLibraryHandle _sevenZipSafeHandle;
 
         public SevenZipHandle(string sevenZipLibPath)
         {
-            this.sevenZipSafeHandle = Kernel32Dll.LoadLibrary(sevenZipLibPath);
+            this._sevenZipSafeHandle = Kernel32Dll.LoadLibrary(sevenZipLibPath);
 
-            if (this.sevenZipSafeHandle.IsInvalid)
+            if (this._sevenZipSafeHandle.IsInvalid)
             {
                 throw new Win32Exception();
             }
 
-            IntPtr functionPtr = Kernel32Dll.GetProcAddress(this.sevenZipSafeHandle, "GetHandlerProperty");
+            IntPtr functionPtr = Kernel32Dll.GetProcAddress(this._sevenZipSafeHandle, "GetHandlerProperty");
             
             // Not valid dll
             if (functionPtr == IntPtr.Zero)
             {
-                this.sevenZipSafeHandle.Close();
+                this._sevenZipSafeHandle.Close();
                 throw new ArgumentException();
             }
         }
@@ -34,12 +34,12 @@ namespace SevenZipExtractor
 
         protected void Dispose(bool disposing)
         {
-            if ((this.sevenZipSafeHandle != null) && !this.sevenZipSafeHandle.IsClosed)
+            if ((this._sevenZipSafeHandle != null) && !this._sevenZipSafeHandle.IsClosed)
             {
-                this.sevenZipSafeHandle.Close();
+                this._sevenZipSafeHandle.Close();
             }
 
-            this.sevenZipSafeHandle = null;
+            this._sevenZipSafeHandle = null;
         }
 
         public void Dispose()
@@ -50,12 +50,12 @@ namespace SevenZipExtractor
 
         public IInArchive CreateInArchive(Guid classId)
         {
-            if (this.sevenZipSafeHandle == null)
+            if (this._sevenZipSafeHandle == null)
             {
                 throw new ObjectDisposedException("SevenZipHandle");
             }
 
-            IntPtr procAddress = Kernel32Dll.GetProcAddress(this.sevenZipSafeHandle, "CreateObject");
+            IntPtr procAddress = Kernel32Dll.GetProcAddress(this._sevenZipSafeHandle, "CreateObject");
             CreateObjectDelegate createObject = (CreateObjectDelegate) Marshal.GetDelegateForFunctionPointer(procAddress, typeof (CreateObjectDelegate));
 
             object result;

@@ -45,11 +45,9 @@ namespace DupTerminator.BusinessLogic
         public bool FastCheck;
         public uint FastCheckFileSize;
         public uint chunkSize;
-        private IDBManager _dbManager;
 
-        public SortByChecksum(IDBManager dbManager)
+        public SortByChecksum()
         {
-            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
         }
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace DupTerminator.BusinessLogic
             //    else
             //        return 0;
             //else
-                return (int)string.Compare(efi1.GetCheckSum(_dbManager), efi2.GetCheckSum(_dbManager));
+                return (int)string.Compare(efi1.CheckSum, efi2.CheckSum);
         }
 
         /// <summary>

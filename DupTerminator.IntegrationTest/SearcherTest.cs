@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using DupTerminator.BusinessLogic;
 using System;
 using System.Collections.ObjectModel;
@@ -23,7 +23,7 @@ namespace DupTerminator.IntegrationTest
                 new SearchSetting(),
                 dbManager.Object,
                 new WindowsUtil(),
-                null))
+                null, null))
             {
                 await searcher.Start();
 

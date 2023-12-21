@@ -11,7 +11,7 @@ namespace DupTerminator.View
     {
         public FileViewModel(ExtendedFileInfo file)
         {
-            Path = file.FullName;
+            Path = file.Path;
             Size = file.Size;
         }
 

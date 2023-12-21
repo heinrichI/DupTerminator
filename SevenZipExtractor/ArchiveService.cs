@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using DupTerminator.BusinessLogic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using DupTerminator.BusinessLogic.Helper;
 
 namespace SevenZipExtractor
 {
     internal class ArchiveService : IArchiveService
     {
-        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(Stream stream)
+        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container)
         {
             List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
             using (ArchiveFile archiveFile = new ArchiveFile(stream))
@@ -23,26 +23,19 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    using (MemoryStream entryMemoryStream = new MemoryStream())
+                    using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
                     {
                         entry.Extract(entryMemoryStream);
 
                         string checksumInArchive = entryMemoryStream.ToArray().MD5String();
 
-                        ExtendedFileInfo fileInfo = new ExtendedFileInfo()
-                        {
-                            InArchive = true,
-                            ArchiveCRC = entry.CRC,
-                            LastAccessTime = entry.LastAccessTime,
-                            Name = entry.FileName,
-                            Size = entry.Size,
-                            CheckSum = checksumInArchive
-                        };
+                        var fileInfo = Map(entry, container, checksumInArchive);
                         infos.Add(fileInfo);
 
+                        entryMemoryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream));
+                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, container));
                         }
                     }
                 }
@@ -50,10 +43,103 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        public IEnumerable<ExtendedFileInfo> CalculateHashInArchive(string path)
+        private ExtendedFileInfo Map(Entry entry, ExtendedFileInfo container, string? checksumInArchive = null)
+        {
+            ExtendedFileInfo efi = new ExtendedFileInfo()
+            {
+                InArchive = true,
+                ArchiveCRC = entry.CRC,
+                ArchivePath = entry.FileName,
+                LastAccessTime = entry.LastAccessTime,
+                Name = Path.GetFileName(entry.FileName),
+                Extension = Path.GetExtension(entry.FileName),
+                Size = entry.Size,
+                Container = container
+            };
+            if (checksumInArchive != null)
+            {
+                efi.CheckSum = checksumInArchive;
+            }
+            return efi;
+        }
+
+        //public IEnumerable<ExtendedFileInfo> GetHashesFromArchive(ExtendedFileInfo container)
+        //{
+        //    List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
+        //    using (ArchiveFile archiveFile = new ArchiveFile(container.Path))
+        //    {
+        //        foreach (var entry in archiveFile.Entries)
+        //        {
+        //            //Entry entry = archiveFile.Entries.FirstOrDefault(e => e.FileName == testEntry.Name && e.IsFolder == testEntry.IsFolder);
+        //            if (entry.IsFolder)
+        //            {
+        //                continue;
+        //            }
+
+        //            using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+        //            {
+        //                entry.Extract(entryMemoryStream);
+
+        //                string checksumInArchive = entryMemoryStream.ToArray().MD5String();
+
+        //                var fileInfo = Map(entry, container, checksumInArchive);
+        //                infos.Add(fileInfo);
+
+        //                entryMemoryStream.Position = 0;
+        //                if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+        //                {
+        //                    infos.AddRange(GetInfoFromArchive(entryMemoryStream, container));
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return infos;
+        //}
+
+        public bool IsArchiveFile(string fullName)
+        {
+            return ArchiveFile.IsArchive(fullName);
+        }
+
+        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token)
         {
             List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
-            using (ArchiveFile archiveFile = new ArchiveFile(path))
+
+            using (ArchiveFile archiveFile = new ArchiveFile(fullName))
+            {
+                foreach (var entry in archiveFile.Entries)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    if (entry.IsFolder)
+                    {
+                        continue;
+                    }
+
+                    using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                    {
+                        entry.Extract(entryMemoryStream);
+
+                        var fileInfo = Map(entry, container);
+                        infos.Add(fileInfo);
+
+                        entryMemoryStream.Position = 0;
+                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+                        {
+                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, container));
+                        }
+                    }
+                }
+            }
+            return infos;
+        }
+
+        public string CalculateHashInArchive(ExtendedFileInfo fileInfo)
+        {
+            using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Container.Path))
             {
                 foreach (var entry in archiveFile.Entries)
                 {
@@ -63,73 +149,19 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    using (MemoryStream entryMemoryStream = new MemoryStream())
+                    if (entry.FileName == fileInfo.ArchivePath)
                     {
-                        entry.Extract(entryMemoryStream);
-
-                        string checksumInArchive = entryMemoryStream.ToArray().MD5String();
-
-                        ExtendedFileInfo fileInfo = new ExtendedFileInfo()
+                        using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
                         {
-                            InArchive = true,
-                            ArchiveCRC = entry.CRC,
-                            LastAccessTime = entry.LastAccessTime,
-                            Name = entry.FileName,
-                            Size = entry.Size,
-                            CheckSum = checksumInArchive
-                        };
-                        infos.Add(fileInfo);
+                            entry.Extract(entryMemoryStream);
 
-                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
-                        {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream));
+                            entryMemoryStream.Position = 0;
+                            return HashHelper.CreateMD5Checksum(entryMemoryStream);
                         }
                     }
                 }
             }
-            return infos;
-        }
-
-        public bool IsArchiveFile(string fullName)
-        {
-            return ArchiveFile.IsArchive(fullName);
-        }
-
-        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string fullName)
-        {
-            List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
-            using (ArchiveFile archiveFile = new ArchiveFile(fullName))
-            {
-                foreach (var entry in archiveFile.Entries)
-                {
-                    if (entry.IsFolder)
-                    {
-                        continue;
-                    }
-
-                    using (MemoryStream entryMemoryStream = new MemoryStream())
-                    {
-                        entry.Extract(entryMemoryStream);
-
-                        ExtendedFileInfo fileInfo = new ExtendedFileInfo()
-                        {
-                            InArchive = true,
-                            ArchiveCRC = entry.CRC,
-                            ArchivePath = entry.FileName,
-                            LastAccessTime = entry.LastAccessTime,
-                            Name = Path.GetFileName(entry.FileName),
-                            Size = entry.Size
-                        };
-                        infos.Add(fileInfo);
-
-                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
-                        {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream));
-                        }
-                    }
-                }
-            }
-            return infos;
+            return null;
         }
     }
 }

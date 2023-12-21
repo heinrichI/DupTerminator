@@ -21,17 +21,14 @@ namespace DupTerminator
         private Stack<ICommand> _undoCommandStack;
         private Stack<ICommand> _redoCommandStack;
         public ListViewSave ListDuplicates;
-        private readonly IDBManager _dbManager;
 
-        public UndoRedoEngine(IDBManager dbManager)
+        public UndoRedoEngine()
         {
-            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
-
             //_UndoStack = new Stack<ListViewSave>();
             //_RedoStack = new Stack<ListViewSave>();
             _undoCommandStack = new Stack<ICommand>();
             _redoCommandStack = new Stack<ICommand>();
-            ListDuplicates = new ListViewSave(_dbManager);
+            ListDuplicates = new ListViewSave();
         }
 
         public bool Undo()

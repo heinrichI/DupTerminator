@@ -2,9 +2,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using DupTerminator.BusinessLogic.Helper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
@@ -91,19 +95,19 @@ namespace DupTerminator.BusinessLogic
             //try
             //{
 
-            var tasks2 = new Task[phisicalDrives.Count * 2];
+            Task[] tasks2 = new Task[phisicalDrives.Count * 2];
             for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
             {
                 int temp = i;
-                tasks2[phisicalDrives.Count + temp] = Task.Factory.StartNew((d) => CompareBySize(result[temp],
-                    blockingCollectionByPhisDisks[temp]),
+                tasks2[phisicalDrives.Count + temp] = Task.Factory.StartNew((d) =>
+                    CompareBySize(result[temp], blockingCollectionByPhisDisks[temp]),
                     _cts, TaskCreationOptions.LongRunning);
             }
 
             for (int i = 0; i < phisicalDrives.Count; i++)
             {
                 int temp = i;
-                tasks2[i] = Task.Factory.StartNew(
+                tasks2[temp] = Task.Factory.StartNew(
                     () => CalculateCheckSum(blockingCollectionByPhisDisks[temp], _progress),
                     _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
@@ -178,7 +182,7 @@ namespace DupTerminator.BusinessLogic
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
-        private void CalculateCheckSum(BlockingCollection<ExtendedFileInfo> blockingCollection, object progress2)
+        private void CalculateCheckSum(BlockingCollection<ExtendedFileInfo> blockingCollection, IProgress<ProgressDto> progress)
         {
             if (blockingCollection == null)
                 throw new ArgumentNullException(nameof(blockingCollection));
@@ -211,7 +215,9 @@ namespace DupTerminator.BusinessLogic
 
                 if (data != null)
                 {
-                    string checksum = data.GetCheckSum(_dbManager);
+                    progress.Report(new ProgressDto { Status = data.Name });
+
+                    string checksum = GetCheckSum(data);
                     _checksumDictionary.AddOrUpdate(checksum,
                         addValueFactory: (checksum) =>
                         {
@@ -225,25 +231,25 @@ namespace DupTerminator.BusinessLogic
                             return list;
                         });
 
-                    if (_archiveService.IsArchiveFile(data.FullName))
-                    {
-                        var files = _archiveService.CalculateHashInArchive(data.FullName);
-                        foreach (ExtendedFileInfo file in files)
-                        {
-                            _checksumDictionary.AddOrUpdate(file.CheckSum,
-                                 addValueFactory: (checksum) =>
-                                 {
-                                     var list = new List<ExtendedFileInfo>();
-                                     list.Add(file);
-                                     return list;
-                                 },
-                                 updateValueFactory: (checksum, list) =>
-                                 {
-                                     list.Add(file);
-                                     return list;
-                                 });
-                        }                      
-                    }
+                    //if (_archiveService.IsArchiveFile(data.Path))
+                    //{
+                    //    var files = _archiveService.GetHashesFromArchive(data);
+                    //    foreach (ExtendedFileInfo file in files)
+                    //    {
+                    //        _checksumDictionary.AddOrUpdate(file.CheckSum,
+                    //             addValueFactory: (checksum) =>
+                    //             {
+                    //                 var list = new List<ExtendedFileInfo>();
+                    //                 list.Add(file);
+                    //                 return list;
+                    //             },
+                    //             updateValueFactory: (checksum, list) =>
+                    //             {
+                    //                 list.Add(file);
+                    //                 return list;
+                    //             });
+                    //    }                      
+                    //}
                 }
             }
 
@@ -253,6 +259,48 @@ namespace DupTerminator.BusinessLogic
             //{
             //    Console.WriteLine( $"Consuming tick value {item:D18}");
             //}
+        }
+
+        /// <summary>
+        /// Return check sum of file. If the checksum does not exist, create it.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private string GetCheckSum(ExtendedFileInfo fileInfo)
+        {
+            if (_dbManager is null)
+                throw new ArgumentNullException(nameof(_dbManager));
+
+            if (fileInfo.CheckSum == null)
+            {
+                //if (_dbManager.Active)
+                //{
+                //    //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
+                //    string md5 = string.Empty;
+                //    md5 = _dbManager.ReadMD5(data.FullName, data.LastWriteTime, data.Length);
+                //    if (String.IsNullOrEmpty(md5))
+                //    {
+                //        //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
+                //        data.CheckSum = CreateMD5Checksum(_fileInfo.FullName);
+                //        dbManager.Add(_fileInfo.FullName, _fileInfo.LastWriteTime, _fileInfo.Length, _checkSum);
+                //        //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                //    }
+                //    else
+                //        data.CheckSum = md5;
+                //}
+                //else
+
+                if (fileInfo.InArchive)
+                {
+                    Debug.Assert(!fileInfo.Container.Equals(default(ContainerInfo)));
+                    fileInfo.CheckSum = _archiveService.CalculateHashInArchive(fileInfo);
+                }
+                else
+                {
+                    fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                }
+            }
+            return fileInfo.CheckSum;
         }
 
         /// <summary>
@@ -309,16 +357,32 @@ namespace DupTerminator.BusinessLogic
                     }
                 }
 
-                var files3 = di.GetFiles().Select(f => new ExtendedFileInfo(f));
+                var files3 = di.GetFiles().Select(f => new ExtendedFileInfo()
+                {
+                    Size = Convert.ToUInt64(f.Length),
+                    Name = f.Name,
+                    Path = f.FullName,
+                    LastAccessTime = f.LastAccessTime,
+                    DirectoryName = f.DirectoryName,
+                    Extension = f.Extension,
+                });
                 foreach (var item in files3)
                 {
-                    files.Add(item);
-                    if (_archiveService.IsArchiveFile(item.FullName))
+                    if (token.IsCancellationRequested)
                     {
-                        var files4 = _archiveService.GetInfoFromArchive(item.FullName);
+                        System.Diagnostics.Debug.WriteLine("Canceled while running.");
+                        break;
+                    }
+
+                    progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = item.Path });
+
+                    files.Add(item);
+                    if (_archiveService.IsArchiveFile(item.Path))
+                    {
+                        var files4 = _archiveService.GetInfoFromArchive(item.Path, item, token);
                         foreach (ExtendedFileInfo file in files4)
                         {
-                            files.Add(item);
+                            files.Add(file);
                         }
                     }
                 }              

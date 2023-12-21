@@ -24,22 +24,20 @@ namespace DupTerminator
 
         [XmlArray("Items")]
         public List<ListViewItemSave> Items; //список элементов для отображения
-        private readonly IDBManager _dbManager;
 
-        public ListViewSave(IDBManager dbManager)
+        public ListViewSave()
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>();
-            _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
         }
 
-        public ListViewSave(IDBManager dbManager, int col) : this(dbManager)
+        public ListViewSave(int col)
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>(col);
         }
 
-        public ListViewSave(IDBManager dbManager, ListViewSave lvs) : this(dbManager)
+        public ListViewSave(ListViewSave lvs) : this()
         {
             _groups = new List<GroupOfDupl>();
             Items = new List<ListViewItemSave>();
@@ -48,7 +46,7 @@ namespace DupTerminator
 
         public ListViewSave Clone()
         {
-            return new ListViewSave(_dbManager, this);
+            return new ListViewSave(this);
         }
 
         public void Add(ExtendedFileInfo efi)
@@ -59,7 +57,7 @@ namespace DupTerminator
             ListViewItemSave itemLVSave = new ListViewItemSave(6);
             itemLVSave.Name = "FileName";
             itemLVSave.Text = efi.Name;
-            itemLVSave.Group = efi.GetCheckSum(_dbManager);
+            itemLVSave.Group = efi.CheckSum;
             itemLVSave.Checked = false;
             itemLVSave.Color = Settings.GetInstance().Fields.ColorRow1;
 
@@ -91,7 +89,7 @@ namespace DupTerminator
 
             subItem = new ListViewItemSaveSubItem();
             subItem.Name = "MD5Checksum";
-            subItem.Text = efi.GetCheckSum(_dbManager);
+            subItem.Text = efi.CheckSum;
             itemLVSave.SubItems[5] = subItem;
 
             if (!Items.Contains(itemLVSave))

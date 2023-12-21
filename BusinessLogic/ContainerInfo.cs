@@ -2,20 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using DupTerminator.BusinessLogic;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic
 {
-    /// <summary>
-    /// Extension of system.IO.FileInfo to contain the file checksum as well. 
-    /// FileInfo can not be inherited since it is sealed.
-    /// </summary>
-    [DebuggerDisplay("{CheckSum} {Name}")]
-    public class ExtendedFileInfo
+    public struct ContainerInfo
     {
-        //public byte[] Chunk;
-
         public string CheckSum { get; set; }
 
         public ulong Size { get; set; }
@@ -31,8 +23,5 @@ namespace DupTerminator.BusinessLogic
         public string? DirectoryName { get; set; }
         public string Extension { get; set; }
         public bool InArchive { get; set; }
-        public uint ArchiveCRC { get; set; }
-        public string ArchivePath { get; set; }
-        public ExtendedFileInfo Container { get; set; }
     }
 }

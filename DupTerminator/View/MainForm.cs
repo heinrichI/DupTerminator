@@ -1315,13 +1315,16 @@ namespace DupTerminator.View
             if (_undoRedoEngine.ListDuplicates != null)
                 _undoRedoEngine.ListDuplicates.Clear();
 
-            //foreach (ExtendedFileInfo efi in duplicateList)
-            //{
-            //    _undoRedoEngine.ListDuplicates.Add(efi);
-            //}
+            foreach (var group in searcher.Duplicates)
+            {
+                foreach (var item in group.Files)
+                {
+                    _undoRedoEngine.ListDuplicates.Add(item);
+                }
+            }
 
             //lvDuplicates.VirtualListSize = searcher.Duplicates.Count;
-            //lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
+            lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
 
             //lvDuplicates.View = View.Details;
             //lvDuplicates.View = View.List;
@@ -1335,15 +1338,14 @@ namespace DupTerminator.View
             _undoRedoEngine.ListDuplicates.ColoringOfGroups();
 
 
-            var duplicates = searcher.Duplicates.SelectMany(d => d.Files).Select(f => new FileViewModel(f)).ToList();
+            //var duplicates = searcher.Duplicates.SelectMany(d => d.Files).Select(f => new FileViewModel(f)).ToList();
             //for (int i = 0; i < 300000; i++)
             //{
             //    //duplicates.Add(new FileViewModel(new ExtendedFileInfo(new FileInfo("c:\\DumpStack.log"))));
             //    duplicates.Add(new FileViewModel("c:\\DumpStack.log", 54161));
             //}
-            _model.Dublicates = duplicates;
+            //_model.Dublicates = duplicates;
 
-            lvDuplicates.VirtualListSize = _model.Dublicates.Count;
 
             SetWidthOfListView();
 
@@ -3611,8 +3613,7 @@ namespace DupTerminator.View
             if (!_beginUpdate)
             {
                 int index = e.ItemIndex;
-                //if (index >= _undoRedoEngine.ListDuplicates.Items.Count)
-                if (index >= _model.Dublicates.Count)
+                if (index >= _undoRedoEngine.ListDuplicates.Items.Count)
                 {
                     throw new ArgumentOutOfRangeException($"RetrieveVirtualItem: index({index}) >= ListDuplicates.Items({_undoRedoEngine.ListDuplicates.Items.Count}), lvDuplicates.VirtualListSize({lvDuplicates.VirtualListSize})");
                 }
@@ -3620,27 +3621,14 @@ namespace DupTerminator.View
                 ListViewItem listViewItem = new ListViewItem(
                     new string[]
                     {
-                        _model.Dublicates[index].Checksum,
-                        _model.Dublicates[index].Path,
-                        "",
-                        "",
-                        "",
-                        "",
-                    });
-
-                /*
-                ListViewItem listViewItem = new ListViewItem(
-                        new string[]
-                    {
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[0].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[1].Text,
                         GetStringToSize(ulong.Parse(_undoRedoEngine.ListDuplicates.Items[index].SubItems[2].Text), "F01"),
+                        //_undoRedoEngine.ListDuplicates.Items[index].SubItems[2].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[3].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[4].Text,
                         _undoRedoEngine.ListDuplicates.Items[index].SubItems[5].Text
-                    }
-                    );
-
+                    });
 
                 if (_undoRedoEngine.ListDuplicates.Items[index].Checked)
                 {
@@ -3657,7 +3645,6 @@ namespace DupTerminator.View
                 }
 
                 listViewItem.BackColor = _undoRedoEngine.ListDuplicates.Items[index].Color.ToColor();
-                */
 
                 e.Item = listViewItem;
             }
