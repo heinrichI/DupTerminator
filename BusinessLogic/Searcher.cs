@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
 {
@@ -58,40 +59,39 @@ namespace DupTerminator.BusinessLogic
             //curent found files, current file path
 
 
-            var phisicalDrives = GetPhisicalDrives(_directorySearchCollection, _fileSearch);
+            ReadOnlyCollection<string> phisicalDrives = GetPhisicalDrives(_directorySearchCollection, _fileSearch);
 
+            BlockingCollection<ExtendedFileInfo>[]? blockingCollectionByPhisDisks = new BlockingCollection<ExtendedFileInfo>[phisicalDrives.Count];
+            for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
+            {
+                blockingCollectionByPhisDisks[i] = new BlockingCollection<ExtendedFileInfo>();
+            }
 
             var tasks = new Task<ReadOnlyCollection<ExtendedFileInfo>>[phisicalDrives.Count];
             for (int i = 0; i < phisicalDrives.Count; i++)
             {
                 int temp = i;
                 tasks[i] = Task.Factory.StartNew<ReadOnlyCollection<ExtendedFileInfo>>(
-                    () => SearchFileOnPhisicalDrive(_progress, _cts.Token, phisicalDrives[temp]),
+                    () => SearchFileOnPhisicalDrive(_progress, phisicalDrives[temp], _cts.Token),
                     _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             };
 
             //IEnumerable<ReadOnlyCollection<ExtendedFileInfo>> results = await Task.WhenAll(tasks);
             ReadOnlyCollection<ExtendedFileInfo>[]? result = await Task.WhenAll(tasks);
 
+            //получаем список файлов
+            //отсеиваем только с одинаковыми размерами
+            //считаем для них хещ
+
 
             //Task.WhenAll(tasks).ContinueWith((files) =>
             //{
             //var collections = new ConcurrentDictionary<string, BlockingCollection<string>>();
-            BlockingCollection<ExtendedFileInfo>[]? blockingCollectionByPhisDisks = new BlockingCollection<ExtendedFileInfo>[phisicalDrives.Count];
-            for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
-            {
-                blockingCollectionByPhisDisks[i] = new BlockingCollection<ExtendedFileInfo>();
-            }
+
             //try
             //{
+
             var tasks2 = new Task[phisicalDrives.Count * 2];
-            for (int i = 0; i < phisicalDrives.Count; i++)
-            {
-                int temp = i;
-                tasks2[i] = Task.Factory.StartNew(
-                    () => CalculateCheckSum(blockingCollectionByPhisDisks[temp], _progress),
-                    _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
-            }
             for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
             {
                 int temp = i;
@@ -99,6 +99,15 @@ namespace DupTerminator.BusinessLogic
                     blockingCollectionByPhisDisks[temp]),
                     _cts, TaskCreationOptions.LongRunning);
             }
+
+            for (int i = 0; i < phisicalDrives.Count; i++)
+            {
+                int temp = i;
+                tasks2[i] = Task.Factory.StartNew(
+                    () => CalculateCheckSum(blockingCollectionByPhisDisks[temp], _progress),
+                    _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+            }
+
 
             await Task.WhenAll(tasks2).ContinueWith((tasks2) =>
             {
@@ -149,8 +158,8 @@ namespace DupTerminator.BusinessLogic
         // из разных потоков
         private ReadOnlyCollection<ExtendedFileInfo> SearchFileOnPhisicalDrive(
             IProgress<ProgressDto> progress,
-            CancellationToken token,
-            in string phisicalDrive)
+            in string phisicalDrive,
+            CancellationToken token)
         {
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
             foreach (var directory in _directorySearchCollection)
@@ -165,6 +174,7 @@ namespace DupTerminator.BusinessLogic
                 DirectoryInfo di = new System.IO.DirectoryInfo(directory.DirectoryPath);
                 AddFiles(di, ref files, directory.SearchInSubdirectory, token, progress, phisicalDrive);
             }
+
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
@@ -217,7 +227,7 @@ namespace DupTerminator.BusinessLogic
 
                     if (_archiveService.IsArchiveFile(data.FullName))
                     {
-                        var files = _archiveService.GetInfoFromArchive(data.FullName);
+                        var files = _archiveService.CalculateHashInArchive(data.FullName);
                         foreach (ExtendedFileInfo file in files)
                         {
                             _checksumDictionary.AddOrUpdate(file.CheckSum,
@@ -232,8 +242,7 @@ namespace DupTerminator.BusinessLogic
                                      list.Add(file);
                                      return list;
                                  });
-                        }
-                      
+                        }                      
                     }
                 }
             }
@@ -300,34 +309,60 @@ namespace DupTerminator.BusinessLogic
                     }
                 }
 
-                //расширения
-                if (_searchSetting.IncludePattern.Count > 0)
+                var files3 = di.GetFiles().Select(f => new ExtendedFileInfo(f));
+                foreach (var item in files3)
                 {
-                    foreach (string pattern in _searchSetting.IncludePattern)
-                        files.AddRange(di.GetFiles(pattern, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f)));
-                }
-                else
-                    files.AddRange(di.GetFiles().Select(f => new ExtendedFileInfo(f)));
-
-                if (_searchSetting.ExcludePattern.Count > 0)
-                {
-                    List<ExtendedFileInfo> excludeFiles = new List<ExtendedFileInfo>();
-
-                    foreach (string patternExclude in _searchSetting.ExcludePattern)
-                        excludeFiles.AddRange(di.GetFiles(patternExclude, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f)));
-
-                    if (excludeFiles.Count != 0)
+                    files.Add(item);
+                    if (_archiveService.IsArchiveFile(item.FullName))
                     {
-                        System.Diagnostics.Debug.WriteLine("Не подошли по паттернам файлы: " + String.Join(", ", excludeFiles.Select(f => f.FullName).ToArray()));
-                        int deleted = files.RemoveAll(delegate (ExtendedFileInfo file)
+                        var files4 = _archiveService.GetInfoFromArchive(item.FullName);
+                        foreach (ExtendedFileInfo file in files4)
                         {
-                            return (excludeFiles.Any(f => f.FullName == file.FullName));
-                        });
-                        System.Diagnostics.Debug.WriteLine("Удалено: " + deleted);
-                        //if (deleted != excludeFiles.Count)
-                        //    throw new Exception("Количество удаленных не равно количеству для удаления файлов");
+                            files.Add(item);
+                        }
                     }
-                }
+                }              
+
+                //расширения
+                //if (_searchSetting.IncludePattern.Count > 0)
+                //{
+                //    foreach (string pattern in _searchSetting.IncludePattern)
+                //    {
+                //        var files2 = di.GetFiles(pattern, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f));
+                //        foreach (var item in files2)
+                //        {
+                //            files.Add(item);
+                //        }
+                //    }
+                //}
+                //else
+                //{
+                //    var files2 = di.GetFiles().Select(f => new ExtendedFileInfo(f));
+                //    foreach (var item in files2)
+                //    {
+                //        files.Add(item);
+                //    }
+                //}
+
+                //if (_searchSetting.ExcludePattern.Count > 0)
+                //{
+                //    List<ExtendedFileInfo> excludeFiles = new List<ExtendedFileInfo>();
+
+                //    foreach (string patternExclude in _searchSetting.ExcludePattern)
+                //        excludeFiles.AddRange(di.GetFiles(patternExclude, SearchOption.TopDirectoryOnly).Select(f => new ExtendedFileInfo(f)));
+
+                //    if (excludeFiles.Count != 0)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine("Не подошли по паттернам файлы: " + String.Join(", ", excludeFiles.Select(f => f.FullName).ToArray()));
+                //        int deleted = files.RemoveAll(delegate (ExtendedFileInfo file)
+                //        {
+                //            return (excludeFiles.Any(f => f.FullName == file.FullName));
+                //        });
+                //        System.Diagnostics.Debug.WriteLine("Удалено: " + deleted);
+                //        //if (deleted != excludeFiles.Count)
+                //        //    throw new Exception("Количество удаленных не равно количеству для удаления файлов");
+                //    }
+                //}
 
                 //пропускаем не подходящие по размерам
 

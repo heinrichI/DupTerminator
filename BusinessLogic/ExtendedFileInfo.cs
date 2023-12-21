@@ -55,6 +55,7 @@ namespace DupTerminator.BusinessLogic
         public string Extension { get; }
         public bool InArchive { get; set; }
         public uint ArchiveCRC { get; set; }
+        public string ArchivePath { get; set; }
 
 
         /// <summary>

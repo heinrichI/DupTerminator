@@ -50,7 +50,7 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string path)
+        public IEnumerable<ExtendedFileInfo> CalculateHashInArchive(string path)
         {
             List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
             using (ArchiveFile archiveFile = new ArchiveFile(path))
@@ -93,6 +93,43 @@ namespace SevenZipExtractor
         public bool IsArchiveFile(string fullName)
         {
             return ArchiveFile.IsArchive(fullName);
+        }
+
+        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string fullName)
+        {
+            List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
+            using (ArchiveFile archiveFile = new ArchiveFile(fullName))
+            {
+                foreach (var entry in archiveFile.Entries)
+                {
+                    if (entry.IsFolder)
+                    {
+                        continue;
+                    }
+
+                    using (MemoryStream entryMemoryStream = new MemoryStream())
+                    {
+                        entry.Extract(entryMemoryStream);
+
+                        ExtendedFileInfo fileInfo = new ExtendedFileInfo()
+                        {
+                            InArchive = true,
+                            ArchiveCRC = entry.CRC,
+                            ArchivePath = entry.FileName,
+                            LastAccessTime = entry.LastAccessTime,
+                            Name = Path.GetFileName(entry.FileName),
+                            Size = entry.Size
+                        };
+                        infos.Add(fileInfo);
+
+                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+                        {
+                            infos.AddRange(GetInfoFromArchive(entryMemoryStream));
+                        }
+                    }
+                }
+            }
+            return infos;
         }
     }
 }
