@@ -8,13 +8,19 @@ namespace DupTerminator.BusinessLogic
 {
     public class DuplicateGroup
     {
-        public DuplicateGroup(KeyValuePair<string, List<ExtendedFileInfo>> pair)
+        public DuplicateGroup(KeyValuePair<string, IList<ExtendedFileInfo>> pair)
         {
             Files = pair.Value;
             Checksum = pair.Key;
         }
 
-        public List<ExtendedFileInfo> Files { get; }
+        public DuplicateGroup(IGrouping<string, ExtendedFileInfo> f)
+        {
+            Checksum = f.Key;
+            Files = (IList<ExtendedFileInfo>?)f;
+        }
+
+        public IList<ExtendedFileInfo> Files { get; }
 
         public string Checksum { get; }
     }

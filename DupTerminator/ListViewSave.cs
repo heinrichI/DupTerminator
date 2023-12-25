@@ -67,8 +67,8 @@ namespace DupTerminator
             itemLVSave.SubItems[0] = subItem;
 
             subItem = new ListViewItemSaveSubItem();
-            subItem.Name = "Directory";
-            subItem.Text = efi.DirectoryName;
+            subItem.Name = "CombinedPath";
+            subItem.Text = efi.CombinedPath;
             itemLVSave.SubItems[1] = subItem;
 
             subItem = new ListViewItemSaveSubItem();

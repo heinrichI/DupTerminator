@@ -34,5 +34,7 @@ namespace DupTerminator.BusinessLogic
         public uint ArchiveCRC { get; set; }
         public string ArchivePath { get; set; }
         public ExtendedFileInfo Container { get; set; }
+
+        public string CombinedPath => Path + ArchivePath;
     }
 }

@@ -35,7 +35,7 @@ namespace SevenZipExtractor
                         entryMemoryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, container));
+                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, fileInfo));
                         }
                     }
                 }
@@ -54,6 +54,7 @@ namespace SevenZipExtractor
                 Name = Path.GetFileName(entry.FileName),
                 Extension = Path.GetExtension(entry.FileName),
                 Size = entry.Size,
+                Path = container.Path,
                 Container = container
             };
             if (checksumInArchive != null)
@@ -129,7 +130,7 @@ namespace SevenZipExtractor
                         entryMemoryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, container));
+                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, fileInfo));
                         }
                     }
                 }

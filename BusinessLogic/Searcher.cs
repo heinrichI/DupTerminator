@@ -3,12 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using DupTerminator.BusinessLogic.Helper;
+using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
@@ -22,7 +24,8 @@ namespace DupTerminator.BusinessLogic
         private readonly IWindowsUtil _windowsUtil;
         private readonly IProgress<ProgressDto> _progress;
         private readonly IArchiveService _archiveService;
-        private readonly ConcurrentDictionary<string, List<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<string, List<ExtendedFileInfo>>();
+        private readonly ILogger<Searcher> _logger;
+        private readonly ConcurrentDictionary<string, IList<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<string, IList<ExtendedFileInfo>>();
         public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
         // New-style MRESlim that supports unified cancellation
@@ -42,7 +45,8 @@ namespace DupTerminator.BusinessLogic
             IDBManager dbManager,
             IWindowsUtil windowsUtil,
             IProgress<ProgressDto> progress,
-            IArchiveService archiveService)
+            IArchiveService archiveService,
+            ILogger<Searcher> logger)
         {
             _directorySearchCollection = directorySearchCollection;
             _fileSearch = fileSearch;
@@ -51,6 +55,7 @@ namespace DupTerminator.BusinessLogic
             _windowsUtil = windowsUtil;
             _progress = progress;
             _archiveService = archiveService;
+            _logger = logger;
         }
 
         public async Task Start()
@@ -112,18 +117,68 @@ namespace DupTerminator.BusinessLogic
                     _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
             }
 
-
             await Task.WhenAll(tasks2).ContinueWith((tasks2) =>
             {
                 foreach (var item in blockingCollectionByPhisDisks)
                 {
                     item.Dispose();
                 }
-                Duplicates = new ReadOnlyCollection<DuplicateGroup>(_checksumDictionary
+                var duplicates = _checksumDictionary
                     .Where(pair => pair.Value.Count > 1)
-                    .Select(pair => new DuplicateGroup(pair))
-                    .ToList());
-            });
+                    .Select(pair => new DuplicateGroup(pair));
+
+                Duplicates = new ReadOnlyCollection<DuplicateGroup>(duplicates.ToList());
+
+                //var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
+
+                ////если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
+                //var containers = duplicates.SelectMany(d => d.Files).GroupBy(f => f.Container)
+                //    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
+                //    .ToArray();
+                //foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in containers)
+                //{
+                //    if (container.Key is null)
+                //        continue;
+
+                //    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
+                //    if (firstFile != null)
+                //    {
+                //        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
+                //        IEnumerable<ExtendedFileInfo> candidates = group.Files.Where(f => f.Container != null && f.Container.CombinedPath != container.Key.CombinedPath).Select(f => f.Container);
+                //        foreach (ExtendedFileInfo candidate in candidates)
+                //        {
+                //            Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == candidate.CombinedPath);
+                //            if (duplicateContainer.Value.Count == container.Value.Count)
+                //            {
+                //                bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
+                //                if (sequenceEqual)
+                //                {
+                //                    container.Value.Clear();
+                //                    duplicateContainer.Value.Clear();
+                //                    //foreach (var item in duplicates)
+                //                    //{
+                //                    //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
+                //                    //{
+                //                    //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
+                //                    //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
+                //                    //}
+                //                    //}
+                //                }
+                //            }
+                //            else
+                //            {
+                //                _logger.LogDebug($"У кандитаного контненера {candidate} не совпадает количество файлов");
+                //            }
+                //        }
+                //    }
+                //}
+
+                //Duplicates = new ReadOnlyCollection<DuplicateGroup>(containers
+                //    .SelectMany(c => c.Value)
+                //    .GroupBy(f => f.CheckSum)
+                //    .Select(f => new DuplicateGroup(f))
+                //    .ToList());
+        });
         }
 
         private ReadOnlyCollection<string> GetPhisicalDrives(
@@ -470,6 +525,46 @@ namespace DupTerminator.BusinessLogic
         public void Resume()
         {
             _mres.Set();
+        }
+
+        private class CheckSumComparer : IEqualityComparer<ExtendedFileInfo>
+        {
+            public bool Equals(ExtendedFileInfo x, ExtendedFileInfo y)
+            {
+                //Check whether the compared objects reference the same data.
+                if (object.ReferenceEquals(x, y)) return true;
+
+                //Check whether any of the compared objects is null.
+                if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
+                    return false;
+
+                return x.CheckSum == y.CheckSum;
+            }
+
+            // If Equals() returns true for a pair of objects
+            // then GetHashCode() must return the same value for these objects.
+
+            public int GetHashCode([DisallowNull] ExtendedFileInfo obj)
+            {
+                //Check whether the object is null
+                if (object.ReferenceEquals(obj, null)) return 0;
+
+                int hash = obj.CheckSum == null ? 0 : obj.CheckSum.GetHashCode();
+
+                return hash;
+            }
+        }
+
+        internal class Pair<T1, T2>
+        {
+            public Pair(T1 key, T2 extendedFileInfos)
+            {
+                Key = key;
+                Value = extendedFileInfos;
+            }
+
+            public T1 Key { get; internal set; }
+            public T2 Value { get; internal set; }
         }
     }
 }

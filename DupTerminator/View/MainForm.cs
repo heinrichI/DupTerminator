@@ -22,6 +22,7 @@ using DupTerminator.WindowsSpecific;
 using Microsoft.Extensions.Localization;
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.View
 {
@@ -1270,7 +1271,8 @@ namespace DupTerminator.View
                     _dbManager,
                     new WindowsUtil(),
                     progress,
-                    _archiveService);
+                    _archiveService,
+                    _serviceProvider.GetRequiredService<ILogger<Searcher>>());
 
                 progressForm.Cancelled += (s, e) => _searcher.Cancell();
                 var progressFormTask = progressForm.ShowDialogAsync();

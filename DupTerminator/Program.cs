@@ -4,6 +4,7 @@ using DupTerminator.View;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using SevenZipExtractor.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace DupTerminator
 {
@@ -50,15 +51,15 @@ namespace DupTerminator
             var path = Path.Combine(System.Windows.Forms.Application.StartupPath, "database.db3");
             services.AddSingleton<IDBManager>(new DBManager(path, new MessageService()));
 
-            services.AddLogging(config =>
-            {
-                //config.();
-                //config.AddConsole();
-            });
-
             services.AddLocalization(o => o.ResourcesPath = "Resources");
 
             services.AddArchive();
+
+            services.AddLogging(config =>
+            {
+                config.AddDebug();
+                config.SetMinimumLevel(LogLevel.Trace);
+            });
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
