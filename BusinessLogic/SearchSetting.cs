@@ -10,5 +10,6 @@ namespace DupTerminator.BusinessLogic
     {
         public List<string> IncludePattern { get; set; } = new List<string>();
         public List<string> ExcludePattern { get; set; } = new List<string>();
+        public bool UseDB { get; set; }
     }
 }

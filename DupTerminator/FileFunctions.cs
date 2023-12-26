@@ -36,6 +36,7 @@ namespace DupTerminator
 
         public Settings settings; //= new Settings(); //экземпляр класса с настройками 
         private readonly IDBManager _dbManager;
+        private readonly SearchSetting _searchSetting;
         #endregion //"Declarations"
 
         #region "Events"
@@ -58,10 +59,11 @@ namespace DupTerminator
         public event SearchCancelledDelegate SearchCancelledEvent;
         #endregion //"Events"
 
-        public FileFunctions(IDBManager dbManager)
+        public FileFunctions(IDBManager dbManager, SearchSetting searchSetting)
         {
             settings = Settings.GetInstance();
             _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
+            _searchSetting = searchSetting;
         }
 
         #region "Internal Helper Functions"
@@ -387,7 +389,6 @@ namespace DupTerminator
 
             if (settings.Fields.UseDB)
             {
-                _dbManager.Active = true;
                 _dbManager.CreateDataBase();
             }
             //System.Diagnostics.Debug.WriteLine("ScanForDuplicates dbManager.Active=" + dbManager.Active);
@@ -439,7 +440,7 @@ namespace DupTerminator
                             {
                                 if (_cancelSearch == true)
                                 {
-                                    if (_dbManager.Active)
+                                    if (_searchSetting.UseDB)
                                         _dbManager.SaveFromMemory();
                                     
                                     if (_duplicateFileList.Count > 0)
@@ -465,7 +466,7 @@ namespace DupTerminator
                 }
             }
 
-            if (_dbManager.Active)
+            if (_searchSetting.UseDB)
                 _dbManager.SaveFromMemory();
 
             if (DuplicateFileListAvailableEvent != null)

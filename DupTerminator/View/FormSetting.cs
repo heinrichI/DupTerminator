@@ -21,12 +21,14 @@ namespace DupTerminator.View
         //public DBManager dbManager;
         private FormProgress _formProgress;
         private readonly IDBManager _dbManager;
+        private readonly SearchSetting _searchSetting;
 
-        public FormSetting(IDBManager dbManager)
+        public FormSetting(IDBManager dbManager, SearchSetting searchSetting)
         {
             settings = Settings.GetInstance();
             InitializeComponent();
             _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
+            _searchSetting = searchSetting;
         }
 
         private void FormSetting_Load(object sender, EventArgs e)
@@ -52,13 +54,13 @@ namespace DupTerminator.View
             checkBoxUseDB.Checked = settings.Fields.UseDB;
             if (settings.Fields.UseDB)
             {
-                _dbManager.Active = true;
+                _searchSetting.UseDB = true;
                 buttonCleanDB.Enabled = true;
                 buttonDeleteDB.Enabled = true;
             }
             else
             {
-                _dbManager.Active = true;
+                _searchSetting.UseDB = true;
                 buttonCleanDB.Enabled = false;
                 buttonDeleteDB.Enabled = false;
             }
@@ -314,7 +316,7 @@ namespace DupTerminator.View
             settings.Fields.UseDB = checkBoxUseDB.Checked;
             if (settings.Fields.UseDB)
             {
-                _dbManager.Active = true;
+                _searchSetting.UseDB = true;
                 _dbManager.CreateDataBase();
                 showSizeDB();
                 buttonCleanDB.Enabled = true;
@@ -322,7 +324,7 @@ namespace DupTerminator.View
             }
             else
             {
-                _dbManager.Active = false;
+                _searchSetting.UseDB = false;
                 buttonCleanDB.Enabled = false;
                 buttonDeleteDB.Enabled = false;
             }

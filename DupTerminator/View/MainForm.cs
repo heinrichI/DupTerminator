@@ -86,6 +86,8 @@ namespace DupTerminator.View
 
         public event EventHandler AboutClick;
 
+        SearchSetting _searchSetting = new SearchSetting();
+
         public MainForm(
             IServiceProvider serviceProvider,
             MainViewModel model,
@@ -133,7 +135,7 @@ namespace DupTerminator.View
 
             SetBinding();
 
-            _fFunctions = new FileFunctions(dbManager);
+            _fFunctions = new FileFunctions(dbManager, _searchSetting);
         }
 
         private void SetBinding()
@@ -1267,7 +1269,7 @@ namespace DupTerminator.View
                 _searcher = new Searcher(
                     directories,
                     null,
-                    new SearchSetting(),
+                    _searchSetting,
                     _dbManager,
                     new WindowsUtil(),
                     progress,

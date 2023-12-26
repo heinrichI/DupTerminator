@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using System.IO;
 using System.Data;
 using System.Threading;
@@ -13,7 +13,9 @@ namespace DupTerminator.DataBase
         private const string sqlConnectionFile = "Data Source={0}";
         //private const string sqlConnectionMemory = "Data Source=:memory:;Version=3;New=True;";
         private const string sqlConnectionMemory = "Data Source=:memory:";
-        private const string sqlCreate = @"CREATE TABLE IF NOT EXISTS 
+        private const string sqlCreate = @" PRAGMA synchronous = OFF;
+                            PRAGMA journal_mode = OFF;
+                            CREATE TABLE IF NOT EXISTS 
                            ExtendedFileInfo (path           TEXT NOT NULL,
                                              lastWriteTime	TEXT NOT NULL,
 	                                         length	        INTEGER NOT NULL, 
@@ -116,14 +118,8 @@ namespace DupTerminator.DataBase
             db.Commit(); 
         }//*/
 
-        public bool Active
-        {
-            get;
-            set;
-        }
-
         /// <summary>
-        /// »F»d»]»Y»U»c»^»Z »V»U»]»q »Y»U»c»c»q»k »c»U »Y»^»g»`»Z, »Z»g»a»^ »i»\»Z »c»Z »g»i»o»Z»g»h»W»i»Z»h.
+        /// –°–æ–∑–¥–∞–Ω–∏–µ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –Ω–∞ –¥–∏—Å–∫–µ, –µ—Å–ª–∏ —É–∂–µ –Ω–µ —Å—É—â–µ—Å—Ç–≤—É–µ—Ç.
         /// </summary>
         public void CreateDataBase()
         {
@@ -145,7 +141,7 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// «˚»U»X»f»i»]»`»U »V»U»]»q »Y»U»c»c»q»k »W »e»U»b»u»h»r.
+        /// –ó–∞–≥—Ä—É–∑–∫–∞ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –≤ –ø–∞–º—è—Ç—å.
         /// </summary>
         //public void LoadToMemory()
         //{
@@ -174,8 +170,6 @@ namespace DupTerminator.DataBase
 
         public void Add(string path, DateTime lastWriteTime, long length, string md5)
         {
-            System.Diagnostics.Debug.Assert(Active = true);
-
             if (path == null || lastWriteTime == null)
                 throw new ArgumentNullException("path == null || lastWriteTim == null");
 
@@ -260,8 +254,6 @@ namespace DupTerminator.DataBase
 
         public string ReadMD5(string fullName, DateTime lastWriteTime, long length)
         {
-            System.Diagnostics.Debug.Assert(Active = true);
-
             CheckMemoryState();
 
             string md5 = String.Empty;
@@ -338,7 +330,7 @@ namespace DupTerminator.DataBase
 
 
         /// <summary>
-        /// »D»f»d»W»Z»f»`»U »h»d»X»d »m»h»d »V»U»]»U »Y»U»c»c»q»k »W »e»U»b»u»h»^ »^ »d»h»`»f»q»h»U.
+        /// –ü—Ä–æ–≤–µ—Ä–∫–∞ —Ç–æ–≥–æ —á—Ç–æ –±–∞–∑–∞ –¥–∞–Ω–Ω—ã—Ö –≤ –ø–∞–º—è—Ç–∏ –∏ –æ—Ç–∫—Ä—ã—Ç–∞.
         /// </summary>
         private void CheckMemoryState()
         {
@@ -350,7 +342,7 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// »C»m»^»g»h»`»U »V»U»]»q »Y»U»c»c»q»k »d»h »i»g»h»U»f»Z»W»n»^»k »]»U»e»^»g»Z»_.
+        /// –û—á–∏—Å—Ç–∫–∞ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö –æ—Ç —É—Å—Ç–∞—Ä–µ–≤—à–∏—Ö –∑–∞–ø–∏—Å–µ–π.
         /// </summary>
         public void CleanDB()
         {
@@ -367,7 +359,7 @@ namespace DupTerminator.DataBase
         }
 
         /// <summary>
-        /// »H»Y»U»a»Z»c»^»Z »i»g»h»U»f»Z»W»n»^»k »]»U»e»^»g»Z»_.
+        /// –£–¥–∞–ª–µ–Ω–∏–µ —É—Å—Ç–∞—Ä–µ–≤—à–∏—Ö –∑–∞–ø–∏—Å–µ–π.
         /// </summary>
         private void Deleting()
         {
@@ -439,17 +431,17 @@ namespace DupTerminator.DataBase
         }
 
 
-        private SqliteTransaction tr;
+        private SqliteTransaction _tr;
         public void BeginInsert()
         {
             if (_sqliteConnection.State != ConnectionState.Open)
                 _sqliteConnection.Open();
-            tr = _sqliteConnection.BeginTransaction();
+            _tr = _sqliteConnection.BeginTransaction();
         }
 
         public void EndInsert()
         {
-            tr.Commit();
+            _tr.Commit();
             //_sqliteConnectionMemory.Close();
         }
     }

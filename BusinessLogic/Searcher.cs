@@ -127,58 +127,64 @@ namespace DupTerminator.BusinessLogic
                     .Where(pair => pair.Value.Count > 1)
                     .Select(pair => new DuplicateGroup(pair));
 
-                Duplicates = new ReadOnlyCollection<DuplicateGroup>(duplicates.ToList());
+                //Duplicates = new ReadOnlyCollection<DuplicateGroup>(duplicates.ToList());
 
-                //var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
+                var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
 
-                ////если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
-                //var containers = duplicates.SelectMany(d => d.Files).GroupBy(f => f.Container)
-                //    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
-                //    .ToArray();
-                //foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in containers)
-                //{
-                //    if (container.Key is null)
-                //        continue;
+                //если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
+                var containers = duplicates.SelectMany(d => d.Files).GroupBy(f => f.Container)
+                    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
+                    .ToArray();
+                foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in containers)
+                {
+                    if (container.Key is null)
+                        continue;
 
-                //    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
-                //    if (firstFile != null)
-                //    {
-                //        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
-                //        IEnumerable<ExtendedFileInfo> candidates = group.Files.Where(f => f.Container != null && f.Container.CombinedPath != container.Key.CombinedPath).Select(f => f.Container);
-                //        foreach (ExtendedFileInfo candidate in candidates)
-                //        {
-                //            Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == candidate.CombinedPath);
-                //            if (duplicateContainer.Value.Count == container.Value.Count)
-                //            {
-                //                bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
-                //                if (sequenceEqual)
-                //                {
-                //                    container.Value.Clear();
-                //                    duplicateContainer.Value.Clear();
-                //                    //foreach (var item in duplicates)
-                //                    //{
-                //                    //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
-                //                    //{
-                //                    //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
-                //                    //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
-                //                    //}
-                //                    //}
-                //                }
-                //            }
-                //            else
-                //            {
-                //                _logger.LogDebug($"У кандитаного контненера {candidate} не совпадает количество файлов");
-                //            }
-                //        }
-                //    }
-                //}
+                    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
+                    if (firstFile != null)
+                    {
+                        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
+                        //если файлы лежат не только в контейнере, проверить не совпадают ли все файлы из контейнера с файлами в директории, если совпадают - создать виртуальный контейнер
+                        var candidates = group.Files.Where(f => f.Container?.CombinedPath != container.Key.CombinedPath).GroupBy(f => f.Container);
+                        foreach (var candidate in candidates)
+                        {
+                            if (container.Key is null)
+                            {
+                                этот файл лежит просто в директории
+                            }
 
-                //Duplicates = new ReadOnlyCollection<DuplicateGroup>(containers
-                //    .SelectMany(c => c.Value)
-                //    .GroupBy(f => f.CheckSum)
-                //    .Select(f => new DuplicateGroup(f))
-                //    .ToList());
-        });
+                            Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == candidate.CombinedPath);
+                            if (duplicateContainer.Value.Count == container.Value.Count)
+                            {
+                                bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
+                                if (sequenceEqual)
+                                {
+                                    container.Value.Clear();
+                                    duplicateContainer.Value.Clear();
+                                    //foreach (var item in duplicates)
+                                    //{
+                                    //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
+                                    //{
+                                    //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
+                                    //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
+                                    //}
+                                    //}
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogDebug($"У кандитаного контненера {candidate} не совпадает количество файлов");
+                            }
+                        }
+                    }
+                }
+
+                Duplicates = new ReadOnlyCollection<DuplicateGroup>(containers
+                    .SelectMany(c => c.Value)
+                    .GroupBy(f => f.CheckSum)
+                    .Select(f => new DuplicateGroup(f))
+                    .ToList());
+            });
         }
 
         private ReadOnlyCollection<string> GetPhisicalDrives(
@@ -328,31 +334,32 @@ namespace DupTerminator.BusinessLogic
 
             if (fileInfo.CheckSum == null)
             {
-                //if (_dbManager.Active)
-                //{
-                //    //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
-                //    string md5 = string.Empty;
-                //    md5 = _dbManager.ReadMD5(data.FullName, data.LastWriteTime, data.Length);
-                //    if (String.IsNullOrEmpty(md5))
-                //    {
-                //        //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
-                //        data.CheckSum = CreateMD5Checksum(_fileInfo.FullName);
-                //        dbManager.Add(_fileInfo.FullName, _fileInfo.LastWriteTime, _fileInfo.Length, _checkSum);
-                //        //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
-                //    }
-                //    else
-                //        data.CheckSum = md5;
-                //}
-                //else
-
-                if (fileInfo.InArchive)
+                if (_searchSetting.UseDB)
                 {
-                    Debug.Assert(!fileInfo.Container.Equals(default(ContainerInfo)));
-                    fileInfo.CheckSum = _archiveService.CalculateHashInArchive(fileInfo);
+                    //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
+                    //string md5 = string.Empty;
+                    //md5 = _dbManager.ReadMD5(data.FullName, data.LastWriteTime, data.Length);
+                    //if (String.IsNullOrEmpty(md5))
+                    //{
+                    //    //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
+                    //    data.CheckSum = CreateMD5Checksum(_fileInfo.FullName);
+                    //    dbManager.Add(_fileInfo.FullName, _fileInfo.LastWriteTime, _fileInfo.Length, _checkSum);
+                    //    //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                    //}
+                    //else
+                    //    data.CheckSum = md5;
                 }
                 else
                 {
-                    fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                    if (fileInfo.InArchive)
+                    {
+                        Debug.Assert(fileInfo.Container != null);
+                        fileInfo.CheckSum = _archiveService.CalculateHashInArchive(fileInfo);
+                    }
+                    else
+                    {
+                        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                    }
                 }
             }
             return fileInfo.CheckSum;

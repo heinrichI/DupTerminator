@@ -7,8 +7,6 @@ namespace DupTerminator.BusinessLogic
 
     public interface IDBManager
     {
-        bool Active { get; set; }
-
         event DeletingCompletedDelegate DeletingCompletedEvent;
         event ProgressChangedDelegate ProgressChangedEvent;
         event SetMaxValueDelegate SetMaxValueEvent;
