@@ -145,35 +145,44 @@ namespace DupTerminator.BusinessLogic
                     {
                         DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
                         //если файлы лежат не только в контейнере, проверить не совпадают ли все файлы из контейнера с файлами в директории, если совпадают - создать виртуальный контейнер
-                        var candidates = group.Files.Where(f => f.Container?.CombinedPath != container.Key.CombinedPath).GroupBy(f => f.Container);
-                        foreach (var candidate in candidates)
+                        var duplCandidates = group.Files.Where(f => f.Container?.CombinedPath != container?.Key?.CombinedPath).GroupBy(f => f.Container);
+                        foreach (IGrouping<ExtendedFileInfo, ExtendedFileInfo> duplCandidate in duplCandidates)
                         {
-                            if (container.Key is null)
+                            if (duplCandidate.Key is null)
                             {
-                                этот файл лежит просто в директории
-                            }
-
-                            Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == candidate.CombinedPath);
-                            if (duplicateContainer.Value.Count == container.Value.Count)
-                            {
-                                bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
-                                if (sequenceEqual)
+                                //этот файл лежит просто в директории
+                                var filesInDirectory = duplicates.SelectMany(d => d.Files).Where(f => f.DirectoryName == duplCandidate.First().DirectoryName);
+                                foreach (var file in container.Value)
                                 {
-                                    container.Value.Clear();
-                                    duplicateContainer.Value.Clear();
-                                    //foreach (var item in duplicates)
-                                    //{
-                                    //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
-                                    //{
-                                    //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
-                                    //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
-                                    //}
-                                    //}
+                                    if (!filesInDirectory.Any(f => f.Size == file.Size && f.CheckSum == f.CheckSum))
+                                        break;
                                 }
+                                добавить виртуальный контейнер
                             }
                             else
                             {
-                                _logger.LogDebug($"У кандитаного контненера {candidate} не совпадает количество файлов");
+                                Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == duplCandidate.Key?.CombinedPath);
+                                if (duplicateContainer.Value.Count == container.Value.Count)
+                                {
+                                    bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
+                                    if (sequenceEqual)
+                                    {
+                                        container.Value.Clear();
+                                        duplicateContainer.Value.Clear();
+                                        //foreach (var item in duplicates)
+                                        //{
+                                        //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
+                                        //{
+                                        //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
+                                        //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
+                                        //}
+                                        //}
+                                    }
+                                }
+                                else
+                                {
+                                    _logger.LogDebug($"У кандитаного контненера {duplCandidate} не совпадает количество файлов");
+                                }
                             }
                         }
                     }
