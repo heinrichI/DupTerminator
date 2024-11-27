@@ -7,11 +7,12 @@ namespace DupTerminator.Views
     internal partial class FormFileFilterSelect : BaseForm
     {
         private List<classTypes> types;
-        private static string string_Picture = "*.bmp;*.jp*g;*.gif;*.tif;*.png;*.pcx;*.tga;*.ico";
+        private static string string_Picture = "*.bmp;*.jp*g;*.gif;*.tif;*.png;*.pcx;*.tga;*.ico;*.webp";
         private static string string_Audio = "*.mp3;*.ogg;*.wma;*.wav;*.ape;*.flac;*.m4p;*.m4a;*.aac;";
         private static string string_Video = "*.mov;*.avi;*.mp4;*.wmv;*.mkv;*.3gp";
         private static string string_Documents = "*.doc;*.xls;*.ppt;*.mdb;*.accdb;*.pdf;*.txt";
         private static string string_SavedSites = "*.css;*.htm;*.js;*.php;*.swf";
+        private const string _ebooksExtensions = "*.djvu;*.pdf";
 
         public FormFileFilterSelect()
         {
@@ -34,6 +35,7 @@ namespace DupTerminator.Views
             types.Add(new classTypes(LanguageManager.GetString("classTypes_Video"), string_Video));
             types.Add(new classTypes(LanguageManager.GetString("classTypes_Documents"), string_Documents));
             types.Add(new classTypes(LanguageManager.GetString("classTypes_Saved sites"), string_SavedSites));
+            types.Add(new classTypes("ebooks", _ebooksExtensions));
 
             for (int i = 0; i < types.Count; i++ )
             {

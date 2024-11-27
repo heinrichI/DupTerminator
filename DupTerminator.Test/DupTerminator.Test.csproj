@@ -54,9 +54,9 @@
     <Content Include="AuthoringTests.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DupTerminator\DupTerminator_2008.csproj">
+    <ProjectReference Include="..\DupTerminator\DupTerminator.csproj">
       <Project>{DDD8D953-46BC-452D-BF47-DF534950478D}</Project>
-      <Name>DupTerminator_2008</Name>
+      <Name>DupTerminator</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

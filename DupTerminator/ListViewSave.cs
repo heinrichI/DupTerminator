@@ -17,7 +17,7 @@ namespace DupTerminator
     public class ListViewSave
     {
         [NonSerialized]
-        private List<GroupOfDupl> _groups; //список групп для сортировки
+        internal List<GroupOfDupl> _groups; //список групп для сортировки
         //[NonSerialized]
         //private bool _stopAction = false;
 
@@ -630,7 +630,7 @@ namespace DupTerminator
         /// <summary>
         /// Обновляем список _groups из Items.
         /// </summary>
-        private void UpdateListOfGroups()
+        internal void UpdateListOfGroups()
         {
             UpdateListOfGroups(null);
         }
@@ -1264,5 +1264,31 @@ namespace DupTerminator
         }
 
 
+        internal List<GroupOfDupl> GetGroups(ListView.SelectedIndexCollection selectedIndices)
+        {
+            List<GroupOfDupl> groups = new List<GroupOfDupl>();
+          
+            HashSet<string> groupsHash = new HashSet<string>();
+            for (int j = 0; j < selectedIndices.Count; j++)
+            {
+                if (!groupsHash.Contains(Items[selectedIndices[j]].Group))
+                    groupsHash.Add(Items[selectedIndices[j]].Group);
+            }
+
+            foreach (ListViewItemSave item in Items)
+            {
+                if (groupsHash.Contains(item.Group))
+                {
+                    GroupOfDupl group = groups.SingleOrDefault(g => g.Name == item.Group);
+                    if (group == null)
+                    {
+                        group = new GroupOfDupl(item.Group);
+                        groups.Add(group);
+                    }
+                    group.Items.Add(item);
+                }
+            }
+            return groups;
+        }
     }
 }

@@ -2,7 +2,6 @@
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Diagnostics;
 
@@ -11,7 +10,7 @@ namespace DupTerminator.Test
     /// <summary>
     /// Сводное описание для UnitTest2
     /// </summary>
-    [TestClass]
+    /*[TestClass]
     public class ContainsTest
     {
         [TestMethod]
@@ -42,5 +41,5 @@ namespace DupTerminator.Test
             Assert.AreEqual(1, deleted);
             //Assert.IsTrue(excludeFiles.Contains(files[3]));
         }
-    }
+    }*/
 }

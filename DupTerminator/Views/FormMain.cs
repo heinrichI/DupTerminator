@@ -1,4 +1,4 @@
-//#define ExtLang  //извлечь языки в xml
+п»ї//#define ExtLang  //РёР·РІР»РµС‡СЊ СЏР·С‹РєРё РІ xml
 
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,8 @@ using System.Globalization;
 using System.Xml;
 using System.Collections;
 using System.Threading;
-using DupTerminator.ObjectModel; //Language
+using DupTerminator.ObjectModel;
+using DupTerminator.Checkers; //Language
 //using Microsoft.VisualBasic;
 //using System.Runtime.InteropServices;//DllImport
 //using System.Drawing.Drawing2D; //menu paint
@@ -31,12 +32,12 @@ namespace DupTerminator.Views
         private ToolTip ttMainForm;
         private FileFunctions fFunctions = new FileFunctions();
         //Properties.Settings mySettings = new Properties.Settings();
-        private Settings _settings; //= new Settings(); //экземпляр класса с настройками 
+        private Settings _settings; //= new Settings(); //СЌРєР·РµРјРїР»СЏСЂ РєР»Р°СЃСЃР° СЃ РЅР°СЃС‚СЂРѕР№РєР°РјРё 
         private DateTime _timeStart;
         //private int _lastCount;
         //private bool _cancell = false;
 
-        //обработчки сортировки колонок
+        //РѕР±СЂР°Р±РѕС‚С‡РєРё СЃРѕСЂС‚РёСЂРѕРІРєРё РєРѕР»РѕРЅРѕРє
         //private ListViewGroupSorter lvwGroupSorter;
         private ListViewSaveGroupSorter lvwGroupSorter;
 
@@ -164,7 +165,7 @@ namespace DupTerminator.Views
             //System.Diagnostics.Debug.WriteLine("Form1_Load _dbManager.Active=" + _dbManager.Active);
             fFunctions.settings = _settings;
             //fFunctions.dbManager = _dbManager;
-            //  событие                     подписчик   экземпляр делегата
+            //  СЃРѕР±С‹С‚РёРµ                     РїРѕРґРїРёСЃС‡РёРє   СЌРєР·РµРјРїР»СЏСЂ РґРµР»РµРіР°С‚Р°
             //DCSearch.FolderChangedEvent += new EventHandler(DCSearch_FolderChanged);
             //          event                   delegate FileCountAvailableDelegate(double Number)  private void FileCountCompleteEventHandler(double Number)
             //public delegate void FileCheckInProgressDelegate(string fileNameOfListDupl, int currentCount);
@@ -173,7 +174,7 @@ namespace DupTerminator.Views
             //private delegate void FileCheckUpdateDelegate(string fileNameOfListDupl, int currentCount);
             //private void FileUpdateEventHandler(string fileNameOfListDupl, int currentCount);
             //fFunctions.FileCheckInProgressEvent += new FileFunctions.FileCheckInProgressDelegate(FileUpdateEventHandler);
-            //событие вызывающего += new делегат вызывающего(собыите принимающего)
+            //СЃРѕР±С‹С‚РёРµ РІС‹Р·С‹РІР°СЋС‰РµРіРѕ += new РґРµР»РµРіР°С‚ РІС‹Р·С‹РІР°СЋС‰РµРіРѕ(СЃРѕР±С‹РёС‚Рµ РїСЂРёРЅРёРјР°СЋС‰РµРіРѕ)
             fFunctions.FolderChangedEvent += new FileFunctions.FolderChangedDelegate(FolderChangedEventHandler);
             fFunctions.FileCountAvailableEvent += new FileFunctions.FileCountAvailableDelegate(FileCountCompleteEventHandler);
             fFunctions.FileListAvailableEvent += new FileFunctions.FileListAvailableDelegate(CompleteFileListAvailableEventHandler);
@@ -259,7 +260,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Загрузить список директорий поиска
+        /// Р—Р°РіСЂСѓР·РёС‚СЊ СЃРїРёСЃРѕРє РґРёСЂРµРєС‚РѕСЂРёР№ РїРѕРёСЃРєР°
         /// </summary>
         private void Load_listDirectorySearch(string directory)
         {
@@ -438,7 +439,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Чтение настроек
+        /// Р§С‚РµРЅРёРµ РЅР°СЃС‚СЂРѕРµРє
         /// </summary>
         private void readSetting()
         {
@@ -619,7 +620,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Запись настроек
+        /// Р—Р°РїРёСЃСЊ РЅР°СЃС‚СЂРѕРµРє
         /// </summary>
         private void writeSetting()
         {
@@ -645,14 +646,14 @@ namespace DupTerminator.Views
         #region EventHandler
         /// <summary>
         /// Show current adding folder and count of files
-        /// поиск файлов для сравнения (прогресс)
+        /// РїРѕРёСЃРє С„Р°Р№Р»РѕРІ РґР»СЏ СЃСЂР°РІРЅРµРЅРёСЏ (РїСЂРѕРіСЂРµСЃСЃ)
         /// </summary>
         /// <param name="dir">Current directory</param>
         /// <param name="count">Count files in directory</param>
         private delegate void FolderChangedDelegate(int count, string folder);
         private void FolderChangedEventHandler(int count, string folder)
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 object[] eventArgs = { count, folder };
                 Invoke(new FolderChangedDelegate(FolderChangedEventHandler), eventArgs);
@@ -674,7 +675,7 @@ namespace DupTerminator.Views
         private delegate void FileCheckUpdateDelegate(string fileName, int currentCount);
         private void FileUpdateEventHandler(string fileName, int currentCount)
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 object[] eventArgs = { fileName, currentCount };
                 Invoke(new FileCheckUpdateDelegate(FileUpdateEventHandler), eventArgs);
@@ -711,7 +712,7 @@ namespace DupTerminator.Views
             /*var timer = Stopwatch.StartNew();
             SomeCodeToTime();
             timer.Stop();
-            Console.WriteLine("Выполнение метода заняло {0} мс", timer.ElapsedMilliseconds);*/
+            Console.WriteLine("Р’С‹РїРѕР»РЅРµРЅРёРµ РјРµС‚РѕРґР° Р·Р°РЅСЏР»Рѕ {0} РјСЃ", timer.ElapsedMilliseconds);*/
         }
 
         /// <summary>
@@ -721,7 +722,7 @@ namespace DupTerminator.Views
         private delegate void FileCountCompleteDelegate(int Count);
         private void FileCountCompleteEventHandler(int Count)
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 object[] eventArgs = { Count };
                 Invoke(new FileCountCompleteDelegate(FileCountCompleteEventHandler), eventArgs);
@@ -742,7 +743,7 @@ namespace DupTerminator.Views
         private delegate void CompleteFileListAvailableDelegate(System.Collections.ArrayList fl);
         private void CompleteFileListAvailableEventHandler(System.Collections.ArrayList fl)
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 object[] eventArgs = { fl };
                 Invoke(new CompleteFileListAvailableDelegate(CompleteFileListAvailableEventHandler), eventArgs);
@@ -758,13 +759,13 @@ namespace DupTerminator.Views
 
 
         /// <summary>
-        /// All files have been processed. Put listForCompare in duplicate file listForCompare. Добавление дубликатов в lvDuplicate
+        /// All files have been processed. Put listForCompare in duplicate file listForCompare. Р”РѕР±Р°РІР»РµРЅРёРµ РґСѓР±Р»РёРєР°С‚РѕРІ РІ lvDuplicate
         /// </summary>
         /// <param name="duplicateList">Arraylist collection of duplicate files.</param>
         private delegate void DuplicatFileListAvailableDelegate(ArrayList dl);
         private void DuplicatFileListAvailableEventHandler(ArrayList duplicateList)
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 object[] eventArgs = { duplicateList };
                 Invoke(new DuplicatFileListAvailableDelegate(DuplicatFileListAvailableEventHandler), eventArgs);
@@ -783,7 +784,7 @@ namespace DupTerminator.Views
             progressBar1.Value = 0;
             SetVistaProgressState(TBPFLAG.TBPF_NOPROGRESS);
 
-            //заполняем наш лист дубликатов _listDuplicates 
+            //Р·Р°РїРѕР»РЅСЏРµРј РЅР°С€ Р»РёСЃС‚ РґСѓР±Р»РёРєР°С‚РѕРІ _listDuplicates 
             if (_undoRedoEngine.ListDuplicates != null)
                 _undoRedoEngine.ListDuplicates.Clear();
 
@@ -834,7 +835,7 @@ namespace DupTerminator.Views
         private delegate void SearchCancelledDelegate();
         private void SearchCancelledEventHandler()
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 Invoke(new SearchCancelledDelegate(SearchCancelledEventHandler));
                 return;
@@ -1030,7 +1031,7 @@ namespace DupTerminator.Views
         }
 
         private void FormMain_KeyDown(object sender, KeyEventArgs e)
-        {//CancelButton перехватывает
+        {//CancelButton РїРµСЂРµС…РІР°С‚С‹РІР°РµС‚
             //MessageBox.Show(e.KeyCode.ToString());
             if (e.KeyCode.Equals(Keys.Escape) && toolStripMenuItem_FullScreen.Checked)
             {
@@ -1199,7 +1200,7 @@ namespace DupTerminator.Views
 
             fFunctions.BeginSearch();
 
-            //результаты возврашает через событие DuplicateFileListAvailableDelegate DuplicatFileListAvailableEventHandler(System.Collections.ArrayList duplicateList)
+            //СЂРµР·СѓР»СЊС‚Р°С‚С‹ РІРѕР·РІСЂР°С€Р°РµС‚ С‡РµСЂРµР· СЃРѕР±С‹С‚РёРµ DuplicateFileListAvailableDelegate DuplicatFileListAvailableEventHandler(System.Collections.ArrayList duplicateList)
         }
 
         /*private void ClearPicrureBox()
@@ -1461,7 +1462,7 @@ namespace DupTerminator.Views
             {
                 int index = checkedListBoxSkipFolder.Items.IndexOf(checkedListBoxSkipFolder.SelectedItem);
                 checkedListBoxSkipFolder.Items.Remove(checkedListBoxSkipFolder.SelectedItem);
-                //Фокусировка на месте удаленного элемента
+                //Р¤РѕРєСѓСЃРёСЂРѕРІРєР° РЅР° РјРµСЃС‚Рµ СѓРґР°Р»РµРЅРЅРѕРіРѕ СЌР»РµРјРµРЅС‚Р°
                 if (checkedListBoxSkipFolder.Items.Count > 0)
                 {
                     if (index <= checkedListBoxSkipFolder.Items.Count - 1)
@@ -1604,7 +1605,7 @@ namespace DupTerminator.Views
             if (!ListViewContainPath(lvDirectorySearch, directory, ref index))
             {
                 //checkedListDirectorySearch.Items.Add(ffs.SelectedPath, true);
-                //Фокусировка на новом элементе
+                //Р¤РѕРєСѓСЃРёСЂРѕРІРєР° РЅР° РЅРѕРІРѕРј СЌР»РµРјРµРЅС‚Рµ
                 //checkedListDirectorySearch.SelectedIndices.Add(checkedListDirectorySearch.Items.Count - 1);
 
                 ListViewItem.ListViewSubItem lvsi;
@@ -1645,7 +1646,7 @@ namespace DupTerminator.Views
             if (index < 0)
             {
                 checkedListBoxSkipFolder.Items.Add(directory, true);
-                //Фокусировка на новом элементе
+                //Р¤РѕРєСѓСЃРёСЂРѕРІРєР° РЅР° РЅРѕРІРѕРј СЌР»РµРјРµРЅС‚Рµ
                 checkedListBoxSkipFolder.SelectedIndices.Add(checkedListBoxSkipFolder.Items.Count - 1);
             }
             else if (!checkedListBoxSkipFolder.GetItemChecked(index))
@@ -1729,7 +1730,7 @@ namespace DupTerminator.Views
                     if (!(checkedListBoxSkipFolder.FindStringExact(ffs.SelectedPath) >= 0))
                     {
                         checkedListBoxSkipFolder.Items.Add(ffs.SelectedPath, true);
-                        //Фокусировка на новом элементе
+                        //Р¤РѕРєСѓСЃРёСЂРѕРІРєР° РЅР° РЅРѕРІРѕРј СЌР»РµРјРµРЅС‚Рµ
                         checkedListBoxSkipFolder.SelectedIndices.Add(checkedListBoxSkipFolder.Items.Count - 1);
                     }
                     else
@@ -1991,7 +1992,7 @@ namespace DupTerminator.Views
         }*/
 
         /// <summary>
-        /// Удалить отмеченные записи
+        /// РЈРґР°Р»РёС‚СЊ РѕС‚РјРµС‡РµРЅРЅС‹Рµ Р·Р°РїРёСЃРё
         /// </summary>
         private bool DeleteSelectedItems()
         {
@@ -2001,7 +2002,7 @@ namespace DupTerminator.Views
                 if (_undoRedoEngine.ListDuplicates.Items.Count > 0)
                 {
                     _beginUpdate = true;
-                    //Проверка не выделены ли в какой-нибудь группе все файлы
+                    //РџСЂРѕРІРµСЂРєР° РЅРµ РІС‹РґРµР»РµРЅС‹ Р»Рё РІ РєР°РєРѕР№-РЅРёР±СѓРґСЊ РіСЂСѓРїРїРµ РІСЃРµ С„Р°Р№Р»С‹
                     if (!_settings.Fields.IsAllowDelAllFiles)
                     {
                         SetStatusDuplicate(LanguageManager.GetString("CheckAllSelected"));
@@ -2032,7 +2033,7 @@ namespace DupTerminator.Views
                     //_undoRedoEngine.ListDuplicates.DeletingCompleteEvent += () =>
                     /*ListViewSave.DeletingCompleteDelegate dw = () =>
                     {
-                        if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+                        if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
                         {
                             object[] eventArgs = { };
                             Invoke(new ListViewSave.DeletingCompleteDelegate(dw), eventArgs);
@@ -2070,7 +2071,7 @@ namespace DupTerminator.Views
 
                     //lvDuplicates_SelectedIndexChanged(lvDuplicates, new EventArgs());
 
-                    //return true; todo сменить на void
+                    //return true; todo СЃРјРµРЅРёС‚СЊ РЅР° void
                 }
             }
             return false;
@@ -2078,7 +2079,7 @@ namespace DupTerminator.Views
 
         /*public void DeletingCompleteEventHandler()
         {
-            if (InvokeRequired) // Проверяем в этом ли потоке нахождится созданый обьект 
+            if (InvokeRequired) // РџСЂРѕРІРµСЂСЏРµРј РІ СЌС‚РѕРј Р»Рё РїРѕС‚РѕРєРµ РЅР°С…РѕР¶РґРёС‚СЃСЏ СЃРѕР·РґР°РЅС‹Р№ РѕР±СЊРµРєС‚ 
             {
                 Invoke(new ListViewSave.DeletingCompleteDelegate(DeletingCompleteEventHandler));
                 return;
@@ -2099,7 +2100,7 @@ namespace DupTerminator.Views
         #region SetStatus
 
         /// <summary>
-        /// Устанавливает полосу состояния в нужный режим.
+        /// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РїРѕР»РѕСЃСѓ СЃРѕСЃС‚РѕСЏРЅРёСЏ РІ РЅСѓР¶РЅС‹Р№ СЂРµР¶РёРј.
         /// </summary>
         private void SetStatusState(StatusState state)
         {
@@ -2136,11 +2137,11 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Устанавливает статус дубликатов
+        /// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ СЃС‚Р°С‚СѓСЃ РґСѓР±Р»РёРєР°С‚РѕРІ
         /// </summary>
-        /// <param name="count">Количество дубликатов double</param>
-        /// <param name="size">Размер дубликатов ulong</param>
-        /// <param name="ClearSelected">Очистить отображение выбранных записей</param>
+        /// <param name="count">РљРѕР»РёС‡РµСЃС‚РІРѕ РґСѓР±Р»РёРєР°С‚РѕРІ double</param>
+        /// <param name="size">Р Р°Р·РјРµСЂ РґСѓР±Р»РёРєР°С‚РѕРІ ulong</param>
+        /// <param name="ClearSelected">РћС‡РёСЃС‚РёС‚СЊ РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ РІС‹Р±СЂР°РЅРЅС‹С… Р·Р°РїРёСЃРµР№</param>
         private void SetStatusDuplicate(double count, ulong size, bool ClearSelected)
         {
             //statusStrip1.Items[0].Text = statusStripDubli1 + count;
@@ -2168,7 +2169,7 @@ namespace DupTerminator.Views
 
         #region List View Duplicates
         /// <summary>
-        /// Открытие контекстного меню дубликатов.
+        /// РћС‚РєСЂС‹С‚РёРµ РєРѕРЅС‚РµРєСЃС‚РЅРѕРіРѕ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ.
         /// </summary>
         private void cmsDuplicates_Opening(object sender, CancelEventArgs e)
         {
@@ -2183,7 +2184,7 @@ namespace DupTerminator.Views
                     GroupOfDupl group = _undoRedoEngine.ListDuplicates.GetGroup(index);
                     if (group != null)
                     {
-                        // Если в группе больше двух файлов.
+                        // Р•СЃР»Рё РІ РіСЂСѓРїРїРµ Р±РѕР»СЊС€Рµ РґРІСѓС… С„Р°Р№Р»РѕРІ.
                         if (group.Items.Count > 2)
                         {
                             //cmsDuplicates.Items["renameFileLikeNeighbourToolStripMenuItem"].Enabled = false;
@@ -2275,7 +2276,7 @@ namespace DupTerminator.Views
                     //toolStripStatusLabel_Width.Text = pictureBox1.Image.Width.ToString();
                     //toolStripStatusLabel_Height.Text = pictureBox1.Image.Height.ToString();
                 }
-                else //если файла не существует надо это указать
+                else //РµСЃР»Рё С„Р°Р№Р»Р° РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РЅР°РґРѕ СЌС‚Рѕ СѓРєР°Р·Р°С‚СЊ
                 {
                     _undoRedoEngine.ListDuplicates.FileNotExist(index);
                 }
@@ -2360,16 +2361,16 @@ namespace DupTerminator.Views
 
         #region Context Menu Duplicate
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать все кроме одного
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РІСЃРµ РєСЂРѕРјРµ РѕРґРЅРѕРіРѕ
         /// </summary>
         private void tmsi_Dubli_SelectAllButOne_Click(object sender, EventArgs e)
         {
-            // Если есть выделенные.
+            // Р•СЃР»Рё РµСЃС‚СЊ РІС‹РґРµР»РµРЅРЅС‹Рµ.
             if (lvDuplicates.SelectedIndices.Count > 1)
                 _undoRedoEngine.ListDuplicates.CheckAllButOne(lvDuplicates.SelectedIndices);
             else
                 _undoRedoEngine.ListDuplicates.CheckAllButOne();
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
@@ -2379,26 +2380,26 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать все
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РІСЃРµ
         /// </summary>
         private void tmsi_Dubli_SelectAll_Click(object sender, EventArgs e)
         {
-            if (lvDuplicates.SelectedIndices.Count > 1)  //выделенные только обрабатываем
+            if (lvDuplicates.SelectedIndices.Count > 1)  //РІС‹РґРµР»РµРЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°РµРј
                 _undoRedoEngine.ListDuplicates.CheckAll(lvDuplicates.SelectedIndices);
             else
                 _undoRedoEngine.ListDuplicates.CheckAll();
 
             _undoRedoEngine.ListDuplicates.ColoringAllCheckedGroups();
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Сбросить все
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РЎР±СЂРѕСЃРёС‚СЊ РІСЃРµ
         /// </summary>
         private void tmsi_Dubli_DeSelectAll_Click(object sender, EventArgs e)
         {
-            //выделенные только обрабатываем
+            //РІС‹РґРµР»РµРЅРЅС‹Рµ С‚РѕР»СЊРєРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°РµРј
             if (lvDuplicates.SelectedIndices.Count > 1)
                 _undoRedoEngine.ListDuplicates.DeselectAll(lvDuplicates.SelectedIndices);
             else
@@ -2409,33 +2410,33 @@ namespace DupTerminator.Views
 
             _undoRedoEngine.ListDuplicates.ColoringOfGroups();
 
-            lvDuplicates.Invalidate(); //обновление иначе галочки не сотрутся
+            lvDuplicates.Invalidate(); //РѕР±РЅРѕРІР»РµРЅРёРµ РёРЅР°С‡Рµ РіР°Р»РѕС‡РєРё РЅРµ СЃРѕС‚СЂСѓС‚СЃСЏ
 
             showDuplicateInfoSelected();
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать все в этой папке
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РІСЃРµ РІ СЌС‚РѕР№ РїР°РїРєРµ
         /// </summary>
         private void tmsi_Dubli_SelectAllInThisFolder_Click(object sender, EventArgs e)
         {
             if (lvDuplicates.FocusedItem != null)
             {
                 _undoRedoEngine.ListDuplicates.CheckAllInThisFolder(lvDuplicates.FocusedItem.Index);
-                lvDuplicates.Invalidate(); //все перерисовываетсяSelectAllInThisFolder
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏSelectAllInThisFolder
                 showDuplicateInfoSelected();
             }
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать все в этой папке (в группах с этими папками)
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РІСЃРµ РІ СЌС‚РѕР№ РїР°РїРєРµ (РІ РіСЂСѓРїРїР°С… СЃ СЌС‚РёРјРё РїР°РїРєР°РјРё)
         /// </summary>
         private void tmsi_Dubli_SelectAllInThisFolderinGroupWithThisFolders_Click(object sender, EventArgs e)
         {
             if (lvDuplicates.FocusedItem != null)
             {
                 _undoRedoEngine.ListDuplicates.CheckAllInThisFolderinGroupWithThisFolders(lvDuplicates.FocusedItem.Index);
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                 showDuplicateInfoSelected();
             }
         }
@@ -2497,7 +2498,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Скопировать путь
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РїСѓС‚СЊ
         /// </summary>
         private void tmsi_Dubli_CopyPath_Click(object sender, EventArgs e)
         {
@@ -2509,7 +2510,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Переименовать файл
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РџРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ С„Р°Р№Р»
         /// </summary>
         private void tmsi_Dubli_RenameFile_Click(object sender, EventArgs e)
         {
@@ -2558,14 +2559,14 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Переместить файл к соседу
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РџРµСЂРµРјРµСЃС‚РёС‚СЊ С„Р°Р№Р» Рє СЃРѕСЃРµРґСѓ
         /// </summary>
         private void tmsi_Dubli_MoveFileToNeighbour_Click(object sender, EventArgs e)
         {
             if (lvDuplicates.FocusedItem != null)
             {
                 _undoRedoEngine.ListDuplicates.MoveFileToNeighbour(lvDuplicates.FocusedItem.Index);
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             }
         }
 
@@ -2582,7 +2583,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Переименовать файл как соседний
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РџРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ С„Р°Р№Р» РєР°Рє СЃРѕСЃРµРґРЅРёР№
         /// </summary>
         private void tmsi_Dubli_RenameFileLikeNeighbour_Click(object sender, EventArgs e)
         {
@@ -2618,7 +2619,7 @@ namespace DupTerminator.Views
                         showDuplicateInfo();
                         showDuplicateInfoSelected();
 
-                        //Фокусировка на месте удаленного элемента
+                        //Р¤РѕРєСѓСЃРёСЂРѕРІРєР° РЅР° РјРµСЃС‚Рµ СѓРґР°Р»РµРЅРЅРѕРіРѕ СЌР»РµРјРµРЅС‚Р°
                         if (_undoRedoEngine.ListDuplicates.Items.Count > 0)
                         {
                             if (index <= lvDuplicates.Items.Count - 1)
@@ -2640,7 +2641,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Переместить выбранные файлы в папку
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РџРµСЂРµРјРµСЃС‚РёС‚СЊ РІС‹Р±СЂР°РЅРЅС‹Рµ С„Р°Р№Р»С‹ РІ РїР°РїРєСѓ
         /// </summary>
         private void tmsi_Dubli_MoveSelectedFilesToFolder_Click(object sender, EventArgs e)
         {
@@ -2673,7 +2674,7 @@ namespace DupTerminator.Views
                 if (ffs.ShowDialog() == DialogResult.OK)
                 {
                     _undoRedoEngine.ListDuplicates.MoveCheckedToFolder(ffs.SelectedPath);
-                    lvDuplicates.Invalidate(); //все перерисовывается
+                    lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                     SetStatusDuplicate(lvDuplicates.Items.Count);
                 }
 
@@ -2689,7 +2690,7 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Есть ли переданный путь в путях для поиска дубликатов.
+        /// Р•СЃС‚СЊ Р»Рё РїРµСЂРµРґР°РЅРЅС‹Р№ РїСѓС‚СЊ РІ РїСѓС‚СЏС… РґР»СЏ РїРѕРёСЃРєР° РґСѓР±Р»РёРєР°С‚РѕРІ.
         /// </summary>
         private bool IsSearchDirectoryContain(string movePath)
         {
@@ -2868,7 +2869,7 @@ namespace DupTerminator.Views
             this.Cursor = Cursors.WaitCursor;
 
             _undoRedoEngine.ListDuplicates.Sort(lvwGroupSorter);
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
 
             UpdateColumnSortingIcons();
 
@@ -2890,7 +2891,7 @@ namespace DupTerminator.Views
         {
             int index = e.Item.Index;
             //_listDuplicates.Items[indexOfGroupWithAllChecked].Checked = !_listDuplicates.Items[indexOfGroupWithAllChecked].Checked;
-            //string group = _undoRedoEngine.ListDuplicates.Items[index].Group; //выделенная группа
+            //string group = _undoRedoEngine.ListDuplicates.Items[index].Group; //РІС‹РґРµР»РµРЅРЅР°СЏ РіСЂСѓРїРїР°
 
             //if (e.Item.Checked)
             if (_undoRedoEngine.ListDuplicates.Items[index].Checked)
@@ -2898,15 +2899,15 @@ namespace DupTerminator.Views
                 //if (_undoRedoEngine.ListDuplicates.ColoringAllCheckedGroups())
                 if (_undoRedoEngine.ListDuplicates.AllChekedInGroup(index))
                     lvDuplicates.Invalidate();
-                //проверка не выделены ли все файлы в группе
-                /*if (!_settings.Fields.IsAllowDelAllFiles) //если разрешено удаление всех, то не проверяем 
+                //РїСЂРѕРІРµСЂРєР° РЅРµ РІС‹РґРµР»РµРЅС‹ Р»Рё РІСЃРµ С„Р°Р№Р»С‹ РІ РіСЂСѓРїРїРµ
+                /*if (!_settings.Fields.IsAllowDelAllFiles) //РµСЃР»Рё СЂР°Р·СЂРµС€РµРЅРѕ СѓРґР°Р»РµРЅРёРµ РІСЃРµС…, С‚Рѕ РЅРµ РїСЂРѕРІРµСЂСЏРµРј 
                 {
                     int indexOfGroup;
                     if (_undoRedoEngine.ListDuplicates.CheckAllChekedInGroup(out indexOfGroup))
                         _undoRedoEngine.ListDuplicates.ColoringAllCheckedGroups();
                 }*/
             }
-            else //снятие флажка
+            else //СЃРЅСЏС‚РёРµ С„Р»Р°Р¶РєР°
             {
                 if (_undoRedoEngine.ListDuplicates.Items[index].Color == _settings.Fields.ColorRowError)
                 {
@@ -3005,27 +3006,27 @@ namespace DupTerminator.Views
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать по дате - Старый файл в каждой группе
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РїРѕ РґР°С‚Рµ - РЎС‚Р°СЂС‹Р№ С„Р°Р№Р» РІ РєР°Р¶РґРѕР№ РіСЂСѓРїРїРµ
         /// </summary>
         private void tmsi_Dubli_SelectByDateOldestFiles_Click(object sender, EventArgs e)
         {
             if (lvDuplicates.FocusedItem != null)
             {
                 _undoRedoEngine.ListDuplicates.CheckByDate(lvDuplicates.FocusedItem.Index, SortByDateEnum.OlderFirst);
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                 showDuplicateInfoSelected();
             }
         }
 
         /// <summary>
-        /// Контекстное меню дубликатов - Выбрать по дате - Новый файл в каждой группе
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - Р’С‹Р±СЂР°С‚СЊ РїРѕ РґР°С‚Рµ - РќРѕРІС‹Р№ С„Р°Р№Р» РІ РєР°Р¶РґРѕР№ РіСЂСѓРїРїРµ
         /// </summary>
         private void tmsi_Dubli_SelectByDateNewestFiles_Click(object sender, EventArgs e)
         {
             if (lvDuplicates.FocusedItem != null)
             {
                 _undoRedoEngine.ListDuplicates.CheckByDate(lvDuplicates.FocusedItem.Index, SortByDateEnum.NewestFirst);
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                 showDuplicateInfoSelected();
             }
         }
@@ -3040,11 +3041,11 @@ namespace DupTerminator.Views
             if (ffns.ShowDialog() == DialogResult.OK)
             {
 
-                if (lvDuplicates.SelectedIndices.Count > 1) //в выбранных
+                if (lvDuplicates.SelectedIndices.Count > 1) //РІ РІС‹Р±СЂР°РЅРЅС‹С…
                     _undoRedoEngine.ListDuplicates.CheckByName(lvDuplicates.SelectedIndices, ffns.SelectedName);
                 else
                     _undoRedoEngine.ListDuplicates.CheckByName(ffns.SelectedName);
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                 showDuplicateInfoSelected();
             }
             try
@@ -3059,43 +3060,43 @@ namespace DupTerminator.Views
 
         private void tmsi_Select_ByShorterFileNameLength_Click(object sender, EventArgs e)
         {
-            if (lvDuplicates.SelectedIndices.Count > 1) //в выбранных
+            if (lvDuplicates.SelectedIndices.Count > 1) //РІ РІС‹Р±СЂР°РЅРЅС‹С…
                 _undoRedoEngine.ListDuplicates.CheckByFileNameLength(lvDuplicates.SelectedIndices, SortByFileNameLengthEnum.ShorterFirst);
-            else //во всех
+            else //РІРѕ РІСЃРµС…
                 _undoRedoEngine.ListDuplicates.CheckByFileNameLength(SortByFileNameLengthEnum.ShorterFirst);
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
         private void tmsi_Select_ByLongerFileNameLength_Click(object sender, EventArgs e)
         {
-            if (lvDuplicates.SelectedIndices.Count > 1) //в выбранных
+            if (lvDuplicates.SelectedIndices.Count > 1) //РІ РІС‹Р±СЂР°РЅРЅС‹С…
                 _undoRedoEngine.ListDuplicates.CheckByFileNameLength(lvDuplicates.SelectedIndices, SortByFileNameLengthEnum.LongerFirst);
-            else //во всех
+            else //РІРѕ РІСЃРµС…
                 _undoRedoEngine.ListDuplicates.CheckByFileNameLength(SortByFileNameLengthEnum.LongerFirst);
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
         private void tsmi_Select_biggestNumberInEachGroup_Click(object sender, EventArgs e)
         {
-            //во всех
+            //РІРѕ РІСЃРµС…
             _undoRedoEngine.ListDuplicates.CheckByNumberInFileName(SortByNumberInFileNameEnum.BiggerFirst);
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
         private void tsmi_Select_lowestNumberInEachGroup_Click(object sender, EventArgs e)
         {
-            //во всех
+            //РІРѕ РІСЃРµС…
             _undoRedoEngine.ListDuplicates.CheckByNumberInFileName(SortByNumberInFileNameEnum.LowestFirst);
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
 
         /// <summary>
-        /// Контекстное меню дубликатов - Удалить группу из списка
+        /// РљРѕРЅС‚РµРєСЃС‚РЅРѕРµ РјРµРЅСЋ РґСѓР±Р»РёРєР°С‚РѕРІ - РЈРґР°Р»РёС‚СЊ РіСЂСѓРїРїСѓ РёР· СЃРїРёСЃРєР°
         /// </summary>
         private void tmsi_Dubli_DeleteGroup_Click(object sender, EventArgs e)
         {
@@ -3104,7 +3105,7 @@ namespace DupTerminator.Views
             else
                 _undoRedoEngine.DeleteGroupsFromList(lvDuplicates.FocusedItem.Index);
             lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
-            lvDuplicates.Invalidate(); //все перерисовывается
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
             showDuplicateInfoSelected();
         }
 
@@ -3116,21 +3117,21 @@ namespace DupTerminator.Views
         private readonly string Filename = Path.Combine(Environment.CurrentDirectory, "language.xml");
         private void SaveLanguages()
         {
-            //сохраняем данные настроек в файл хмл
+            //СЃРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ РЅР°СЃС‚СЂРѕРµРє РІ С„Р°Р№Р» С…РјР»
             XmlWriterSettings settingsXml = new XmlWriterSettings();
-            // включаем отступ для элементов XML документа
-            // (позволяет наглядно изобразить иерархию XML документа)
+            // РІРєР»СЋС‡Р°РµРј РѕС‚СЃС‚СѓРї РґР»СЏ СЌР»РµРјРµРЅС‚РѕРІ XML РґРѕРєСѓРјРµРЅС‚Р°
+            // (РїРѕР·РІРѕР»СЏРµС‚ РЅР°РіР»СЏРґРЅРѕ РёР·РѕР±СЂР°Р·РёС‚СЊ РёРµСЂР°СЂС…РёСЋ XML РґРѕРєСѓРјРµРЅС‚Р°)
             settingsXml.Indent = true;
-            //settingsXml.IndentChars = "    "; // задаем отступ, здесь у меня 4 пробела
-            // задаем переход на новую строку
+            //settingsXml.IndentChars = "    "; // Р·Р°РґР°РµРј РѕС‚СЃС‚СѓРї, Р·РґРµСЃСЊ Сѓ РјРµРЅСЏ 4 РїСЂРѕР±РµР»Р°
+            // Р·Р°РґР°РµРј РїРµСЂРµС…РѕРґ РЅР° РЅРѕРІСѓСЋ СЃС‚СЂРѕРєСѓ
             settingsXml.NewLineChars = "\n";
 
             using (XmlWriter output = XmlWriter.Create(Filename, settingsXml))
             {
-                // Создали открывающийся тег
+                // РЎРѕР·РґР°Р»Рё РѕС‚РєСЂС‹РІР°СЋС‰РёР№СЃСЏ С‚РµРі
                 output.WriteStartElement("language");
                 output.WriteAttributeString("culture", "en");
-                // Создаем элемент
+                // РЎРѕР·РґР°РµРј СЌР»РµРјРµРЅС‚
                 output.WriteElementString("author", "D.Borisov");
                 output.WriteElementString("version", "1.0");
 
@@ -3226,9 +3227,9 @@ namespace DupTerminator.Views
 
                 output.WriteEndElement();//Forms
                 output.WriteEndElement();//language
-                // Сбрасываем буфферизированные данные
+                // РЎР±СЂР°СЃС‹РІР°РµРј Р±СѓС„С„РµСЂРёР·РёСЂРѕРІР°РЅРЅС‹Рµ РґР°РЅРЅС‹Рµ
                 output.Flush();
-                // Закрываем фаил, с которым связан output
+                // Р—Р°РєСЂС‹РІР°РµРј С„Р°РёР», СЃ РєРѕС‚РѕСЂС‹Рј СЃРІСЏР·Р°РЅ output
                 output.Close();
             }
         }
@@ -3526,7 +3527,7 @@ namespace DupTerminator.Views
                 AddToSkipFolders(Path.GetDirectoryName(_undoRedoEngine.ListDuplicates.GetPath(lvDuplicates.FocusedItem.Index)));
                 _undoRedoEngine.DeleteGroupsFromList(lvDuplicates.FocusedItem.Index);
                 lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;
-                lvDuplicates.Invalidate(); //все перерисовывается
+                lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
                 showDuplicateInfoSelected();
             }
         }
@@ -3542,17 +3543,23 @@ namespace DupTerminator.Views
             DeleteItem(false);
         }
 
-        #region Члены IMainView
+        #region Р§Р»РµРЅС‹ IMainView
 
         public new void Show()
         {
             Application.Run(this);
         }
 
+
+
+
         #endregion
 
-
-
-
+        private void tmsi_Select_checkNotBestBookName_Click(object sender, EventArgs e)
+        {
+            CheckNotBestBookName.Select(_undoRedoEngine, lvDuplicates.SelectedIndices);
+            lvDuplicates.Invalidate(); //РІСЃРµ РїРµСЂРµСЂРёСЃРѕРІС‹РІР°РµС‚СЃСЏ
+            showDuplicateInfoSelected();
+        }
     }
 }
