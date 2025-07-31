@@ -1,0 +1,34 @@
+﻿<Window x:Class="DupTerminator.WPF.View.ProgressWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DupTerminator.WPF.View"
+        mc:Ignorable="d"
+        Title="ProgressWindow" Height="450" Width="800"
+        WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListView ItemsSource="{Binding ProgressItems}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="PhisicalDrive" DisplayMemberBinding="{Binding PhisicalDrive}" Width="100" />
+                    <GridViewColumn Header="State" DisplayMemberBinding="{Binding State, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="NaN" />
+                    <GridViewColumn Header="RemainSize" DisplayMemberBinding="{Binding RemainSize}" Width="100" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Button Grid.Row="1" 
+                Content="Cancel" 
+                Command="{Binding CancelCommand}"
+                HorizontalAlignment="Right" 
+                Margin="10" 
+                Width="75"/>
+    </Grid>
+</Window>

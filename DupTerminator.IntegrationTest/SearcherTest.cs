@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using Moq;
 using DupTerminator.WindowsSpecific;
+using DupTerminator.BusinessLogic.Abstraction;
 
 namespace DupTerminator.IntegrationTest
 {

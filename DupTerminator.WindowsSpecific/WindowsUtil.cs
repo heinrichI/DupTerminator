@@ -1,6 +1,7 @@
 ﻿namespace DupTerminator.WindowsSpecific
 {
-    using DupTerminator.BusinessLogic;
+    using DupTerminator.BusinessLogic.Abstraction;
+    using System.IO;
     using System.Management;
 
     public class WindowsUtil : IWindowsUtil

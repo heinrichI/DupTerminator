@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using SevenZipExtractor.Extensions;
 using Microsoft.Extensions.Logging;
+using DupTerminator.DataBase.Extensions;
 
 namespace DupTerminator
 {
@@ -31,7 +32,6 @@ namespace DupTerminator
             // Add event handler for thread exceptions
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
           
-
             using (ServiceProvider serviceProvider = services.BuildServiceProvider())
             {
                 var view = serviceProvider.GetRequiredService<MainForm>();
@@ -48,8 +48,9 @@ namespace DupTerminator
 
             services.AddSingleton<UndoRedoEngine>();
 
-            var path = Path.Combine(System.Windows.Forms.Application.StartupPath, "database.db3");
-            services.AddSingleton<IDBManager>(new DBManager(path, new MessageService()));
+            //var path = Path.Combine(System.Windows.Forms.Application.StartupPath, "database.db3");
+            //services.AddSingleton<IDBManager>(new DBManager(path, new MessageService()));
+            services.AddDataBase();
 
             services.AddLocalization(o => o.ResourcesPath = "Resources");
 

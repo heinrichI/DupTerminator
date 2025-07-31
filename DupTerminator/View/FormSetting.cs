@@ -1,4 +1,5 @@
-﻿using DupTerminator.BusinessLogic;
+﻿using DupTerminator.BusinessLogic.Abstraction;
+using DupTerminator.BusinessLogic.Model;
 using DupTerminator.DataBase;
 using DupTerminator.Localize;
 using System;

@@ -9,6 +9,8 @@ using System.Collections;
 using System.Diagnostics;
 using DupTerminator.BusinessLogic;
 using DupTerminator.WindowsSpecific;
+using DupTerminator.BusinessLogic.Abstraction;
+using DupTerminator.BusinessLogic.Model;
 
 #if NUNIT
 using NUnit.Framework;
@@ -440,8 +442,8 @@ namespace DupTerminator
                             {
                                 if (_cancelSearch == true)
                                 {
-                                    if (_searchSetting.UseDB)
-                                        _dbManager.SaveFromMemory();
+                                    //if (_searchSetting.UseDB)
+                                        //_dbManager.SaveFromMemory();
                                     
                                     if (_duplicateFileList.Count > 0)
                                         DuplicateFileListAvailableEvent(_duplicateFileList);
@@ -466,8 +468,8 @@ namespace DupTerminator
                 }
             }
 
-            if (_searchSetting.UseDB)
-                _dbManager.SaveFromMemory();
+            //if (_searchSetting.UseDB)
+                //_dbManager.SaveFromMemory();
 
             if (DuplicateFileListAvailableEvent != null)
                 DuplicateFileListAvailableEvent(_duplicateFileList);

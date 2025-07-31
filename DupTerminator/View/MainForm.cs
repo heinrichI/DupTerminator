@@ -23,6 +23,8 @@ using Microsoft.Extensions.Localization;
 using System.Diagnostics;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using DupTerminator.BusinessLogic.Abstraction;
+using DupTerminator.BusinessLogic.Model;
 
 namespace DupTerminator.View
 {
@@ -373,7 +375,7 @@ namespace DupTerminator.View
         {
             int i = 0;
 
-            string filePath = CreatePathForDirectory(ref directory, Const.fileNameDirectorySearch);
+            string filePath = CreatePathForDirectory(ref directory, Const.FILE_NAME_DIRECTORY_SEARCH);
             if (File.Exists(filePath))
             {
                 try
@@ -431,7 +433,7 @@ namespace DupTerminator.View
             CheckedItemList cil;
             int i = 0;
 
-            string filePath = CreatePathForDirectory(ref directory, Const.fileNameDirectorySkipped);
+            string filePath = CreatePathForDirectory(ref directory, Const.FILE_NAME_DIRECTORY_SKIPPED);
             if (File.Exists(filePath))
             {
                 try
@@ -477,16 +479,16 @@ namespace DupTerminator.View
             ulong size = 0;
             string fileNameOfListDupl;
             if (directory == string.Empty)
-                fileNameOfListDupl = Path.Combine(Const.defaultDirectory, Const.fileNameListDuplicate);
+                fileNameOfListDupl = Path.Combine(Const.DEFAULT_DIRECTORY, Const.FILE_NAME_LIST_DUPLICATE);
             else
-                fileNameOfListDupl = Path.Combine(directory, Const.fileNameListDuplicate);
+                fileNameOfListDupl = Path.Combine(directory, Const.FILE_NAME_LIST_DUPLICATE);
 
             if (File.Exists(fileNameOfListDupl))
             {
                 try
                 {
                     SetStatusState(StatusState.Duplicate); ;
-                    SetStatusDuplicate(LanguageManager.GetString("LoadListLoad") + Const.fileNameListDuplicate);
+                    SetStatusDuplicate(LanguageManager.GetString("LoadListLoad") + Const.FILE_NAME_LIST_DUPLICATE);
                     Application.DoEvents();
 
                     lvDuplicates.BeginUpdate();
@@ -597,9 +599,9 @@ namespace DupTerminator.View
             {
                 if (_undoRedoEngine.ListDuplicates.Items.Count > 0)
                     Save_ListDuplicate(_settings.Fields.LastJob);
-                else if (File.Exists(Const.fileNameListDuplicate))
+                else if (File.Exists(Const.FILE_NAME_LIST_DUPLICATE))
                 {
-                    File.Delete(Const.fileNameListDuplicate);
+                    File.Delete(Const.FILE_NAME_LIST_DUPLICATE);
                 }
             }
 
@@ -632,7 +634,7 @@ namespace DupTerminator.View
                 listDir.Add(lvisd);
             }
 
-            string filePath = CreatePathForDirectory(ref directory, Const.fileNameDirectorySearch);
+            string filePath = CreatePathForDirectory(ref directory, Const.FILE_NAME_DIRECTORY_SEARCH);
             try
             {
                 string jsonString = JsonSerializer.Serialize(listDir);
@@ -659,7 +661,7 @@ namespace DupTerminator.View
                 cil = null;
             }
 
-            string filePathOfListSkipped = CreatePathForDirectory(ref directory, Const.fileNameDirectorySkipped);
+            string filePathOfListSkipped = CreatePathForDirectory(ref directory, Const.FILE_NAME_DIRECTORY_SKIPPED);
 
             try
             {
@@ -682,7 +684,7 @@ namespace DupTerminator.View
 
             try
             {
-                string filePathOfListDupl = CreatePathForDirectory(ref directory, Const.fileNameListDuplicate);
+                string filePathOfListDupl = CreatePathForDirectory(ref directory, Const.FILE_NAME_LIST_DUPLICATE);
 
                 string jsonString = JsonSerializer.Serialize(_undoRedoEngine.ListDuplicates);
                 File.WriteAllText(filePathOfListDupl, jsonString);
@@ -698,7 +700,7 @@ namespace DupTerminator.View
             string filePath;
             if (directory == string.Empty)
             {
-                directory = Path.Combine(Application.StartupPath, Const.defaultDirectory);
+                directory = Path.Combine(Application.StartupPath, Const.DEFAULT_DIRECTORY);
                 filePath = Path.Combine(directory, fileName);
             }
             else if (!FileUtils.IsDirectory(directory))
@@ -1154,9 +1156,9 @@ namespace DupTerminator.View
 
                 if (lvDuplicates.Items.Count > 0)
                     Save_ListDuplicate(directory);
-                else if (File.Exists(Const.fileNameListDuplicate))
+                else if (File.Exists(Const.FILE_NAME_LIST_DUPLICATE))
                 {
-                    File.Delete(Const.fileNameListDuplicate);
+                    File.Delete(Const.FILE_NAME_LIST_DUPLICATE);
                 }
 
                 Save_ListDirectorySearch(ffns.SelectedName);
@@ -1268,7 +1270,6 @@ namespace DupTerminator.View
 
                 _searcher = new Searcher(
                     directories,
-                    null,
                     _searchSetting,
                     _dbManager,
                     new WindowsUtil(),
@@ -1319,13 +1320,13 @@ namespace DupTerminator.View
             if (_undoRedoEngine.ListDuplicates != null)
                 _undoRedoEngine.ListDuplicates.Clear();
 
-            foreach (var group in searcher.Duplicates)
-            {
-                foreach (var item in group.Files)
-                {
-                    _undoRedoEngine.ListDuplicates.Add(item);
-                }
-            }
+            //foreach (var group in searcher.Duplicates)
+            //{
+            //    foreach (var item in group.Files)
+            //    {
+            //        _undoRedoEngine.ListDuplicates.Add(item);
+            //    }
+            //}
 
             //lvDuplicates.VirtualListSize = searcher.Duplicates.Count;
             lvDuplicates.VirtualListSize = _undoRedoEngine.ListDuplicates.Items.Count;

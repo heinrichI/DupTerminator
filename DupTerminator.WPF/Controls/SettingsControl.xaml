@@ -1,0 +1,53 @@
+﻿<UserControl x:Class="DupTerminator.WPF.Controls.SettingsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:DupTerminator.WPF.Controls"
+             xmlns:viewmodel="clr-namespace:DupTerminator.WPF.ViewModel"
+             x:Name="Root"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Data Templates for different types -->
+        <DataTemplate x:Key="BoolTemplate">
+            <CheckBox IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+        </DataTemplate>
+        <DataTemplate x:Key="StringTemplate">
+            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200" />
+        </DataTemplate>
+        <DataTemplate x:Key="IntTemplate">
+            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+            <!-- Add validation here if needed, e.g., via Binding.ValidationRules -->
+        </DataTemplate>
+
+        <!-- Template Selector -->
+        <viewmodel:SettingTemplateSelector x:Key="SettingTemplateSelector"
+                                       BoolTemplate="{StaticResource BoolTemplate}"
+                                       StringTemplate="{StaticResource StringTemplate}"
+                                       IntTemplate="{StaticResource IntTemplate}" />
+    </UserControl.Resources>
+
+    <StackPanel Margin="10">
+        <!-- Optional: Mode selector -->
+        <TextBlock Text="Select Mode:" />
+        <ComboBox ItemsSource="{Binding ElementName=Root, Path=Modes}"
+                  SelectedItem="{Binding ElementName=Root, Path=SelectedMode}"
+                  SelectionChanged="ComboBox_SelectionChanged" />
+                
+        <!-- Auto-generated settings UI -->
+        <ItemsControl ItemsSource="{Binding ElementName=Root, Path=SettingsList}"  Margin="0,10,0,0">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="{Binding Name}" Width="150" ToolTip="{Binding Description}" />
+                        <ContentPresenter Content="{Binding}" 
+                                          ContentTemplateSelector="{StaticResource SettingTemplateSelector}" 
+                                          Margin="10,0,0,0" />
+
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </StackPanel>
+</UserControl>

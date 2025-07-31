@@ -51,7 +51,7 @@ namespace DupTerminator
         public SerializableColor ColorRowError = SerializableColor.FromColor(Color.Red);
         public SerializableColor ColorRowNotExist = SerializableColor.FromColor(Color.LightGray);//*/
         public String Language = String.Empty;
-        public String LastJob = Const.defaultDirectory;
+        public String LastJob = Const.DEFAULT_DIRECTORY;
         public Boolean FastCheck = true;
         public uint FastCheckFileSizeMb = 5;
         public uint FastCheckBufferKb = 1; 

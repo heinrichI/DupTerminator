@@ -1,44 +1,40 @@
 ﻿using System;
-using System.IO;
 using System.Data;
+using System.Drawing;
+using System.IO;
 using System.Threading;
-using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.Abstraction;
 using Microsoft.Data.Sqlite;
 //using SQLite;
 
 namespace DupTerminator.DataBase
 {
-    public class DBManager : IDBManager
+    class DBManager : IDBManager
     {
-        private const string sqlConnectionFile = "Data Source={0}";
+        private const string SQL_CONNECTION_FILE = "Data Source=database.db;";
         //private const string sqlConnectionMemory = "Data Source=:memory:;Version=3;New=True;";
-        private const string sqlConnectionMemory = "Data Source=:memory:";
-        private const string sqlCreate = @" PRAGMA synchronous = OFF;
+        //private const string SQL_CONNECTION_MEMORY = "Data Source=:memory:";
+        private const string SQL_CREATE = @" PRAGMA synchronous = OFF;
                             PRAGMA journal_mode = OFF;
                             CREATE TABLE IF NOT EXISTS 
-                           ExtendedFileInfo (path           TEXT NOT NULL,
-                                             lastWriteTime	TEXT NOT NULL,
-	                                         length	        INTEGER NOT NULL, 
-                                             md5            TEXT,
-                            PRIMARY KEY(Path,LastWriteTime,Length))";
-        private readonly string SQLUpdate = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
-        private const string SQLSelectAll = "SELECT * FROM ExtendedFileInfo";
-        private const string SQLDelete = "DELETE FROM ExtendedFileInfo WHERE path = ? AND lastWriteTime = ? AND length = ?";
-        private const string SQLDeletePath = "DELETE FROM ExtendedFileInfo WHERE path = ?";
+                            ExtendedFileInfo (Path           TEXT NOT NULL,
+                                             LastWriteTime	TEXT NOT NULL,
+	                                         Size	        INTEGER NOT NULL, 
+                                             Md5            TEXT,
+                            PRIMARY KEY(Path,LastWriteTime,Size))";
+        private const string SQL_UPDATE = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
+        private const string SQL_SELECT_ALL = "SELECT * FROM ExtendedFileInfo";
+        private const string SQL_DELETE = "DELETE FROM ExtendedFileInfo WHERE path = ? AND lastWriteTime = ? AND length = ?";
+        private const string SQL_DELETE_PATH = "DELETE FROM ExtendedFileInfo WHERE path = ?";
 
-        private readonly string _dbPath;
+        // Create a composite index on 'Column1' and 'Column2' of 'YourTable'
+        //private const string CREATE_INDEX_SQL = "CREATE INDEX IF NOT EXISTS idx_ExtendedFileInfo_Columns ON YourTable (path, Column2);";
+
         private readonly IMessageService _messageService;
-
-
-        /// <summary>
-        /// This is the one instance of this type.
-        /// </summary>
-        private static volatile DBManager singletonInstance;
-        private static readonly Object syncRoot = new Object();
 
         //private String _sqliteConnection;
         //private SQLiteConnection _sqliteConnectionFile;
-        private SqliteConnection _sqliteConnection;
+        //private SqliteConnection _sqliteConnection;
         //private SQLiteCommand _commandRead;
         private bool _stopDeleting;
 
@@ -49,96 +45,53 @@ namespace DupTerminator.DataBase
         public event SetMaxValueDelegate SetMaxValueEvent;
 
         // Private constructor allowing this type to construct the Singleton.
-        public DBManager(string dbPath, IMessageService messageService)
+        public DBManager(IMessageService messageService)
         {
-            _dbPath = dbPath ?? throw new ArgumentNullException(nameof(dbPath));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
 
-            _sqliteConnection = new SqliteConnection(sqlConnectionMemory);
+            //_sqliteConnection = new SqliteConnection(SQL_CONNECTION_FILE);
             //_command = _sqliteConnectionMemory.CreateCommand();
 
             CreateDataBase();
         }
 
-        public void SaveFromMemory()
+        private void CreateDataBase()
         {
-            if (_sqliteConnection.State == ConnectionState.Open)
-            {
-                //    new CrashReport("sqliteConnectionMemory.State != ConnectionState.Open").ShowDialog();
-                System.Diagnostics.Debug.Assert(_sqliteConnection.State == ConnectionState.Open);
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+            connection.Open();
 
-                using (SqliteConnection sqliteConnectionFile = new SqliteConnection(String.Format(sqlConnectionFile, _dbPath)))
-                {
-                    sqliteConnectionFile.Open();
-
-                    //FormProgress _formProgress = new FormProgress();
-                    //_formProgress.Icon = Properties.Resources.SettingIco;
-                    //SQLiteBackupCallback(_formProgress.BackupEventHandler);
-                    //_formProgress.Show();
-                    //SQLiteBackupCallback BackupDelegate = new SQLiteBackupCallback(_formProgress.BackupEventHandler);
-                    //BackupDelegate = new SQLiteBackupCallback(BackupEventHandler);
-                    //SQLiteBackupCallback BackupDelegate = new SQLiteBackupCallback(BackupEventHandler);
-                    //BackupDelegate += new SQLiteBackupCallback(BackupEventHandler);
-                    //_formProgress. new DBManager.ProgressChangedDelegate(ProgressChangedEventHandler)
-
-                    /*_sqliteConnectionMemory.Trace += new SQLiteTraceEventHandler(delegate(object sender, TraceEventArgs e)
-                    {
-                        MessageBox.Show("Trace");
-                    });
-                    _sqliteConnectionMemory.Update += new SQLiteUpdateEventHandler(delegate(object sender, UpdateEventArgs e)
-                    {
-                        MessageBox.Show("SQLiteUpdateEventHandler");
-                    });
-                    sqliteConnectionFile.Update += new SQLiteUpdateEventHandler(delegate(object sender, UpdateEventArgs e)
-                    {
-                        MessageBox.Show("sqliteConnectionFile SQLiteUpdateEventHandler");
-                    });*/
-                    //_sqliteConnectionMemory.BackupDatabase(sqliteConnectionFile, "main", "main", -1, _formProgress.BackupEventHandler, 10);
-                    // save memory db to file
-                    _sqliteConnection.BackupDatabase(sqliteConnectionFile, "main", "main");
-                    _sqliteConnection.Close();
-                }
-            }
+            using var createTable = connection.CreateCommand();
+            createTable.CommandText = SQL_CREATE;
+            createTable.ExecuteNonQuery();
         }
-
-        /*SQLiteBackupCallback BackupDelegate;
-        public bool BackupEventHandler(SQLiteConnection source, string sourceName, SQLiteConnection destination, string destinationName, int pages, int remainingPages, int totalPages, bool retry)
-        {
-            MessageBox.Show("OK");
-            return true;
-        }*/
-
-        /*public void CreateDataBase()
-        {
-            _sqliteConnection = String.Format("Data Source={0}", _dbPath);
-            var db = new SQLiteConnection(_dbPath);
-            db.BeginTransaction();
-            db.CreateTable<ExtendedFileInfo>();
-            //db.Execute("CREATE INDEX if not exists \"main\".\"ix_DirectoryInformation_driveid_path\" ON \"DirectoryInformation\" (\"DriveId\" ASC, \"Path\" ASC)");
-            db.Commit(); 
-        }//*/
 
         /// <summary>
         /// Создание базы данных на диске, если уже не существует.
         /// </summary>
-        public void CreateDataBase()
-        {
-            using (SqliteConnection sqliteConnectionFile = new SqliteConnection(String.Format(sqlConnectionFile, _dbPath)))
-            {
-                if (sqliteConnectionFile.State != ConnectionState.Open)
-                    sqliteConnectionFile.Open();
+        //public void CreateDataBase()
+        //{
+        //    using (SqliteConnection sqliteConnectionFile = new SqliteConnection(String.Format(SQL_CONNECTION_FILE)))
+        //    {
+        //        if (sqliteConnectionFile.State != ConnectionState.Open)
+        //            sqliteConnectionFile.Open();
 
-                SqliteCommand command = new SqliteCommand(sqlCreate, sqliteConnectionFile);
-                command.ExecuteNonQuery();
+        //        using (SqliteCommand command = new SqliteCommand(SQL_CREATE, sqliteConnectionFile))
+        //            command.ExecuteNonQuery();
 
-                if (_sqliteConnection.State != ConnectionState.Open)
-                    _sqliteConnection.Open();
+        //        if (_sqliteConnection.State != ConnectionState.Open)
+        //            _sqliteConnection.Open();
 
-                // copy db file to memory
-                sqliteConnectionFile.BackupDatabase(_sqliteConnection, "main", "main");
-                sqliteConnectionFile.Close();
-            }
-        }
+
+        //        //using (var command = new SqliteCommand(CREATE_INDEX_SQL, sqliteConnectionFile))
+        //        //{
+        //        //    command.ExecuteNonQuery();
+        //        //}
+
+        //        // copy db file to memory
+        //        sqliteConnectionFile.BackupDatabase(_sqliteConnection, "main", "main");
+        //        sqliteConnectionFile.Close();
+        //    }
+        //}
 
         /// <summary>
         /// Загрузка базы данных в память.
@@ -158,32 +111,28 @@ namespace DupTerminator.DataBase
         //    }
         //}
 
-        public string GetSizeDB()
-        {
-            string size;
-            if (File.Exists(_dbPath))
-                size = (new FileInfo(_dbPath).Length / 1024).ToString() + " Kb";
-            else
-                size = "0 Kb";
-            return size;
-        }
 
-        public void Add(string path, DateTime lastWriteTime, long length, string md5)
+        public void Add(string path, DateTime lastWriteTime, ulong size, string md5)
         {
             if (path == null || lastWriteTime == null)
                 throw new ArgumentNullException("path == null || lastWriteTim == null");
 
             CheckMemoryState();
 
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+            if (connection.State != ConnectionState.Open)
+                connection.Open();
 
-            using (var command = _sqliteConnection.CreateCommand())
+
+            using (var command = connection.CreateCommand())
             {
                 //String SQLInsert = "UPDATE ExtendedFileInfo SET md5 = ? WHERE path = ? AND lastWriteTime = ? AND length = ?";
                 //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-                command.CommandText = "INSERT OR REPLACE INTO ExtendedFileInfo(path, lastWriteTime, length, md5) VALUES(@path, @lastWriteTime, @length, @md5)";
+                command.CommandText = "INSERT OR REPLACE INTO ExtendedFileInfo(path, lastWriteTime, size, md5) VALUES(@path, @lastWriteTime, @size, @md5)";
                 command.Parameters.AddWithValue("@path", path);
                 command.Parameters.AddWithValue("@lastWriteTime", lastWriteTime);
-                command.Parameters.AddWithValue("@length", length);
+                //command.Parameters.AddWithValue("@containerLastWriteTime", containerLastWriteTime);
+                command.Parameters.AddWithValue("@size", size);
                 command.Parameters.AddWithValue("@md5", md5);
                 command.Prepare();
 
@@ -252,24 +201,27 @@ namespace DupTerminator.DataBase
             return dt;
         }*/
 
-        public string ReadMD5(string fullName, DateTime lastWriteTime, long length)
+        public string ReadMD5(string fullName, DateTime lastWriteTime, ulong size)
         {
             CheckMemoryState();
 
             string md5 = String.Empty;
 
-            if (_sqliteConnection.State != ConnectionState.Open)
-                _sqliteConnection.Open();
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
 
-            using (SqliteCommand command = _sqliteConnection.CreateCommand())
+            if (connection.State != ConnectionState.Open)
+                connection.Open();
+
+            using (SqliteCommand command = connection.CreateCommand())
             {
                 command.CommandText = @"SELECT * FROM ExtendedFileInfo WHERE Path = @Path AND 
                                  LastWriteTime = @LastWriteTime AND
-                                 Length = @Length";
+                                 Size = @Size";
                 command.Parameters.AddWithValue("Path", fullName);
                 //command.Parameters.AddWithValue("LastWriteTime", lastWriteTime.ToString(format_date));
                 command.Parameters.AddWithValue("LastWriteTime", lastWriteTime);
-                command.Parameters.AddWithValue("Length", length);
+                //command.Parameters.AddWithValue("ContainerLastWriteTime", containerLastWriteTime);
+                command.Parameters.AddWithValue("Size", size);
 
                 using (SqliteDataReader reader = command.ExecuteReader())
                 {
@@ -290,9 +242,12 @@ namespace DupTerminator.DataBase
             CheckMemoryState();
 
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            using (var command = _sqliteConnection.CreateCommand())
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+            if (connection.State != ConnectionState.Open)
+                connection.Open();
+            using (var command = connection.CreateCommand())
             {
-                command.CommandText = SQLDelete;
+                command.CommandText = SQL_DELETE;
                 command.Parameters.AddWithValue("Path", fullName);
                 command.Parameters.AddWithValue("LastWriteTime", lastWriteTime);
                 command.Parameters.AddWithValue("Length", length);
@@ -305,27 +260,15 @@ namespace DupTerminator.DataBase
         {
             CheckMemoryState();
             //SQLiteCommand command = _sqliteConnectionMemory.CreateCommand();
-            using (var command = _sqliteConnection.CreateCommand())
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+            if (connection.State != ConnectionState.Open)
+                connection.Open();
+            using (var command = connection.CreateCommand())
             {
-                command.CommandText = SQLDeletePath;
+                command.CommandText = SQL_DELETE_PATH;
                 command.Parameters.AddWithValue("Path", fullName);
                 command.ExecuteNonQuery();
             }
-        }
-
-        public void DeleteDB()
-        {
-            if (_sqliteConnection.State == ConnectionState.Open)
-            {
-                _sqliteConnection.Close();
-                _sqliteConnection.Dispose();
-            }
-
-            GC.Collect();
-
-            Thread.Sleep(1000);
-
-            File.Delete(_dbPath);
         }
 
 
@@ -346,8 +289,6 @@ namespace DupTerminator.DataBase
         /// </summary>
         public void CleanDB()
         {
-
-
             CheckMemoryState();
 
             _stopDeleting = false;
@@ -366,9 +307,12 @@ namespace DupTerminator.DataBase
             uint deleted = 0;
             using (DataTable dt = new DataTable())
             {
-                using (var command = _sqliteConnection.CreateCommand())
+                using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+                if (connection.State != ConnectionState.Open)
+                    connection.Open();
+                using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = SQLSelectAll;
+                    command.CommandText = SQL_SELECT_ALL;
                     //SQLiteDataAdapter da = new SQLiteDataAdapter(_command);
                     //da.Fill(dt);
 
@@ -409,7 +353,7 @@ namespace DupTerminator.DataBase
 
             Vacuum();
 
-            SaveFromMemory();
+            //SaveFromMemory();
 
             _messageService.DeletedOutdatedRecord(deleted);
 
@@ -423,7 +367,10 @@ namespace DupTerminator.DataBase
 
         public void Vacuum()
         {
-            using (SqliteCommand cmd = _sqliteConnection.CreateCommand())
+            using var connection = new SqliteConnection(SQL_CONNECTION_FILE);
+            if (connection.State != ConnectionState.Open)
+                connection.Open();
+            using (SqliteCommand cmd = connection.CreateCommand())
             {
                 cmd.CommandText = "VACUUM";
                 cmd.ExecuteNonQuery();
@@ -432,12 +379,12 @@ namespace DupTerminator.DataBase
 
 
         private SqliteTransaction _tr;
-        public void BeginInsert()
-        {
-            if (_sqliteConnection.State != ConnectionState.Open)
-                _sqliteConnection.Open();
-            _tr = _sqliteConnection.BeginTransaction();
-        }
+        //public void BeginInsert()
+        //{
+        //    if (_sqliteConnection.State != ConnectionState.Open)
+        //        _sqliteConnection.Open();
+        //    _tr = _sqliteConnection.BeginTransaction();
+        //}
 
         public void EndInsert()
         {

@@ -1,4 +1,4 @@
-// Version 1.5
+﻿// Version 1.5
 
 using System;
 using System.Globalization;
@@ -12,8 +12,8 @@ namespace SevenZipExtractor
     [StructLayout(LayoutKind.Sequential)]
     internal struct PropArray
     {
-        uint length;
-        IntPtr pointerValues;
+        uint _length;
+        IntPtr _pointerValues;
     }
 
     [StructLayout(LayoutKind.Explicit)]

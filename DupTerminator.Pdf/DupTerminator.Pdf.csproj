@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PdfPig" Version="0.1.11" />
+    <PackageReference Include="PdfPig.Filters.Dct.JpegLibrary" Version="0.1.11" />
+    <PackageReference Include="PdfPig.Filters.Jbig2.PdfboxJbig2" Version="0.1.11" />
+    <PackageReference Include="PdfPig.Filters.Jpx.OpenJpegDotNet" Version="0.1.10.2" />
+  </ItemGroup>
+
+</Project>

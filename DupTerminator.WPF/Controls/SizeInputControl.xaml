@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="DupTerminator.WPF.Controls.SizeInputControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:local="clr-namespace:DupTerminator.WPF.Controls">
+    <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Поле ввода цифр -->
+            <TextBox x:Name="ValueTextBox"
+                     MinWidth="50"
+                 Grid.Column="0"
+                 PreviewTextInput="NumberValidationTextBox"
+                 TextChanged="ValueTextBox_TextChanged"/>
+
+            <!-- Панель переключателей единиц -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <RadioButton x:Name="KbRadio" Content="Kb" Margin="5,0,0,0" GroupName="Units" Checked="UnitRadioButton_Checked"/>
+                <RadioButton x:Name="MbRadio" Content="Mb" Margin="5,0,0,0" GroupName="Units" Checked="UnitRadioButton_Checked"/>
+                <RadioButton x:Name="GbRadio" Content="Gb" Margin="5,0,0,0" GroupName="Units" Checked="UnitRadioButton_Checked"/>
+            </StackPanel>
+        </Grid>
+</UserControl>

@@ -13,17 +13,17 @@ namespace DupTerminator.BusinessLogic
 {
     public sealed class Crc32 : HashAlgorithm
     {
-        public const UInt32 DefaultPolynomial = 0xedb88320u;
-        public const UInt32 DefaultSeed = 0xffffffffu;
+        public const UInt32 DEFAULT_POLYNOMIAL = 0xedb88320u;
+        public const UInt32 DEFAULT_SEED = 0xffffffffu;
 
-        static UInt32[] defaultTable;
+        static UInt32[] _defaultTable;
 
-        readonly UInt32 seed;
-        readonly UInt32[] table;
-        UInt32 hash;
+        readonly UInt32 _seed;
+        readonly UInt32[] _table;
+        UInt32 _hash;
 
         public Crc32()
-            : this(DefaultPolynomial, DefaultSeed)
+            : this(DEFAULT_POLYNOMIAL, DEFAULT_SEED)
         {
         }
 
@@ -32,23 +32,23 @@ namespace DupTerminator.BusinessLogic
             if (!BitConverter.IsLittleEndian)
                 throw new PlatformNotSupportedException("Not supported on Big Endian processors");
 
-            table = InitializeTable(polynomial);
-            this.seed = hash = seed;
+            _table = InitializeTable(polynomial);
+            this._seed = _hash = seed;
         }
 
         public override void Initialize()
         {
-            hash = seed;
+            _hash = _seed;
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
         {
-            hash = CalculateHash(table, hash, array, ibStart, cbSize);
+            _hash = CalculateHash(_table, _hash, array, ibStart, cbSize);
         }
 
         protected override byte[] HashFinal()
         {
-            var hashBuffer = UInt32ToBigEndianBytes(~hash);
+            var hashBuffer = UInt32ToBigEndianBytes(~_hash);
             HashValue = hashBuffer;
             return hashBuffer;
         }
@@ -57,12 +57,12 @@ namespace DupTerminator.BusinessLogic
 
         public static UInt32 Compute(byte[] buffer)
         {
-            return Compute(DefaultSeed, buffer);
+            return Compute(DEFAULT_SEED, buffer);
         }
 
         public static UInt32 Compute(UInt32 seed, byte[] buffer)
         {
-            return Compute(DefaultPolynomial, seed, buffer);
+            return Compute(DEFAULT_POLYNOMIAL, seed, buffer);
         }
 
         public static UInt32 Compute(UInt32 polynomial, UInt32 seed, byte[] buffer)
@@ -72,8 +72,8 @@ namespace DupTerminator.BusinessLogic
 
         static UInt32[] InitializeTable(UInt32 polynomial)
         {
-            if (polynomial == DefaultPolynomial && defaultTable != null)
-                return defaultTable;
+            if (polynomial == DEFAULT_POLYNOMIAL && _defaultTable != null)
+                return _defaultTable;
 
             var createTable = new UInt32[256];
             for (var i = 0; i < 256; i++)
@@ -87,8 +87,8 @@ namespace DupTerminator.BusinessLogic
                 createTable[i] = entry;
             }
 
-            if (polynomial == DefaultPolynomial)
-                defaultTable = createTable;
+            if (polynomial == DEFAULT_POLYNOMIAL)
+                _defaultTable = createTable;
 
             return createTable;
         }

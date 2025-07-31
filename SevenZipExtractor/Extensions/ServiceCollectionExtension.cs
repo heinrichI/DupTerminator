@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SevenZipExtractor.Extensions

@@ -7,9 +7,9 @@ namespace DupTerminator
 {
     class Const
     {
-        public const string defaultDirectory = "default";
-        public static readonly string fileNameDirectorySearch = "listDirectorySearch.json";
-        public static readonly string fileNameDirectorySkipped = "listDirectorySkipped.json";
-        public static readonly string fileNameListDuplicate = "listDuplicate.json";
+        public const string DEFAULT_DIRECTORY = "default";
+        public const string FILE_NAME_DIRECTORY_SEARCH = "listDirectorySearch.json";
+        public const string FILE_NAME_DIRECTORY_SKIPPED = "listDirectorySkipped.json";
+        public const string FILE_NAME_LIST_DUPLICATE = "listDuplicate.json";
     }
 }

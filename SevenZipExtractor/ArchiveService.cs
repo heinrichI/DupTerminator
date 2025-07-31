@@ -2,18 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
+using DupTerminator.BusinessLogic.Model;
 
 namespace SevenZipExtractor
 {
     internal class ArchiveService : IArchiveService
     {
-        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container)
+        public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container)
         {
-            List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
+            List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
             using (ArchiveFile archiveFile = new ArchiveFile(stream))
             {
                 foreach (var entry in archiveFile.Entries)
@@ -43,18 +45,20 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        private ExtendedFileInfo Map(Entry entry, ExtendedFileInfo container, string? checksumInArchive = null)
+        private ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, string? checksumInArchive = null)
         {
-            ExtendedFileInfo efi = new ExtendedFileInfo()
+            ArchiveFileInfo efi = new ArchiveFileInfo()
             {
-                InArchive = true,
+                //InArchive = true,
                 ArchiveCRC = entry.CRC,
-                ArchivePath = entry.FileName,
+                ArchiveFileName = container.Name,
+                ArchivePath = container.Path,
+                ArchiveExtension = container.Extension,
                 LastAccessTime = entry.LastAccessTime,
                 Name = Path.GetFileName(entry.FileName),
                 Extension = Path.GetExtension(entry.FileName),
                 Size = entry.Size,
-                Path = container.Path,
+                Path = $"{container.Path}\\{entry.FileName}",
                 Container = container
             };
             if (checksumInArchive != null)
@@ -102,9 +106,9 @@ namespace SevenZipExtractor
             return ArchiveFile.IsArchive(fullName);
         }
 
-        public IEnumerable<ExtendedFileInfo> GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token)
+        public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token)
         {
-            List<ExtendedFileInfo> infos = new List<ExtendedFileInfo>();
+            List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
 
             using (ArchiveFile archiveFile = new ArchiveFile(fullName))
             {
@@ -135,12 +139,13 @@ namespace SevenZipExtractor
                     }
                 }
             }
-            return infos;
+            return infos.ToArray();
         }
 
-        public string CalculateHashInArchive(ExtendedFileInfo fileInfo)
+        public T CalculateHashInArchive<T>(ArchiveFileInfo fileInfo, Func<Stream, T> calculator)
         {
-            using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Container.Path))
+            Debug.Assert(fileInfo.Container != null);
+            using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.ArchivePath))
             {
                 foreach (var entry in archiveFile.Entries)
                 {
@@ -150,19 +155,19 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    if (entry.FileName == fileInfo.ArchivePath)
+                    if (Path.GetFileName(entry.FileName) == fileInfo.Name)
                     {
                         using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
                         {
                             entry.Extract(entryMemoryStream);
 
                             entryMemoryStream.Position = 0;
-                            return HashHelper.CreateMD5Checksum(entryMemoryStream);
+                            return calculator(entryMemoryStream);
                         }
                     }
                 }
             }
-            return null;
+            return default;
         }
     }
 }

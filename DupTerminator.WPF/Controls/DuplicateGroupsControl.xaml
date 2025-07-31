@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="DupTerminator.WPF.Controls.DuplicateGroupsControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DupTerminator.WPF.Controls"
+             x:Name="root">
+        <Grid>
+            <DataGrid x:Name="dataGrid" 
+                  AutoGenerateColumns="False" 
+                  IsReadOnly="True" 
+                  ItemsSource="{Binding DataView, ElementName=root}" 
+                  Sorting="DataGrid_Sorting">
+                <DataGrid.Columns>
+                    <!-- Столбец для имени файла -->
+                    <DataGridTextColumn Header="Имя файла" 
+                                    Binding="{Binding File.Name}" 
+                                    SortMemberPath="File.Name"/>
+
+                    <!-- Столбец для размера -->
+                    <DataGridTextColumn Header="Размер" 
+                                    Binding="{Binding File.Size, StringFormat='0 bytes'}" 
+                                    SortMemberPath="File.Size"/>
+
+                    <!-- Столбец для пути -->
+                    <DataGridTextColumn Header="Путь" 
+                                    Binding="{Binding File.Path}" 
+                                    SortMemberPath="File.Path"/>
+
+                    <!-- Дополнительные столбцы, если нужны (например, Checksum) -->
+                    <DataGridTextColumn Header="Checksum" 
+                                    Binding="{Binding File.CheckSum}" 
+                                    SortMemberPath="File.CheckSum"/>
+                </DataGrid.Columns>
+
+                <!-- Стиль для строк: зебровая раскраска по группам -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding GroupIndex}" Value="0">
+                                <Setter Property="Background" Value="LightGray"/>
+                                <!-- Чётные группы -->
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding GroupIndex}" Value="1">
+                                <Setter Property="Background" Value="White"/>
+                                <!-- Нечётные группы -->
+                            </DataTrigger>
+                            <!-- Если групп больше, добавьте больше триггеров, или используйте конвертер для динамического расчёта -->
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+            </DataGrid>
+        </Grid>
+    </UserControl>

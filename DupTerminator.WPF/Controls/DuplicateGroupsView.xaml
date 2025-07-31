@@ -1,0 +1,81 @@
+﻿<UserControl x:Class="DupTerminator.WPF.Controls.DuplicateGroupsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:DupTerminator.WPF.Controls"
+             x:Name="Root">
+
+    <UserControl.Resources>
+        <local:GroupIndexToBrushConverter x:Key="GroupBrushConverter" 
+                                          EvenBrush="#FFF0F0F0" 
+                                          OddBrush="White"/>
+
+        <CollectionViewSource x:Key="GroupedItems" 
+                              Source="{Binding ElementName=Root, Path=FileRows}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="GroupKey"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
+        <Style x:Key="GroupHeaderStyle" TargetType="GroupItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <StackPanel Background="Transparent" Margin="0,0,0,5">
+                            <TextBlock FontWeight="Bold" Padding="5,2">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="Group: {0} (Files: {1} Size: {2} bytes)">
+                                        <Binding Path="Name"/>
+                                        <Binding Path="ItemCount"/>
+                                        <Binding Path="Items[0].File.Size"/>
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <ItemsPresenter/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGridRow" x:Key="RowStyle">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <Binding Converter="{StaticResource GroupBrushConverter}"
+                             RelativeSource="{RelativeSource Mode=Self}"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <DataGrid Name="FilesGrid"
+              DataContext="{Binding ElementName=Root}"
+              ItemsSource="{Binding Source={StaticResource GroupedItems}}"
+              Sorting="FilesGrid_Sorting"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              CanUserResizeRows="False">
+
+        <DataGrid.GroupStyle>
+            <GroupStyle ContainerStyle="{StaticResource GroupHeaderStyle}"/>
+        </DataGrid.GroupStyle>
+
+        <DataGrid.RowStyle>
+            <Style TargetType="DataGridRow" BasedOn="{StaticResource RowStyle}"/>
+        </DataGrid.RowStyle>
+
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Name" Binding="{Binding File.Name}" Width="150"/>
+            <DataGridTextColumn Header="Size" Binding="{Binding File.Size}" Width="80">
+                <DataGridTextColumn.ElementStyle>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="{Binding File.Size, StringFormat={}{0:N0}}"/>
+                    </Style>
+                </DataGridTextColumn.ElementStyle>
+            </DataGridTextColumn>
+            <DataGridTextColumn Header="Path" Binding="{Binding File.CombinedPath}" Width="*"/>
+            <DataGridTextColumn Header="Modified" 
+                                Binding="{Binding File.LastWriteTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" 
+                                Width="120"/>
+        </DataGrid.Columns>
+    </DataGrid>
+</UserControl>

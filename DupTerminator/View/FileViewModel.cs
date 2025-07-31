@@ -1,4 +1,4 @@
-﻿using DupTerminator.BusinessLogic;
+﻿using DupTerminator.BusinessLogic.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,4 +1,4 @@
-﻿using DupTerminator.BusinessLogic;
+﻿using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.Localize;
 using System;
 using System.Collections.Generic;

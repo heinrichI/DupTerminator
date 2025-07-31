@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.Model;
 
 namespace DupTerminator.BusinessLogic
 {

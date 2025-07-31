@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 using System.Threading;
 using System.ComponentModel;
 using DupTerminator.View;
-using DupTerminator.BusinessLogic;
+using DupTerminator.BusinessLogic.Model;
 
 namespace DupTerminator
 {

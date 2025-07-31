@@ -9,250 +9,275 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
+using DupTerminator.BusinessLogic.Model;
+using DupTerminator.BusinessLogic.Service;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
 {
-    public class Searcher : IDisposable
+    public class Searcher : SearcherBase<ExtendedFileInfo>, IDisposable
     {
-        private readonly ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> _directorySearchCollection;
-        private readonly ReadOnlyCollection<string> _fileSearch;
+        private readonly ReadOnlyCollection<SearchPath> _locations;
         private readonly SearchSetting _searchSetting;
         private readonly IDBManager _dbManager;
-        private readonly IWindowsUtil _windowsUtil;
-        private readonly IProgress<ProgressDto> _progress;
         private readonly IArchiveService _archiveService;
+        private readonly DbArchiveService _dbArchiveService;
         private readonly ILogger<Searcher> _logger;
         private readonly ConcurrentDictionary<string, IList<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<string, IList<ExtendedFileInfo>>();
-        public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
+        //public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
         // New-style MRESlim that supports unified cancellation
         // in its Wait methods.
         ManualResetEventSlim _mres = new ManualResetEventSlim(true);
 
-        private CancellationTokenSource _cts;
+        //private CancellationTokenSource _cts;
 
         //IProgress<Tuple<int, string>> _progressSearchFile = new Progress<Tuple<int, string>>();
 
         //IProgress<Tuple<int, string>> _progressCalculateDuplicate = new Progress<Tuple<int, string>>();
 
         public Searcher(
-            ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> directorySearchCollection,
-            ReadOnlyCollection<string> fileSearch,
+            ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
             IDBManager dbManager,
             IWindowsUtil windowsUtil,
-            IProgress<ProgressDto> progress,
+            //IProgress<ProgressDto> progress,
+            //CancellationToken cancellationToken,
             IArchiveService archiveService,
-            ILogger<Searcher> logger)
+            Service.DbArchiveService dbArchiveService,
+            ILogger<Searcher> logger) : base(windowsUtil)
         {
-            _directorySearchCollection = directorySearchCollection;
-            _fileSearch = fileSearch;
+            _locations = locations;
             _searchSetting = searchSetting;
             _dbManager = dbManager;
-            _windowsUtil = windowsUtil;
-            _progress = progress;
+            //_progress = progress;
             _archiveService = archiveService;
+            _dbArchiveService = dbArchiveService;
             _logger = logger;
         }
 
-        public async Task Start()
+        public async Task<ReadOnlyCollection<DuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
-            _cts?.Dispose();
-            _cts = new CancellationTokenSource();
+            KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(_locations);
 
-            //var progress = new Progress<int>(value => { progressBar.Value = value; });
-            //await Task.Run(() => GenerateAsync(progress));
-            //curent found files, current file path
-
-
-            ReadOnlyCollection<string> phisicalDrives = GetPhisicalDrives(_directorySearchCollection, _fileSearch);
-
-            BlockingCollection<ExtendedFileInfo>[]? blockingCollectionByPhisDisks = new BlockingCollection<ExtendedFileInfo>[phisicalDrives.Count];
+            (BlockingCollection<ExtendedFileInfo> BlockingCollection, string Drive)[] blockingCollectionByPhisDisks =
+                new (BlockingCollection<ExtendedFileInfo>, string drive)[phisicalDrives.Length];
             for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
             {
-                blockingCollectionByPhisDisks[i] = new BlockingCollection<ExtendedFileInfo>();
+                blockingCollectionByPhisDisks[i] = new(
+                    new BlockingCollection<ExtendedFileInfo>(), phisicalDrives[i].Key);
             }
 
-            var tasks = new Task<ReadOnlyCollection<ExtendedFileInfo>>[phisicalDrives.Count];
-            for (int i = 0; i < phisicalDrives.Count; i++)
+            var tasksSearch = new Task<ReadOnlyCollection<ExtendedFileInfo>>[phisicalDrives.Length];
+            for (int i = 0; i < phisicalDrives.Length; i++)
             {
                 int temp = i;
-                tasks[i] = Task.Factory.StartNew<ReadOnlyCollection<ExtendedFileInfo>>(
-                    () => SearchFileOnPhisicalDrive(_progress, phisicalDrives[temp], _cts.Token),
-                    _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
-            };
+                //tasksSearch[i] = Task.Factory.StartNew<ReadOnlyCollection<ExtendedFileInfo>>(
+                //    () => SearchFileOnPhisicalDrive(progress, phisicalDrives[temp].Key, phisicalDrives[temp].Value, cancelToken),
+                //    cancelToken, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                tasksSearch[i] = Task.Run(() => SearchFileOnPhisicalDrive(progress, phisicalDrives[temp].Key, phisicalDrives[temp].Value, cancelToken))
+               .ContinueWith(t =>
+                 {
+                     // Force progress report after task completion, even if failed
+                     progress?.Report(new ProgressDto
+                     {
+                         PhisicalDrive = phisicalDrives[temp].Key,
+                         State = "Search",
+                         Status = "Search ended"
+                     });
+                     return t.Result; // Return the actual result
+                 }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
 
             //IEnumerable<ReadOnlyCollection<ExtendedFileInfo>> results = await Task.WhenAll(tasks);
-            ReadOnlyCollection<ExtendedFileInfo>[]? result = await Task.WhenAll(tasks);
+            ReadOnlyCollection<ExtendedFileInfo>[]? result = await Task.WhenAll(tasksSearch);
 
             //получаем список файлов
             //отсеиваем только с одинаковыми размерами
             //считаем для них хещ
 
 
-            //Task.WhenAll(tasks).ContinueWith((files) =>
-            //{
-            //var collections = new ConcurrentDictionary<string, BlockingCollection<string>>();
 
-            //try
-            //{
-
-            Task[] tasks2 = new Task[phisicalDrives.Count * 2];
+            Task[] tasksCompareBySizeAndCalculateCheckSum = new Task[phisicalDrives.Length * 2];
             for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
             {
                 int temp = i;
-                tasks2[phisicalDrives.Count + temp] = Task.Factory.StartNew((d) =>
-                    CompareBySize(result[temp], blockingCollectionByPhisDisks[temp]),
-                    _cts, TaskCreationOptions.LongRunning);
+                //tasksCompareBySize[phisicalDrives.Length + temp] = Task.Factory.StartNew((d) =>
+                //    CompareBySize(result[temp], blockingCollectionByPhisDisks[temp].BlockingCollection, cancelToken),
+                //    cancelToken,
+                //    TaskCreationOptions.LongRunning);
+                tasksCompareBySizeAndCalculateCheckSum[phisicalDrives.Length + temp] = Task.Run(() => CompareBySize(result[temp], blockingCollectionByPhisDisks[temp].BlockingCollection, cancelToken));
             }
 
-            for (int i = 0; i < phisicalDrives.Count; i++)
+            for (int i = 0; i < phisicalDrives.Length; i++)
             {
                 int temp = i;
-                tasks2[temp] = Task.Factory.StartNew(
-                    () => CalculateCheckSum(blockingCollectionByPhisDisks[temp], _progress),
-                    _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current);
+                //tasksCompareBySize[temp] = Task.Factory.StartNew(
+                //    () => CalculateCheckSum(
+                //        blockingCollectionByPhisDisks[temp].BlockingCollection,
+                //        blockingCollectionByPhisDisks[temp].Drive, progress, cancelToken),
+                //        cancelToken,
+                //        TaskCreationOptions.LongRunning,
+                //        TaskScheduler.Current);
+                tasksCompareBySizeAndCalculateCheckSum[temp] = Task.Run(() => CalculateCheckSum(
+                        blockingCollectionByPhisDisks[temp].BlockingCollection,
+                        blockingCollectionByPhisDisks[temp].Drive, progress, cancelToken))
+                     .ContinueWith(t => progress?.Report(new ProgressDto
+                     {
+                         PhisicalDrive = phisicalDrives[temp].Key,
+                         Status = "CalculateCheckSum ended",
+                         State = "CalculateCheckSum",
+                         RemainSize = string.Empty,
+                     }), TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
-            await Task.WhenAll(tasks2).ContinueWith((tasks2) =>
+            var sr = await Task.WhenAll(tasksCompareBySizeAndCalculateCheckSum).ContinueWith((tasks2) =>
             {
                 foreach (var item in blockingCollectionByPhisDisks)
                 {
-                    item.Dispose();
+                    item.BlockingCollection.Dispose();
                 }
-                var duplicates = _checksumDictionary
+                IEnumerable<DuplicateGroup>? duplicates = _checksumDictionary
                     .Where(pair => pair.Value.Count > 1)
-                    .Select(pair => new DuplicateGroup(pair));
+                    .Select(pair => new DuplicateGroup(pair.Key, pair.Value));
+                //.OrderByDescending(d => d.Files.Any(f => f.Container is null));
 
-                //Duplicates = new ReadOnlyCollection<DuplicateGroup>(duplicates.ToList());
-
-                var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
-
-                //если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
-                var containers = duplicates.SelectMany(d => d.Files).GroupBy(f => f.Container)
-                    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
-                    .ToArray();
-                foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in containers)
+                var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);
+                var d2 = duplicates.Where(d => d.Files.Any(f => withoutContainer.Any(c => f.Container is not null && c.Path == f.Container.Path)));
+                if (d2 != null && d2.Any())
                 {
-                    if (container.Key is null)
-                        continue;
-
-                    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
-                    if (firstFile != null)
-                    {
-                        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
-                        //если файлы лежат не только в контейнере, проверить не совпадают ли все файлы из контейнера с файлами в директории, если совпадают - создать виртуальный контейнер
-                        var duplCandidates = group.Files.Where(f => f.Container?.CombinedPath != container?.Key?.CombinedPath).GroupBy(f => f.Container);
-                        foreach (IGrouping<ExtendedFileInfo, ExtendedFileInfo> duplCandidate in duplCandidates)
-                        {
-                            if (duplCandidate.Key is null)
-                            {
-                                //этот файл лежит просто в директории
-                                var filesInDirectory = duplicates.SelectMany(d => d.Files).Where(f => f.DirectoryName == duplCandidate.First().DirectoryName);
-                                foreach (var file in container.Value)
-                                {
-                                    if (!filesInDirectory.Any(f => f.Size == file.Size && f.CheckSum == f.CheckSum))
-                                        break;
-                                }
-                                добавить виртуальный контейнер
-                            }
-                            else
-                            {
-                                Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = containers.Single(c => c.Key != null && c.Key.CombinedPath == duplCandidate.Key?.CombinedPath);
-                                if (duplicateContainer.Value.Count == container.Value.Count)
-                                {
-                                    bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
-                                    if (sequenceEqual)
-                                    {
-                                        container.Value.Clear();
-                                        duplicateContainer.Value.Clear();
-                                        //foreach (var item in duplicates)
-                                        //{
-                                        //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
-                                        //{
-                                        //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
-                                        //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
-                                        //}
-                                        //}
-                                    }
-                                }
-                                else
-                                {
-                                    _logger.LogDebug($"У кандитаного контненера {duplCandidate} не совпадает количество файлов");
-                                }
-                            }
-                        }
-                    }
+                    _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
                 }
 
-                Duplicates = new ReadOnlyCollection<DuplicateGroup>(containers
-                    .SelectMany(c => c.Value)
-                    .GroupBy(f => f.CheckSum)
-                    .Select(f => new DuplicateGroup(f))
-                    .ToList());
+                return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
+
+                //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
+
+                //var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
+
+                ////если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
+                //var fileContainers = duplicates
+                //    .SelectMany(d => d.Files)
+                //    .GroupBy(f => f.Container)
+                //    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
+                //    .ToArray();
+                //foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in fileContainers)
+                //{
+                //    if (container.Key is null)
+                //        continue;
+
+                //    if (cancelToken.IsCancellationRequested)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine("Container grouping was cancelled.");
+                //        break;
+                //    }
+
+                //    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
+                //    if (firstFile != null)
+                //    {
+                //        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
+                //        //если файлы лежат не только в контейнере, проверить не совпадают ли все файлы из контейнера с файлами в директории,
+                //        //если совпадают - создать виртуальный контейнер
+                //        var duplCandidates = group.Files
+                //            .Where(f => f.Container?.CombinedPath != container?.Key?.CombinedPath)
+                //            .GroupBy(f => f.Container);
+                //        foreach (IGrouping<ExtendedFileInfo, ExtendedFileInfo> duplCandidate in duplCandidates)
+                //        {
+                //            if (duplCandidate.Key is null)
+                //            {
+                //                //этот файл лежит просто в директории
+                //                var filesInDirectory = duplicates.SelectMany(d => d.Files).Where(f => f.DirectoryName == duplCandidate.First().DirectoryName);
+                //                foreach (var file in container.Value)
+                //                {
+                //                    if (!filesInDirectory.Any(f => f.Size == file.Size && f.CheckSum == f.CheckSum))
+                //                        break;
+                //                }
+                //                //добавить виртуальный контейнер
+                //                DuplicateContainer container2 = new DuplicateContainer();
+                //            }
+                //            else
+                //            {
+                //                Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = fileContainers
+                //                    .Single(c => c.Key != null && c.Key.CombinedPath == duplCandidate.Key?.CombinedPath);
+                //                if (duplicateContainer.Value.Count == container.Value.Count)
+                //                {
+                //                    bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
+                //                    if (sequenceEqual)
+                //                    {
+                //                        container.Value.Clear();
+                //                        duplicateContainer.Value.Clear();
+                //                        //foreach (var item in duplicates)
+                //                        //{
+                //                        //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
+                //                        //{
+                //                        //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
+                //                        //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
+                //                        //}
+                //                        //}
+                //                    }
+                //                }
+                //                else
+                //                {
+                //                    _logger.LogDebug($"У кандитаного контненера {duplCandidate} не совпадает количество файлов");
+                //                }
+                //            }
+                //        }
+                //    }
+                //}
+
+                //var duplicates2 = new ReadOnlyCollection<DuplicateGroup>(fileContainers
+                //    .SelectMany(c => c.Value)
+                //    .GroupBy(f => f.CheckSum)
+                //    .Select(f => new DuplicateGroup(f.Key, (IList<ExtendedFileInfo>)f))
+                //    .ToList());
+
+                //return duplicates2;
             });
+
+            return sr;
         }
 
-        private ReadOnlyCollection<string> GetPhisicalDrives(
-            ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)> directorySearchCollection,
-            ReadOnlyCollection<string> fileSearch)
-        {
-            List<string>? driveLetters = new List<string>();
-            if (directorySearchCollection != null)
-                driveLetters.AddRange(directorySearchCollection.Select(directory => directory.DirectoryPath.Substring(0, 2).ToLowerInvariant()).Distinct());
-            if (fileSearch != null)
-                driveLetters.AddRange(fileSearch.Select(file => file.Substring(0, 2).ToLowerInvariant()).Distinct());
 
-            HashSet<string> models = new HashSet<string>();
-            foreach (var drive in driveLetters)
-            {
-                var model = _windowsUtil.GetModelFromDrive(drive);
-                if (model != null)
-                    models.Add(model);
-            }
-            return new ReadOnlyCollection<string>(models.ToList());
-        }
-
-        private void CompareBySize(ReadOnlyCollection<ExtendedFileInfo> foundedFiles, BlockingCollection<ExtendedFileInfo> filesWithEqualSize)
-        {
-            IEnumerable<IGrouping<ulong, ExtendedFileInfo>>? groupsFilesWithEqualSize = foundedFiles.GroupBy(fi => fi.Size).Where(group => group.Count() > 1);
-            foreach (IGrouping<ulong, ExtendedFileInfo>? items in groupsFilesWithEqualSize)
-            {
-                foreach (ExtendedFileInfo item in items)
-                {
-                    filesWithEqualSize.Add(item);
-                }
-            }
-            filesWithEqualSize.CompleteAdding();
-        }
+      
 
         // из разных потоков
         private ReadOnlyCollection<ExtendedFileInfo> SearchFileOnPhisicalDrive(
             IProgress<ProgressDto> progress,
             in string phisicalDrive,
+            IEnumerable<SearchPath> locations,
             CancellationToken token)
         {
+            System.Diagnostics.Debug.WriteLine($"SearchFileOnPhisicalDrive {phisicalDrive} start.");
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
-            foreach (var directory in _directorySearchCollection)
+            foreach (var directory in locations.Where(p => p.IsDirectory))
             {
                 if (token.IsCancellationRequested)
                 {
+                    System.Diagnostics.Debug.WriteLine("SearchFileOnPhisicalDrive was canceled.");
                     break;
                 }
 
-                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = directory.DirectoryPath });
+                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = directory.Path, State = "Search" });
 
-                DirectoryInfo di = new System.IO.DirectoryInfo(directory.DirectoryPath);
-                AddFiles(di, ref files, directory.SearchInSubdirectory, token, progress, phisicalDrive);
+                DirectoryInfo di = new System.IO.DirectoryInfo(directory.Path);
+                AddFiles(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive);
             }
+
+            //progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = string.Empty, State = "Search ended" });
 
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
-        private void CalculateCheckSum(BlockingCollection<ExtendedFileInfo> blockingCollection, IProgress<ProgressDto> progress)
+
+        private void CalculateCheckSum(
+            BlockingCollection<ExtendedFileInfo> blockingCollection,
+            string drive,
+            IProgress<ProgressDto> progress,
+            CancellationToken cancelToken)
         {
             if (blockingCollection == null)
                 throw new ArgumentNullException(nameof(blockingCollection));
@@ -264,7 +289,7 @@ namespace DupTerminator.BusinessLogic
             //    localSum++;
             //}
 
-            while (!blockingCollection.IsCompleted)
+            while (!blockingCollection.IsCompleted && !cancelToken.IsCancellationRequested)
             {
                 ExtendedFileInfo data = null;
                 // Blocks if number.Count == 0
@@ -285,9 +310,13 @@ namespace DupTerminator.BusinessLogic
 
                 if (data != null)
                 {
-                    progress.Report(new ProgressDto { Status = data.Name });
+                    decimal totalSize = blockingCollection.Sum(b => (decimal)b.Size);
+                    progress.Report(new ProgressDto { Status = data.Name, State = "CalculateCheckSum",
+                        PhisicalDrive = drive,
+                        RemainSize = StringHelper.FormatBytes(totalSize) });
 
                     string checksum = GetCheckSum(data);
+                    Debug.Assert(checksum is not null);
                     _checksumDictionary.AddOrUpdate(checksum,
                         addValueFactory: (checksum) =>
                         {
@@ -346,24 +375,31 @@ namespace DupTerminator.BusinessLogic
                 if (_searchSetting.UseDB)
                 {
                     //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
-                    //string md5 = string.Empty;
-                    //md5 = _dbManager.ReadMD5(data.FullName, data.LastWriteTime, data.Length);
-                    //if (String.IsNullOrEmpty(md5))
-                    //{
-                    //    //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
-                    //    data.CheckSum = CreateMD5Checksum(_fileInfo.FullName);
-                    //    dbManager.Add(_fileInfo.FullName, _fileInfo.LastWriteTime, _fileInfo.Length, _checkSum);
-                    //    //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
-                    //}
-                    //else
-                    //    data.CheckSum = md5;
+                    string md5 = string.Empty;
+                    DateTime lastWriteTime = fileInfo is ArchiveFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
+                    md5 = _dbManager.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                    if (string.IsNullOrEmpty(md5))
+                    {
+                        //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
+                        if (fileInfo is ArchiveFileInfo afi)
+                        {
+                            fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
+                        }
+                        else
+                        {
+                            fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                        }
+                        _dbManager.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, fileInfo.CheckSum);
+                        //_dbManager.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                    }
+                    else
+                        fileInfo.CheckSum = md5;
                 }
                 else
                 {
-                    if (fileInfo.InArchive)
+                    if (fileInfo is ArchiveFileInfo afi)
                     {
-                        Debug.Assert(fileInfo.Container != null);
-                        fileInfo.CheckSum = _archiveService.CalculateHashInArchive(fileInfo);
+                        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
                     }
                     else
                     {
@@ -387,8 +423,8 @@ namespace DupTerminator.BusinessLogic
             IProgress<ProgressDto> progress,
             in string phisicalDrive)
         {
-            try
-            {
+            //try
+            //{
                 //Add subdirectories
                 if (isRecurse)
                 {
@@ -397,7 +433,7 @@ namespace DupTerminator.BusinessLogic
                     {
                         if (token.IsCancellationRequested)
                         {
-                            System.Diagnostics.Debug.WriteLine("Canceled while running.");
+                            System.Diagnostics.Debug.WriteLine("AddFiles was canceled.");
                             break;
                         }
                         // Wait on the event to be signaled
@@ -419,7 +455,7 @@ namespace DupTerminator.BusinessLogic
                             throw;
                         }
 
-                        progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = directories[i].FullName });
+                        progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = directories[i].FullName, State = "Search" });
 
                         //if (!_directorySkipList.Contains(directories[i].FullName, StringComparer.OrdinalIgnoreCase))
                         AddFiles(directories[i], ref files, isRecurse, token, progress, phisicalDrive);
@@ -434,6 +470,7 @@ namespace DupTerminator.BusinessLogic
                     Name = f.Name,
                     Path = f.FullName,
                     LastAccessTime = f.LastAccessTime,
+                    LastWriteTime = f.LastWriteTime,
                     DirectoryName = f.DirectoryName,
                     Extension = f.Extension,
                 });
@@ -441,17 +478,19 @@ namespace DupTerminator.BusinessLogic
                 {
                     if (token.IsCancellationRequested)
                     {
-                        System.Diagnostics.Debug.WriteLine("Canceled while running.");
+                        System.Diagnostics.Debug.WriteLine("AddFiles canceled.");
                         break;
                     }
 
-                    progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = item.Path });
+                    progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = item.Path, State = "Search" });
 
                     files.Add(item);
                     if (_archiveService.IsArchiveFile(item.Path))
                     {
-                        var files4 = _archiveService.GetInfoFromArchive(item.Path, item, token);
-                        foreach (ExtendedFileInfo file in files4)
+                        var filesInArchive = _dbArchiveService.Get(_searchSetting.UseDB, item, token);
+                        //var filesInArchive = _archiveService.GetInfoFromArchive(item.Path, item, token);
+                        //var res = DeepComparer.DeepEquals(filesInArchive, filesInArchive2);
+                        foreach (ExtendedFileInfo file in filesInArchive)
                         {
                             files.Add(file);
                         }
@@ -511,27 +550,27 @@ namespace DupTerminator.BusinessLogic
 
                 //_directoriesSearched.Add((string)di.FullName.ToString());
                 
-            }
-            catch (System.IO.FileNotFoundException)
-            {
-                //not do
-            }
-            catch (System.UnauthorizedAccessException)
-            {
-                //not do
-            }
+            //}
+            //catch (System.IO.FileNotFoundException)
+            //{
+            //    //not do
+            //}
+            //catch (System.UnauthorizedAccessException)
+            //{
+            //    //not do
+            //}
         }
 
         public void Dispose()
         {
-            _cts?.Dispose();
+            //_cts?.Dispose();
         }
 
-        public void Cancell()
-        {
-            // Token can only be canceled once.
-            _cts.Cancel();
-        }
+        //public void Cancell()
+        //{
+        //    // Token can only be canceled once.
+        //    _cts.Cancel();
+        //}
 
         public void Pause()
         {
@@ -543,33 +582,6 @@ namespace DupTerminator.BusinessLogic
             _mres.Set();
         }
 
-        private class CheckSumComparer : IEqualityComparer<ExtendedFileInfo>
-        {
-            public bool Equals(ExtendedFileInfo x, ExtendedFileInfo y)
-            {
-                //Check whether the compared objects reference the same data.
-                if (object.ReferenceEquals(x, y)) return true;
-
-                //Check whether any of the compared objects is null.
-                if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
-                    return false;
-
-                return x.CheckSum == y.CheckSum;
-            }
-
-            // If Equals() returns true for a pair of objects
-            // then GetHashCode() must return the same value for these objects.
-
-            public int GetHashCode([DisallowNull] ExtendedFileInfo obj)
-            {
-                //Check whether the object is null
-                if (object.ReferenceEquals(obj, null)) return 0;
-
-                int hash = obj.CheckSum == null ? 0 : obj.CheckSum.GetHashCode();
-
-                return hash;
-            }
-        }
 
         internal class Pair<T1, T2>
         {

@@ -49,7 +49,7 @@ namespace DupTerminator.View
 
         private bool checkDirOnJobFiles(string dir)
         {
-            if (File.Exists(Path.Combine(dir, Const.fileNameDirectorySearch)))// &&
+            if (File.Exists(Path.Combine(dir, Const.FILE_NAME_DIRECTORY_SEARCH)))// &&
                 //File.Exists(Path.Combine(dir, Const.fileNameListDuplicate)))
                 return true;
             return false;

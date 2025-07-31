@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DupTerminator.BusinessLogic.Model
+{
+    public class DuplicateContainer
+    {
+        public IList<ExtendedFileInfo> Files { get; set; }
+
+        public string Similarity { get; set; }
+    }
+}

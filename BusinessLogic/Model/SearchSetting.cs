@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DupTerminator.BusinessLogic.Model
+{
+    public class SearchSetting
+    {
+        public List<string> IncludePattern { get; set; } = new List<string>();
+        public List<string> ExcludePattern { get; set; } = new List<string>();
+        public bool UseDB { get; set; }
+
+        public ulong? SkipLessThan { get; set; }
+    }
+}
