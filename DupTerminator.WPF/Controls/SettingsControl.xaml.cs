@@ -18,7 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DupTerminator.BusinessLogic.Model;
-using DupTerminator.BusinessLogic.Model.Settings;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.WPF.ViewModel;
 using static DupTerminator.WPF.ViewModel.SettingsViewModel;
 

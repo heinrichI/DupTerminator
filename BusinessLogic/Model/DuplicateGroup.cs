@@ -18,7 +18,7 @@ namespace DupTerminator.BusinessLogic.Model
                 Name = checksum;
         }
 
-        public IList<DuplicateContainer> Containers { get; set; }
+        //public IList<DuplicateContainer> Containers { get; set; }
 
         public string Name { get; set; }
         public string Checksum { get; internal set; }
@@ -34,7 +34,7 @@ namespace DupTerminator.BusinessLogic.Model
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Containers, Name, Checksum, Files);
+            return HashCode.Combine(Name, Checksum, Files);
         }
     }
 }

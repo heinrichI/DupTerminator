@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
 using DupTerminator.BusinessLogic.Model;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
 using Microsoft.Extensions.Logging;
 
@@ -19,6 +20,7 @@ namespace DupTerminator.BusinessLogic
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
         private readonly SearchSetting _searchSetting;
+        private readonly DuplicateContainerSettings _modeSettings;
         private readonly IDBManager _dbManager;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
@@ -40,6 +42,7 @@ namespace DupTerminator.BusinessLogic
         public SearcherContainer(
             ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
+            DuplicateContainerSettings modeSettings,
             IDBManager dbManager,
             IWindowsUtil windowsUtil,
             //IProgress<ProgressDto> progress,
@@ -50,6 +53,7 @@ namespace DupTerminator.BusinessLogic
         {
             _locations = locations;
             _searchSetting = searchSetting;
+            _modeSettings = modeSettings;
             _dbManager = dbManager;
             _windowsUtil = windowsUtil;
             //_progress = progress;
@@ -58,7 +62,7 @@ namespace DupTerminator.BusinessLogic
             _logger = logger;
         }
 
-        public async Task<ReadOnlyCollection<DuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        public async Task<ReadOnlyCollection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(_locations);
 
@@ -141,7 +145,7 @@ namespace DupTerminator.BusinessLogic
                 }
 
 
-                Dictionary<(string, string), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)> containers = new Dictionary<(string, string), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)>();
+                Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)> containers = new Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)>();
                 foreach (KeyValuePair<string, IList<ExtendedFileInfo>> pair in _checksumDictionary)
                 {
                     if (pair.Value.Count > 1)
@@ -167,7 +171,8 @@ namespace DupTerminator.BusinessLogic
                                     (first, second) = (second, first);
                                 }
 
-                                var key = (first.Container.Path, second.Container.Path);
+
+                                var key = (new ContainerEqInfo(first.Container.Path, first.ContainerFilesCount), new ContainerEqInfo(second.Container.Path, second.ContainerFilesCount));
 
                                 // Initialize the list if the key doesn't exist
                                 if (!containers.TryGetValue(key, out (List<ExtendedFileInfo>, List<ExtendedFileInfo>) value))
@@ -209,7 +214,13 @@ namespace DupTerminator.BusinessLogic
 
                 //return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
 
-                return new ReadOnlyCollection<DuplicateGroup>(new List<DuplicateGroup>());
+                var cts = containers
+                    .Where(c => c.Value.Item1.Count > _modeSettings.MoreThanFileCount)
+                    .Select(c => new DuplicateContainer(c))
+                    //.Cast<ResultBase>()
+                    .ToList();
+
+                return new ReadOnlyCollection<DuplicateContainer>(cts);
 
                 //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
 

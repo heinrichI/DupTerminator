@@ -8,11 +8,13 @@ using System.Windows.Input;
 using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
-using DupTerminator.BusinessLogic.Model.Settings;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
+using DupTerminator.DataBase;
 using DupTerminator.WindowsSpecific;
 using DupTerminator.WPF.Commands;
 using DupTerminator.WPF.Helper;
+using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using Microsoft.Extensions.Logging;
 using static System.Formats.Asn1.AsnWriter;
@@ -24,6 +26,7 @@ namespace DupTerminator.WPF.ViewModel
         private const string LOCATION_FILE_NAME = "locations.json";
         private const string SEARCH_SETTING_FILE_NAME = "searchSetting.json";
         private readonly IDBManager _dBManager;
+        private readonly IPhashRepository _phashRepository;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
         private readonly DbArchiveService _dbArchiveService;
@@ -35,6 +38,7 @@ namespace DupTerminator.WPF.ViewModel
 
         public SettingViewModel(
             IDBManager dBManager,
+            IPhashRepository phashRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
             DbArchiveService dbArchiveService,
@@ -48,6 +52,7 @@ namespace DupTerminator.WPF.ViewModel
 
             _locationsObservable = new ObservableCollection<SearchPathViewModel>(locations);
             _dBManager = dBManager;
+            _phashRepository = phashRepository;
             _windowsUtil = windowsUtil;
             _archiveService = archiveService;
             _dbArchiveService = dbArchiveService;
@@ -57,12 +62,16 @@ namespace DupTerminator.WPF.ViewModel
             _progressDialogService = progressDialogService;
         }
 
-        private void OnSearchCompleted(ReadOnlyCollection<DuplicateGroup> results)
+        //private void OnSearchCompleted(ReadOnlyCollection<ResultBase> results)
+        //{
+        //    SearchCompleted?.Invoke(this, new SearchCompletedEventArgs(results));
+        //}
+        private void OnSearchCompleted(ResultBase results)
         {
             SearchCompleted?.Invoke(this, new SearchCompletedEventArgs(results));
         }
 
-        public ObservableCollection<SettingsBase> Modes => new ObservableCollection<SettingsBase>(new List<SettingsBase>{ new Mode1Settings(), new Mode2Settings(), new PHashSettings() });
+        public ObservableCollection<SettingsBase> Modes => new ObservableCollection<SettingsBase>(new List<SettingsBase>{ new MD5ModeSettings(), new DuplicateContainerSettings(), new PHashSettings() });
 
 
         private SettingsBase _selectedMode;
@@ -124,15 +133,16 @@ namespace DupTerminator.WPF.ViewModel
                             {
                                 Path = path,
                                 IsDirectory = true,
+                                SearchInSubfolder = true
                                 //Image = IconReader.GetIcon(path, true);
-                        });
+                            });
                         }
                         else if (System.IO.File.Exists(path))
                         {
                             _locationsObservable.Add(new SearchPathViewModel
                             {
                                 Path = path,
-                                IsDirectory = true
+                                IsDirectory = false
                             });
                         }
                     }
@@ -162,6 +172,7 @@ namespace DupTerminator.WPF.ViewModel
                     //searchSetting,
                     this,
                     _dBManager,
+                    _phashRepository,
                     _windowsUtil,
                     _archiveService,
                     _dbArchiveService,

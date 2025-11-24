@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DupTerminator.BusinessLogic.Model.Settings
+namespace DupTerminator.BusinessLogic.Model.Modes
 {
-    public class Mode1Settings : SettingsBase
+    public class MD5ModeSettings : SettingsBase
     {
         private bool _isEnabled;
         private string _userName;

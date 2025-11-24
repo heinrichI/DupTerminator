@@ -18,10 +18,11 @@
 	<Window.TaskbarItemInfo>
 		<TaskbarItemInfo Description="My Taskbar Sample" ProgressState="Normal" >
 			<TaskbarItemInfo.ProgressValue>
-				<MultiBinding Converter="{StaticResource progressBarConverter}">
+                <Binding Path="Progress" Mode="OneWay"/>
+                <!--<MultiBinding Converter="{StaticResource progressBarConverter}">
 					<Binding Path="Progress" Mode="OneWay"/>
 					<Binding Path="ProgressMax" />
-				</MultiBinding>
+				</MultiBinding>-->
 			</TaskbarItemInfo.ProgressValue>
 		</TaskbarItemInfo>
 	</Window.TaskbarItemInfo>

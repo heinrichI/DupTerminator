@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using DupTerminator.BusinessLogic.Model;
 
 namespace DupTerminator.WPF.Abstraction
 {
@@ -12,5 +13,6 @@ namespace DupTerminator.WPF.Abstraction
         Task<BitmapImage?> GetThumbnailAsync(string fullPath);
 
         BitmapImage? GetFullSizeAsync(string fullPath);
+        Task<BitmapImage?> GetThumbnailFromArchiveAsync(ArchiveFileInfo archiveFileInfo);
     }
 }

@@ -44,7 +44,10 @@ namespace DupTerminator.BusinessLogic.Service
 
             lock (_lock)
             {
-                _latestProgress[dto.PhisicalDrive] = value; // Always store latest
+                if (dto.PhisicalDrive == null)
+                    _latestProgress[string.Empty] = value;
+                else
+                    _latestProgress[dto.PhisicalDrive] = value; // Always store latest
             }
         }
 

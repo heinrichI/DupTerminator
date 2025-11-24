@@ -26,7 +26,7 @@ namespace DupTerminator.WPF.ViewModel
             ViewFullSizeCommand = new RelayCommand((_) => OnViewFullSize());
         }
 
-        public void UpdateGroups(IEnumerable<DuplicateGroup> duplicateGroups)
+        public void UpdateGroups(ReadOnlyCollection<PHashDuplicateGroup> duplicateGroups)
         {
             _imageGroups.Clear();
 

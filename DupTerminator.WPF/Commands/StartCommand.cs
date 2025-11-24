@@ -11,9 +11,11 @@ using System.Windows.Input;
 using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
-using DupTerminator.BusinessLogic.Model.Settings;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
+using DupTerminator.DataBase;
 using DupTerminator.Pdf;
+using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using DupTerminator.WPF.View;
 using DupTerminator.WPF.ViewModel;
@@ -29,6 +31,7 @@ namespace DupTerminator.WPF.Commands
         //private readonly ReadOnlyCollection<SearchPath> _locations;
         //private readonly SearchSetting _searchSetting;
         private readonly IDBManager _dBManager;
+        private readonly IPhashRepository _phashRepository;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
         private readonly DbArchiveService _dbArchiveService;
@@ -36,7 +39,8 @@ namespace DupTerminator.WPF.Commands
         private readonly IMIHFactory _mihFactory;
         private readonly ILogger<Searcher> _serachLogger;
         private readonly IProgressDialogService _progressDlg;
-        private readonly Action<ReadOnlyCollection<DuplicateGroup>?> _updateResults;
+        //private readonly Action<ReadOnlyCollection<ResultBase>?> _updateResults;
+        private readonly Action<ResultBase?> _updateResults;
 
         public StartCommand
             (
@@ -44,6 +48,7 @@ namespace DupTerminator.WPF.Commands
             //ReadOnlyCollection<SearchPath> locations,
             //SearchSetting searchSetting,
             IDBManager dBManager,
+            IPhashRepository phashRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
             DbArchiveService dbArchiveService,
@@ -51,12 +56,14 @@ namespace DupTerminator.WPF.Commands
             IMIHFactory mihFactory,
             ILogger<Searcher> serachLogger,
             IProgressDialogService progressDlg,
-            Action<ReadOnlyCollection<DuplicateGroup>?> updateResults)
+            //Action<ReadOnlyCollection<ResultBase>?> updateResults)
+            Action<ResultBase?> updateResults)
         {
             _settingViewModel = settingViewModel;
             //_locations = locations;
             //_searchSetting = searchSetting;
             _dBManager = dBManager;
+            _phashRepository = phashRepository;
             _windowsUtil = windowsUtil;
             _archiveService = archiveService;
             _dbArchiveService = dbArchiveService;
@@ -84,7 +91,7 @@ namespace DupTerminator.WPF.Commands
                .Select(location => new SearchPath(location.Path, location.IsDirectory, location.SearchInSubfolder))
                .ToList());
 
-            if (_settingViewModel.SelectedMode is Mode1Settings)
+            if (_settingViewModel.SelectedMode is MD5ModeSettings)
             {
                 var searcher = new Searcher(
                    locations,
@@ -98,14 +105,18 @@ namespace DupTerminator.WPF.Commands
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {
                     ReadOnlyCollection<DuplicateGroup>? result = await searcher.StartAsync(progress, cancelToken);
-                    _updateResults(result);
+                    //ResultType2 type1 = new ResultType2 { Discount = 4536 };
+                    //ResultType2 type2 = new ResultType2 { Discount = 4537 };
+                    //var col = new ReadOnlyCollection<ResultBase>(new[] { type1, type2 } );
+                    _updateResults(new MD5Result(result));
                 });
             }
-            else if (_settingViewModel.SelectedMode is Mode2Settings)
+            else if (_settingViewModel.SelectedMode is DuplicateContainerSettings modeSettings)
             {
                 var searcher = new SearcherContainer(
                    locations,
                    _settingViewModel.SearchSetting,
+                   modeSettings,
                     _dBManager,
                     _windowsUtil,
                    _archiveService,
@@ -114,16 +125,20 @@ namespace DupTerminator.WPF.Commands
 
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {
-                    ReadOnlyCollection<DuplicateGroup>? result = await searcher.StartAsync(progress, cancelToken);
-                    _updateResults(result);
+                    var result = await searcher.StartAsync(progress, cancelToken);
+                    //ResultType1 type1 = new ResultType1 { Property1 = "gffhrftg", Property2 = 2 };
+                    //ResultType1 type2 = new ResultType1 { Property1 = "4536", Property2 = 3 };
+                    //var col = new ReadOnlyCollection<ResultBase>(new[] { type1, type2 } );
+                    _updateResults(new DuplicateContainerResult(result));
                 });
             }
-            else if (_settingViewModel.SelectedMode is PHashSettings)
+            else if (_settingViewModel.SelectedMode is PHashSettings pHashSettings)
             {
                 var searcher = new SearcherPhash(
                    locations,
                    _settingViewModel.SearchSetting,
-                    _dBManager,
+                   pHashSettings,
+                    _phashRepository,
                     _windowsUtil,
                    _archiveService,
                    _dbArchiveService,
@@ -133,8 +148,8 @@ namespace DupTerminator.WPF.Commands
 
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {
-                    ReadOnlyCollection<DuplicateGroup>? result = await searcher.StartAsync(progress, cancelToken);
-                    _updateResults(result);
+                    var result = await searcher.StartAsync(progress, cancelToken);
+                    _updateResults(new PHashResult(result));
                 });
             }
 

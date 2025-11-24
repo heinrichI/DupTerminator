@@ -17,6 +17,7 @@ namespace DupTerminator.BusinessLogic.Model
         public string ArchiveExtension { get; set; }
 
         public string ArchiveFileName { get; set; }
+        public bool ArchiveInArchive { get; set; }
 
         //[JsonIgnore]
         //public override string CombinedPath => $"{ArchivePath}\\{ArchiveFileName}";

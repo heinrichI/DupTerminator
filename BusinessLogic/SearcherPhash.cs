@@ -11,8 +11,11 @@ using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
 using DupTerminator.BusinessLogic.Model;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
+using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
+using static System.Net.WebRequestMethods;
 
 namespace DupTerminator.BusinessLogic
 {
@@ -20,7 +23,8 @@ namespace DupTerminator.BusinessLogic
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
         private readonly SearchSetting _searchSetting;
-        private readonly IDBManager _dbManager;
+        private readonly PHashSettings _pHashSettings;
+        private readonly IPhashRepository _phashRepository;
         private readonly IArchiveService _archiveService;
         private readonly DbArchiveService _dbArchiveService;
         private readonly IPHashService _pHashService;
@@ -37,7 +41,8 @@ namespace DupTerminator.BusinessLogic
         public SearcherPhash(
             ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
-            IDBManager dbManager,
+            PHashSettings pHashSettings,
+            IPhashRepository phashRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
             Service.DbArchiveService dbArchiveService,
@@ -47,7 +52,8 @@ namespace DupTerminator.BusinessLogic
         {
             _locations = locations;
             _searchSetting = searchSetting;
-            _dbManager = dbManager;
+            _pHashSettings = pHashSettings;
+            _phashRepository = phashRepository;
             _archiveService = archiveService;
             _dbArchiveService = dbArchiveService;
             _pHashService = pHashService;
@@ -55,7 +61,7 @@ namespace DupTerminator.BusinessLogic
             _logger = logger;
         }
 
-        public async Task<ReadOnlyCollection<DuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        public async Task<ReadOnlyCollection<PHashDuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(_locations);
 
@@ -133,28 +139,60 @@ namespace DupTerminator.BusinessLogic
 
             await Task.WhenAll(tasksByDrivers);
 
+            Debug.Assert(_checksumDictionary.Count > 0, "Файлов нет!");
+
             Dictionary<ExtendedFileInfo, int> groupIndexByInfo = new Dictionary<ExtendedFileInfo, int>();
             HashSet<ulong> skip = new HashSet<ulong>();
-            List<HashSet<ExtendedFileInfo>> duplicateGroups = new List<HashSet<ExtendedFileInfo>>();
+            List<PHashDuplicateGroup> duplicateGroups = new List<PHashDuplicateGroup>();
             using (var mih = _mihFactory.Create())
             {
+                progress?.Report(new ProgressDto
+                {
+                    Status = "Start train MIH",
+                    State = "TrainMIH",
+                    RemainSize = string.Empty,
+                });
+
                 mih.Update(_checksumDictionary);
-                mih.Train();
+                mih.Train(wordLength:_pHashSettings.WordLength, threshold: _pHashSettings.HammingDistance);
+
+                progress?.Report(new ProgressDto
+                {
+                    Status = "Ended train MIH",
+                    State = "EndedTrainMIH",
+                    RemainSize = string.Empty,
+                });
 
 
                 foreach (var pair in _checksumDictionary)
                 {
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        System.Diagnostics.Debug.WriteLine("MIH quering was canceled.");
+                        break;
+                    }
+
                     if (skip.Contains(pair.Key))
                         continue;
 
-                    HashSet<ExtendedFileInfo> duplicateGroup = null;
-                    if (pair.Value.Count > 1)
+                    progress?.Report(new ProgressDto
                     {
-                        duplicateGroup = GetDuplicateGroup(groupIndexByInfo, duplicateGroups, pair.Value.First());
-                        foreach (var item in pair.Value)
+                        Status = pair.Value.First().Path,
+                        State = "QueryMIH",
+                        RemainSize = string.Empty,
+                    });
+
+                    PHashDuplicateGroup duplicateGroup = null;
+                    //if (pair.Value.Count > 1)
+                    //{
+                    duplicateGroup = GetDuplicateGroup(groupIndexByInfo, duplicateGroups, pair.Value.First());
+                    foreach (var file in pair.Value)
+                    {
+                        if (!duplicateGroup.ContainsPath(file.Path))
                         {
-                            duplicateGroup.Add(item);
-                        }                        
+                            PHashFileInfoSearchItem? fileInfo = new PHashFileInfoSearchItem(file, PHashFileInfoSearchItem.SearchType.Seed);
+                            duplicateGroup.Add(fileInfo);
+                        }
                     }
 
 
@@ -167,29 +205,35 @@ namespace DupTerminator.BusinessLogic
                         foreach (var fileItem in item.FileInfos)
                         {
                             //if (fileItem == pair.Value.First())
-                            //    continue;
+                            if (duplicateGroup.ContainsPath(fileItem.Path))
+                                continue;
+                            PHashFileInfoSearchItem isi;
+                            if (item.Hash == pair.Key)
+                            {
+                                Debug.Assert(item.HammingDistance == 0);
+                                isi = new PHashFileInfoSearchItem(fileItem, PHashFileInfoSearchItem.SearchType.Seed);
+                            }
+                            else
+                                isi = new PHashFileInfoSearchItem(fileItem, item.HammingDistance);
 
-                            if (duplicateGroup is null)
-                                duplicateGroup = GetDuplicateGroup(groupIndexByInfo, duplicateGroups, fileItem);
-                            duplicateGroup.Add(fileItem);
+                            //if (duplicateGroup is null)
+                            //    duplicateGroup = GetDuplicateGroup(groupIndexByInfo, duplicateGroups, fileItem);
+                            duplicateGroup.Add(isi);
                             groupIndexByInfo[fileItem] = duplicateGroups.IndexOf(duplicateGroup);
                         }
-
                     }
-
                 }
-
             }
 
-            var list = duplicateGroups.Select(d => new DuplicateGroup(Guid.NewGuid().ToString(), d.ToList())).ToList();
-            return new ReadOnlyCollection<DuplicateGroup>(list);
+            //var list = duplicateGroups.Select(d => new DuplicateGroup(Guid.NewGuid().ToString(), d.ToList())).ToList();
+            return new ReadOnlyCollection<PHashDuplicateGroup>(duplicateGroups.Where(d => d.Count > 1).ToList());
             
-            static HashSet<ExtendedFileInfo> GetDuplicateGroup(Dictionary<ExtendedFileInfo, int> groupIndexByInfo, List<HashSet<ExtendedFileInfo>> duplicateGroups, ExtendedFileInfo fileItem)
+            static PHashDuplicateGroup GetDuplicateGroup(Dictionary<ExtendedFileInfo, int> groupIndexByInfo, List<PHashDuplicateGroup> duplicateGroups, ExtendedFileInfo fileItem)
             {
-                HashSet<ExtendedFileInfo> duplicateGroup;
+                PHashDuplicateGroup duplicateGroup;
                 if (!groupIndexByInfo.ContainsKey(fileItem))
-                {
-                    duplicateGroup = new HashSet<ExtendedFileInfo>();
+                { // new group
+                    duplicateGroup = new PHashDuplicateGroup();
                     duplicateGroups.Add(duplicateGroup);
                     groupIndexByInfo[fileItem] = duplicateGroups.IndexOf(duplicateGroup);
                 }
@@ -224,8 +268,16 @@ namespace DupTerminator.BusinessLogic
 
                 progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = directory.Path, State = "Search" });
 
+                if (!Directory.Exists(directory.Path))
+                    throw new Exception("Directory does not exists!");
                 DirectoryInfo di = new System.IO.DirectoryInfo(directory.Path);
                 AddFiles(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive);
+            }
+            foreach (var file in locations.Where(p => !p.IsDirectory))
+            {
+                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = file.Path, State = "Search" });
+
+                AddFile(file, ref files, token, progress, phisicalDrive);
             }
 
             //progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = string.Empty, State = "Search ended" });
@@ -233,6 +285,38 @@ namespace DupTerminator.BusinessLogic
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
+        private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, IProgress<ProgressDto> progress, string phisicalDrive)
+        {
+            if (token.IsCancellationRequested)
+            {
+                System.Diagnostics.Debug.WriteLine("AddFiles canceled.");
+                return;
+            }
+
+            progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = file.Path, State = "Search" });
+
+            var fi = new FileInfo(file.Path);
+            var f = new ExtendedFileInfo()
+            {
+                Size = Convert.ToUInt64(fi.Length),
+                Name = fi.Name,
+                Path = fi.FullName,
+                LastAccessTime = fi.LastAccessTime,
+                LastWriteTime = fi.LastWriteTime,
+                DirectoryName = fi.DirectoryName,
+                Extension = fi.Extension,
+            };
+
+            files.Add(f);
+            if (_archiveService.IsArchiveFile(file.Path))
+            {
+                var filesInArchive = _dbArchiveService.Get(_searchSetting.UseDB, f, token);
+                foreach (ExtendedFileInfo archFile in filesInArchive)
+                {
+                    files.Add(archFile);
+                }
+            }
+        }
 
         private void CalculateCheckSum(
             ReadOnlyCollection<ExtendedFileInfo> collection,
@@ -240,16 +324,23 @@ namespace DupTerminator.BusinessLogic
             IProgress<ProgressDto> progress,
             CancellationToken cancelToken)
         {
+            //long totalSize = collection.Sum(c => c.Size);
             foreach (var data in collection)
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    System.Diagnostics.Debug.WriteLine("CalculateCheckSum was canceled.");
+                    break;
+                }
+
                 //decimal totalSize = blockingCollection.Sum(b => (decimal)b.Size);
-                //progress.Report(new ProgressDto
-                //{
-                //    Status = data.Name,
-                //    State = "CalculateCheckSum",
-                //    PhisicalDrive = drive,
-                //    RemainSize = StringHelper.FormatBytes(totalSize)
-                //});
+                progress.Report(new ProgressDto
+                {
+                    Status = data.Path,
+                    State = "CalculateCheckSum",
+                    PhisicalDrive = drive,
+                    //RemainSize = StringHelper.FormatBytes(totalSize)
+                });
 
 
                 ulong checksum = GetCheckSum(data);
@@ -306,20 +397,43 @@ namespace DupTerminator.BusinessLogic
         /// <returns></returns>
         private ulong GetCheckSum(ExtendedFileInfo fileInfo)
         {
-            if (_dbManager is null)
-                throw new ArgumentNullException(nameof(_dbManager));
+            if (_phashRepository is null)
+                throw new ArgumentNullException(nameof(_phashRepository));
 
             if (_pHashService.IsSupportedExtension(fileInfo.Extension))
             {
-                if (fileInfo is ArchiveFileInfo afi)
+                if (_searchSetting.UseDB)
                 {
-                    ulong phash = _archiveService.CalculateHashInArchive<ulong>(afi, _pHashService.CalculatePHash);
-                    return phash;
+                    var lastWriteTime = fileInfo is ArchiveFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
+                    ulong? phash = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                    if (phash == null)
+                    {
+                        if (fileInfo is ArchiveFileInfo afi)
+                        {
+                            phash = _archiveService.CalculateHashInArchive<ulong>(afi, _pHashService.CalculatePHash);
+                        }
+                        else
+                        {
+                            phash = _pHashService.CalculatePHash(fileInfo.Path);
+                        }
+                        _phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash.Value);
+                        return phash.Value;
+                    }
+                    else
+                        return phash.Value;
                 }
                 else
                 {
-                    ulong phash = _pHashService.CalculatePHash(fileInfo.Path);
-                    return phash;
+                    if (fileInfo is ArchiveFileInfo afi)
+                    {
+                        ulong phash = _archiveService.CalculateHashInArchive<ulong>(afi, _pHashService.CalculatePHash);
+                        return phash;
+                    }
+                    else
+                    {
+                        ulong phash = _pHashService.CalculatePHash(fileInfo.Path);
+                        return phash;
+                    }
                 }
             }
             return 0;

@@ -1272,6 +1272,7 @@ namespace DupTerminator.View
                     directories,
                     _searchSetting,
                     _dbManager,
+                    null,
                     new WindowsUtil(),
                     progress,
                     _archiveService,

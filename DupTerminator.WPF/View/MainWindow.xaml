@@ -8,12 +8,77 @@
         xmlns:converters="clr-namespace:DupTerminator.WPF.Converters"
         xmlns:controls="clr-namespace:DupTerminator.WPF.Controls"
         xmlns:local="clr-namespace:DupTerminator.WPF"
+        xmlns:model="clr-namespace:DupTerminator.BusinessLogic.Model;assembly=DupTerminator.BusinessLogic"
+        xmlns:modes="clr-namespace:DupTerminator.BusinessLogic.Model.Modes;assembly=DupTerminator.BusinessLogic"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
         <converters:FileExtensionToIconConverter x:Key="IconConverter"/>
+
+        <DataTemplate DataType="{x:Type modes:DuplicateContainerResult}">
+            <ListView x:Name="myListView" ItemsSource="{Binding Result}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemTemplate>
+                    <DataTemplate DataType="{x:Type model:DuplicateContainer}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox  Grid.Row="0" Grid.Column="0"
+                                Text="{Binding FirstPath, Mode=OneWay}" 
+                                IsReadOnly="True" TextWrapping="Wrap" >
+                                <TextBox.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick"
+                                    Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding FirstPath}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" >
+                                <Label Content="{Binding FirstEqualCount}" />
+                                <Label Content="/" />
+                                <Label Content="{Binding FirstContainerFilesCount}" />
+                            </StackPanel>
+                            <TextBox  Grid.Row="0" Grid.Column="1"
+                                Text="{Binding SecondPath, Mode=OneWay}" 
+                                IsReadOnly="True" TextWrapping="Wrap" >
+                                <TextBox.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                    Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding SecondPath}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" >
+                                <Label Content="{Binding SeconEqualCount}" />
+                                <Label Content="/" />
+                                <Label Content="{Binding SecondContainerFilesCount}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>          
+        </DataTemplate>
+
+        <!-- Display for MD5Result -->
+        <DataTemplate DataType="{x:Type modes:MD5Result}">
+            <StackPanel>
+                <TextBlock Text="{Binding Discount, StringFormat={}{0:P2}}" />
+                <ItemsControl ItemsSource="{Binding Tags}" />
+                <controls:DuplicateGroupsView2 DuplicateGroups="{Binding Result}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type modes:PHashResult}">
+            <controls:ImageGroupsView DataContext="{Binding DataContext.ImageGroupsViewModel, RelativeSource={RelativeSource AncestorType=Window}}"/>
+        </DataTemplate>
+
+
     </Window.Resources>
     
     <TabControl >
@@ -86,10 +151,23 @@
         <TabItem Header="Result">
 
             <!--<controls:DuplicateGroupsView2 DuplicateGroups="{Binding SearchResults}" /> -->
-            <controls:ImageGroupsView 
-                                      DataContext="{Binding ImageGroupsViewModel}"/>
-            
-            
+            <!--<controls:ImageGroupsView 
+                                      DataContext="{Binding ImageGroupsViewModel}"/>-->
+
+            <!-- <ContentControl Content="{Binding SearchResults}" />-->
+            <ContentControl Content="{Binding SearchResults}" />
+            <!-- <ItemsControl ItemsSource="{Binding SearchResults}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Gray" BorderThickness="1" Margin="5" Padding="5">
+                            <StackPanel>
+                                <ContentPresenter Content="{Binding}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>-->
+
             <!-- <controls:DuplicateGroupsView DuplicateGroups="{Binding SearchResults}" />-->
 
             <!--<controls:DuplicateGroupsControl Groups="{Binding SearchResults, Mode=TwoWay}" />-->

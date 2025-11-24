@@ -17,13 +17,13 @@ namespace DupTerminator.WPF.ViewModel
     {
         private readonly IImageProvider _imageLoadingService;
 
-        public DuplicateGroup DuplicateGroup { get; }
+        public PHashDuplicateGroup DuplicateGroup { get; }
         public ObservableCollection<ImageItemViewModel> Images { get; } = new ObservableCollection<ImageItemViewModel>();
 
         public ICommand ViewFullSizeCommand { get; }
 
 
-        public ImageGroupViewModel(DuplicateGroup duplicateGroup, IImageProvider imageLoadingService)
+        public ImageGroupViewModel(PHashDuplicateGroup duplicateGroup, IImageProvider imageLoadingService)
         {
             DuplicateGroup = duplicateGroup;
             _imageLoadingService = imageLoadingService;
@@ -34,7 +34,7 @@ namespace DupTerminator.WPF.ViewModel
 
         private void InitializeImages()
         {
-            foreach (var file in DuplicateGroup.Files)
+            foreach (PHashFileInfoSearchItem file in DuplicateGroup)
             {
                 Images.Add(new ImageItemViewModel(file, _imageLoadingService));
             }
@@ -48,14 +48,28 @@ namespace DupTerminator.WPF.ViewModel
 
     public class ImageItemViewModel : PropertyChangedBase, IDisposable
     {
-        private readonly ExtendedFileInfo _fileInfo;
+        private readonly PHashFileInfoSearchItem _searchItem;
         private readonly IImageProvider _imageLoadingService;
         private BitmapImage? _thumbnail;
         private bool _isLoading;
 
-        public ExtendedFileInfo FileInfo => _fileInfo;
-        public string FilePath => _fileInfo.Path;
-        public string FileName => Path.GetFileName(_fileInfo.Name);
+        public ExtendedFileInfo FileInfo => _searchItem.FileItem;
+        public string FilePath => _searchItem.FileItem.Path;
+        public string FileName => Path.GetFileName(_searchItem.FileItem.Name);
+        public string Query
+        {
+            get
+            {
+                if (_searchItem.Type == PHashFileInfoSearchItem.SearchType.Seed)
+                    return "seed";
+                else if(_searchItem.Type == PHashFileInfoSearchItem.SearchType.Query)
+                    return $"distance={_searchItem.HammingDistance.ToString()}";
+                return "unknown";
+            }
+        }
+
+        public string Dimensions => "0x0";
+        public string Size => "356Kb";
 
         public BitmapImage? Thumbnail
         {
@@ -80,9 +94,9 @@ namespace DupTerminator.WPF.ViewModel
         public ICommand RenameCommand { get; }
         public ICommand ViewFullSizeCommand { get; }
 
-        public ImageItemViewModel(ExtendedFileInfo fileInfo, IImageProvider imageLoadingService)
+        public ImageItemViewModel(PHashFileInfoSearchItem searchItem, IImageProvider imageLoadingService)
         {
-            _fileInfo = fileInfo;
+            _searchItem = searchItem;
             _imageLoadingService = imageLoadingService;
 
             RenameCommand = new RelayCommand((_) => OnRename(), (_) => CanRename());
@@ -98,8 +112,11 @@ namespace DupTerminator.WPF.ViewModel
             IsLoading = true;
             try
             {
-                //Thumbnail = await _imageLoadingService.LoadThumbnailAsync(_fileInfo, 200, 200);
-                Thumbnail = await _imageLoadingService.GetThumbnailAsync(_fileInfo.Path);
+                if (FileInfo is ArchiveFileInfo archiveFileInfo)
+                    Thumbnail = await _imageLoadingService.GetThumbnailFromArchiveAsync(archiveFileInfo);
+                else
+                    //Thumbnail = await _imageLoadingService.LoadThumbnailAsync(_fileInfo, 200, 200);
+                    Thumbnail = await _imageLoadingService.GetThumbnailAsync(FilePath);
             }
             finally
             {
@@ -107,7 +124,7 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
-        private bool CanRename() => File.Exists(_fileInfo.Path); //!_fileInfo.IsArchive && 
+        private bool CanRename() => File.Exists(FilePath); //!_fileInfo.IsArchive && 
 
         private void OnRename()
         {

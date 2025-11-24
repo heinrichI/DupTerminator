@@ -14,6 +14,7 @@ namespace DupTerminator.DataBase.Extensions
         {
             services.AddSingleton<IDBManager, DBManager>();
             services.AddSingleton<IExtendedFileInfoRepository, ExtendedFileInfoRepository>();
+            services.AddSingleton<IPhashRepository, PhashRepository>();
         }
     }
 }

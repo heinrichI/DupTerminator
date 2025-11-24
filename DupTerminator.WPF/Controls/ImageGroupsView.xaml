@@ -92,7 +92,13 @@
                                                                 <i:InvokeCommandAction Command="{Binding RenameCommand}"/>
                                                             </i:KeyTrigger>
                                                     </i:Interaction.Triggers>
-                                                </TextBlock>  
+                                                </TextBlock>
+                                              
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Query}" />
+                                                    <TextBlock Text="{Binding Dimensions}" />
+                                                    <TextBlock Text="{Binding Size}" />
+                                                </StackPanel>
 
                                                 <ProgressBar Height="4" Margin="2" 
                                                      IsIndeterminate="True"

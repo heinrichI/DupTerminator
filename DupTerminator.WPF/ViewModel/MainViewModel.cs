@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Configuration;
 using System.DirectoryServices;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DupTerminator.BusinessLogic.Model;
+using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using Microsoft.Extensions.Logging;
 using static System.Formats.Asn1.AsnWriter;
@@ -38,23 +40,25 @@ namespace DupTerminator.WPF.ViewModel
 
         private void OnSearchCompleted(object sender, SearchCompletedEventArgs e)
         {
+            SearchResults = e.Results;
             //SearchResults = new ObservableCollection<DuplicateGroup>(e.Results);
-            SearchResults.Clear();
-            if (e.Results is not null)
-            {
-                foreach (var item in e.Results)
-                {
-                    SearchResults.Add(item);
-                }
-                //RaisePropertyChangedEvent("SearchResults");
-            }
+            //SearchResults.Clear();
+            //if (e.Results is not null)
+            //{
+            //foreach (var item in e.Results)
+            //{
+            //SearchResults.Add(item);
+            //}
+            //RaisePropertyChangedEvent("SearchResults");
+            //}
 
-            ImageGroupsViewModel.UpdateGroups(e.Results);
+            if (e.Results is PHashResult pResult)
+                ImageGroupsViewModel.UpdateGroups(pResult.Result);
         }
 
 
-        private ObservableCollection<DuplicateGroup> _searchResults = new ObservableCollection<DuplicateGroup>();
-        public ObservableCollection<DuplicateGroup> SearchResults
+        private ResultBase _searchResults;
+        public ResultBase SearchResults
         {
             get => _searchResults;
             set
@@ -63,6 +67,16 @@ namespace DupTerminator.WPF.ViewModel
                 RaisePropertyChangedEvent();
             }
         }
+        //private ObservableCollection<ResultBase> _searchResults = new ObservableCollection<ResultBase>();
+        //public ObservableCollection<ResultBase> SearchResults
+        //{
+        //    get => _searchResults;
+        //    set
+        //    {
+        //        _searchResults = value;
+        //        RaisePropertyChangedEvent();
+        //    }
+        //}
 
         int _selectedResultIndex;
 
@@ -73,6 +87,26 @@ namespace DupTerminator.WPF.ViewModel
             {
                 _selectedResultIndex = value;
                 RaisePropertyChangedEvent();
+            }
+        }
+
+
+        ICommand _openFileCommand;
+        public ICommand OpenFileCommand
+        {
+            get
+            {
+                return _openFileCommand ?? (_openFileCommand = new RelayCommand(arg =>
+                {
+                    if (arg is string filePath && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                        {
+                            FileName = filePath,
+                            UseShellExecute = true
+                        });
+                    }
+                }, arg => arg != null));
             }
         }
     }

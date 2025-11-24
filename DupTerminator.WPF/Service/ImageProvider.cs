@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using DupTerminator.BusinessLogic.Abstraction;
+using DupTerminator.BusinessLogic.Model;
 using DupTerminator.WPF.Abstraction;
 
 namespace DupTerminator.WPF.Service
@@ -14,6 +16,12 @@ namespace DupTerminator.WPF.Service
         private readonly int _thumbSize = 120;
         private readonly LruCache<string, BitmapImage> _thumbCache = new(500); // keep 500 thumbnails
         private readonly LruCache<string, BitmapImage> _fullCache = new(50);  // keep 50 full images
+        private readonly IArchiveService _archiveService;
+
+        public ImageProvider(IArchiveService archiveService)
+        {
+            _archiveService = archiveService;
+        }
 
         public Task<BitmapImage?> GetThumbnailAsync(string fullPath)
         {
@@ -92,7 +100,13 @@ namespace DupTerminator.WPF.Service
             bmp.DecodePixelWidth = size;
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.EndInit();
-            bmp.Freeze();
+
+            //bmp.StreamSource = null; // Release the stream reference
+
+            if (bmp.CanFreeze)
+            {
+                bmp.Freeze();
+            }
             return bmp;
         }
 
@@ -116,6 +130,30 @@ namespace DupTerminator.WPF.Service
             var withoutPrefix = path.Substring("archive:".Length);
             var parts = withoutPrefix.Split(':', 2);
             return (parts[0], parts[1]);
+        }
+
+        public async Task<BitmapImage?> GetThumbnailFromArchiveAsync(ArchiveFileInfo archiveFileInfo)
+        {
+            using var stream = _archiveService.GetStream(archiveFileInfo);
+
+            //if (stream != null)
+            //{
+            //    // Copy the stream to a new MemoryStream within this method's scope.
+            //    // This new stream will not be closed prematurely by the service layer's logic.
+            //    using (MemoryStream localStream = new MemoryStream())
+            //    {
+            //        await stream.CopyToAsync(localStream);
+            //        localStream.Position = 0; // Reset the position for the BitmapImage to read from the beginning.
+
+            //        // The CreateZoomedBitmap method now receives this local stream.
+            //        return CreateZoomedBitmap(localStream, _thumbSize);
+            //    }
+            //    // NOTE: The original 'stream' should be handled for disposal if necessary
+            //    // within the _archiveService logic or after this method returns.
+            //}
+
+            return CreateZoomedBitmap(stream, _thumbSize);
+            //return null;
         }
 
         //private async Task<Stream> GetArchiveStreamAsync(string archivePath, string innerFile)

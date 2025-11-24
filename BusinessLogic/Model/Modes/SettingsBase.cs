@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DupTerminator.BusinessLogic.Model.Settings
+namespace DupTerminator.BusinessLogic.Model.Modes
 {
     public abstract class SettingsBase : INotifyPropertyChanged
     {
