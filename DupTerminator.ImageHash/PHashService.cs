@@ -22,18 +22,18 @@ namespace DupTerminator.ImageHash
         // SIMD-оптимизированные коэффициенты DCT
         private static readonly List<Vector<double>>[] _dctCoeffsSimd = GenerateDctCoeffsSimd();
 
-        public ulong CalculatePHash(string path)
+        public (ulong phash, int width, int height) CalculatePHash(string path)
         {
-            using var image = LoadAndPreprocessImage(path);
+            using var image = LoadAndPreprocessImage(path, out int width, out int height);
             var dctCoefficients = ComputeDCT(image);
-            return ComputeHash(dctCoefficients);
+            return (ComputeHash(dctCoefficients), width, height);
         }
 
-        public ulong CalculatePHash(Stream stream)
+        public (ulong phash, int width, int height) CalculatePHash(Stream stream)
         {
-            using var image = LoadAndPreprocessImage(stream);
+            using var image = LoadAndPreprocessImage(stream, out int width, out int height);
             var dctCoefficients = ComputeDCT(image);
-            return ComputeHash(dctCoefficients);
+            return (ComputeHash(dctCoefficients), width, height);
         }
 
         public bool IsSupportedExtension(string extension)
@@ -45,17 +45,21 @@ namespace DupTerminator.ImageHash
             return false;
         }
 
-        private static Bitmap LoadAndPreprocessImage(Stream stream)
+        private static Bitmap LoadAndPreprocessImage(Stream stream, out int width, out int height)
         {
             using var original = new Bitmap(stream);
+            width = original.Width;
+            height = original.Height;
 
             return PreprocessImage(original);
         }
 
 
-        private static Bitmap LoadAndPreprocessImage(string imagePath)
+        private static Bitmap LoadAndPreprocessImage(string imagePath, out int width, out int height)
         {
             using var original = new Bitmap(imagePath);
+            width = original.Width;
+            height = original.Height;
 
             return PreprocessImage(original);
         }

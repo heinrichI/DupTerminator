@@ -4,10 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:convertors="clr-namespace:DupTerminator.WPF.Converters"
              xmlns:local="clr-namespace:DupTerminator.WPF.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <convertors:FileSizeConverter x:Key="fileSizeConverter"/>
         <BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
         <!-- <Style x:Key="ImageItemStyle" TargetType="ContentControl">
             <Setter Property="Template">
@@ -94,10 +96,11 @@
                                                     </i:Interaction.Triggers>
                                                 </TextBlock>
                                               
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Query}" />
-                                                    <TextBlock Text="{Binding Dimensions}" />
-                                                    <TextBlock Text="{Binding Size}" />
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Query}" Margin="0,0,5,0" />
+                                                    <TextBlock Text="{Binding Dimensions}" Margin="0,0,5,0"/>
+                                                    <TextBox Text="{Binding Size, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
+                                                            IsReadOnly="True" ToolTip="FileSize" />
                                                 </StackPanel>
 
                                                 <ProgressBar Height="4" Margin="2" 

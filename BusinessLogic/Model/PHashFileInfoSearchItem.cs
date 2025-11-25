@@ -10,20 +10,20 @@ namespace DupTerminator.BusinessLogic.Model
     [DebuggerDisplay("{FileItem.Name}")]
     public class PHashFileInfoSearchItem
     {
-        public PHashFileInfoSearchItem(ExtendedFileInfo fileItem, SearchType type)
+        public PHashFileInfoSearchItem(PHashFileInfo fileItem, SearchType type)
         {
             FileItem = fileItem;
             Type = type;
         }
 
-        public PHashFileInfoSearchItem(ExtendedFileInfo fileItem, int hammingDistance)
+        public PHashFileInfoSearchItem(PHashFileInfo fileItem, int hammingDistance)
         {
             FileItem = fileItem;
             HammingDistance = hammingDistance;
             Type = SearchType.Query;
         }
 
-        public ExtendedFileInfo FileItem { get; }
+        public PHashFileInfo FileItem { get; }
         public SearchType Type { get; }
         public int HammingDistance { get; }
 

@@ -68,8 +68,9 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
-        public string Dimensions => "0x0";
-        public string Size => "356Kb";
+        public string Dimensions => $"{_searchItem.FileItem.Width}x{_searchItem.FileItem.Height}";
+
+        public ulong Size => _searchItem.FileItem.Size;
 
         public BitmapImage? Thumbnail
         {

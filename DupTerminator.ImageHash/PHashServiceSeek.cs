@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
 
+/*
 namespace DupTerminator.ImageHash
 {
     internal class PHashServiceSeek : IPHashService
@@ -22,14 +23,14 @@ namespace DupTerminator.ImageHash
         // SIMD-оптимизированные коэффициенты DCT
         private static readonly Vector<double>[] _dctCoeffsSimd = GenerateDctCoeffsSimd();
 
-        public ulong CalculatePHash(string path)
+        public (ulong phash, int width, int height) CalculatePHash(string path)
         {
             using var image = LoadAndPreprocessImage(path);
             var dctCoefficients = ComputeDCT(image);
             return ComputeHash(dctCoefficients);
         }
 
-        public ulong CalculatePHash(Stream stream)
+        public (ulong phash, int width, int height) CalculatePHash(Stream stream)
         {
             using var image = LoadAndPreprocessImage(stream);
             var dctCoefficients = ComputeDCT(image);
@@ -410,4 +411,4 @@ namespace DupTerminator.ImageHash
             return hash;
         }
     }
-}
+}*/

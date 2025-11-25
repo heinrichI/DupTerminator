@@ -12,10 +12,10 @@ namespace DupTerminator.BusinessLogic.Abstraction
     /// </summary>
     public interface IMIH : IDisposable
     {
-        void Update(IDictionary<ulong, IList<ExtendedFileInfo>> newHashes);
+        void Update(IDictionary<ulong, IList<PHashFileInfo>> newHashes);
 
         void Train(int wordLength = 16, int threshold = 7);
 
-        IEnumerable<(ulong Hash, List<ExtendedFileInfo> FileInfos, int HammingDistance)> Query(ulong hash);
+        IEnumerable<(ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)> Query(ulong hash);
     }
 }

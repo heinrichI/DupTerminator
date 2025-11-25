@@ -8,9 +8,9 @@ namespace DupTerminator.BusinessLogic.Abstraction
 {
     public interface IPHashService
     {
-        ulong CalculatePHash(Stream stream);
+        (ulong phash, int width, int height) CalculatePHash(Stream stream);
 
-        ulong CalculatePHash(string? path);
+        (ulong phash, int width, int height) CalculatePHash(string? path);
 
         bool IsSupportedExtension(string extension);
     }

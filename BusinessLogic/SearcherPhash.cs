@@ -15,6 +15,7 @@ using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
+using static System.Net.Mime.MediaTypeNames;
 using static System.Net.WebRequestMethods;
 
 namespace DupTerminator.BusinessLogic
@@ -30,7 +31,7 @@ namespace DupTerminator.BusinessLogic
         private readonly IPHashService _pHashService;
         private readonly IMIHFactory _mihFactory;
         private readonly ILogger<Searcher> _logger;
-        private readonly ConcurrentDictionary<ulong, IList<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<ulong, IList<ExtendedFileInfo>>();
+        private readonly ConcurrentDictionary<ulong, IList<PHashFileInfo>> _checksumDictionary = new ConcurrentDictionary<ulong, IList<PHashFileInfo>>();
 
 
         // New-style MRESlim that supports unified cancellation
@@ -196,11 +197,11 @@ namespace DupTerminator.BusinessLogic
                     }
 
 
-                    (ulong Hash, List<ExtendedFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(pair.Key).ToArray();
+                    (ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(pair.Key).ToArray();
                     skip.Add(pair.Key);
                     if (resultQuery.Length <= 1)
                         continue;
-                    foreach ((ulong Hash, List<ExtendedFileInfo> FileInfos, int HammingDistance) item in resultQuery)
+                    foreach ((ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance) item in resultQuery)
                     {
                         foreach (var fileItem in item.FileInfos)
                         {
@@ -226,7 +227,8 @@ namespace DupTerminator.BusinessLogic
             }
 
             //var list = duplicateGroups.Select(d => new DuplicateGroup(Guid.NewGuid().ToString(), d.ToList())).ToList();
-            return new ReadOnlyCollection<PHashDuplicateGroup>(duplicateGroups.Where(d => d.Count > 1).ToList());
+            var duplicateGroupsFiltered = duplicateGroups.Where(d => d.Count > 1).ToList();
+            return new ReadOnlyCollection<PHashDuplicateGroup>(duplicateGroupsFiltered);
             
             static PHashDuplicateGroup GetDuplicateGroup(Dictionary<ExtendedFileInfo, int> groupIndexByInfo, List<PHashDuplicateGroup> duplicateGroups, ExtendedFileInfo fileItem)
             {
@@ -343,19 +345,25 @@ namespace DupTerminator.BusinessLogic
                 });
 
 
-                ulong checksum = GetCheckSum(data);
-                if (checksum != 0)
+                (ulong phash, int width, int height) = GetCheckSum(data);
+                if (phash != 0)
                 {
-                    _checksumDictionary.AddOrUpdate(checksum,
+                    _checksumDictionary.AddOrUpdate(phash,
                         addValueFactory: (checksum) =>
                         {
-                            var list = new List<ExtendedFileInfo>();
-                            list.Add(data);
+                            var list = new List<PHashFileInfo>();
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(data);
+                            pHashFileInfo.Width = width;
+                            pHashFileInfo.Height = height;
+                            list.Add(pHashFileInfo);
                             return list;
                         },
                         updateValueFactory: (checksum, list) =>
                         {
-                            list.Add(data);
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(data);
+                            pHashFileInfo.Width = width;
+                            pHashFileInfo.Height = height;
+                            list.Add(pHashFileInfo);
                             return list;
                         });
                 }
@@ -395,7 +403,7 @@ namespace DupTerminator.BusinessLogic
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        private ulong GetCheckSum(ExtendedFileInfo fileInfo)
+        private (ulong phash, int width, int height) GetCheckSum(ExtendedFileInfo fileInfo)
         {
             if (_phashRepository is null)
                 throw new ArgumentNullException(nameof(_phashRepository));
@@ -405,38 +413,40 @@ namespace DupTerminator.BusinessLogic
                 if (_searchSetting.UseDB)
                 {
                     var lastWriteTime = fileInfo is ArchiveFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                    ulong? phash = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
-                    if (phash == null)
+                    var result = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                    if (result == null)
                     {
                         if (fileInfo is ArchiveFileInfo afi)
                         {
-                            phash = _archiveService.CalculateHashInArchive<ulong>(afi, _pHashService.CalculatePHash);
+                            (ulong phash2, int width, int height) = _archiveService.CalculateHashInArchive<(ulong phash2, int width, int height)>(afi, _pHashService.CalculatePHash);
+                            _phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash2, width, height);
+                            return (phash2, width, height);
                         }
                         else
                         {
-                            phash = _pHashService.CalculatePHash(fileInfo.Path);
+                            (ulong phash2, int width, int height) = _pHashService.CalculatePHash(fileInfo.Path);
+                            _phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash2, width, height);
+                            return (phash2, width, height);
                         }
-                        _phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash.Value);
-                        return phash.Value;
                     }
                     else
-                        return phash.Value;
+                        return result.Value;
                 }
                 else
                 {
                     if (fileInfo is ArchiveFileInfo afi)
                     {
-                        ulong phash = _archiveService.CalculateHashInArchive<ulong>(afi, _pHashService.CalculatePHash);
-                        return phash;
+                        var result2 = _archiveService.CalculateHashInArchive<(ulong phash2, int width, int height)>(afi, _pHashService.CalculatePHash);
+                        return result2;
                     }
                     else
                     {
-                        ulong phash = _pHashService.CalculatePHash(fileInfo.Path);
-                        return phash;
+                        var result2 = _pHashService.CalculatePHash(fileInfo.Path);
+                        return result2;
                     }
                 }
             }
-            return 0;
+            return (0, 0, 0);
 
 
 

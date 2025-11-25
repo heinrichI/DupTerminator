@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -34,52 +35,74 @@ namespace DupTerminator.DataBase
                 LastWriteTime INTEGER NOT NULL,
                 Size TEXT NOT NULL,
                 Phash TEXT NOT NULL,
+                Width INTEGER,
+                Height INTEGER,
                 PRIMARY KEY (Path, LastWriteTime, Size)
             );";
             createTable.ExecuteNonQuery();
         }
 
-        public ulong? Get(string path, DateTime lastWriteTime, ulong size)
+        public (ulong phash, int width, int height)? Get(string path, DateTime lastWriteTime, ulong size)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-            SELECT Phash FROM PHashTable
+            SELECT Phash, Width, Height FROM PHashTable
             WHERE Path = $path AND LastWriteTime = $lastWriteTime AND Size = $size;";
 
             cmd.Parameters.AddWithValue("$path", path);
             cmd.Parameters.AddWithValue("$lastWriteTime", lastWriteTime.Ticks);
             cmd.Parameters.AddWithValue("$size", size.ToString());
 
-            using var reader = cmd.ExecuteReader();
+            using SqliteDataReader? reader = cmd.ExecuteReader();
 
             if (reader.Read() && !reader.IsDBNull(0))
             {
-                var data = reader.GetValue(0);
-                return ulong.Parse(data.ToString());
+                ulong phash = ulong.Parse(reader["Phash"].ToString());
+
+                // Get the ordinal of the "MyIntColumn"
+                int myIntColumnOrdinal = reader.GetOrdinal("Width");
+
+                int width = 0;
+                if (!reader.IsDBNull(myIntColumnOrdinal))
+                {
+                    width = reader.GetInt32(myIntColumnOrdinal);
+                }
+                myIntColumnOrdinal = reader.GetOrdinal("Height");
+
+                int height = 0;
+                if (!reader.IsDBNull(myIntColumnOrdinal))
+                {
+                    height = reader.GetInt32(myIntColumnOrdinal);
+                }
+                return (phash, width, height);
             }
 
             return null;
         }
 
-        public void Add(string path, DateTime lastWriteTime, ulong size, ulong phash)
+        public void Add(string path, DateTime lastWriteTime, ulong size, ulong phash, int width, int height)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-            INSERT INTO PHashTable(Path, LastWriteTime, Size, Phash)
-            VALUES ($path, $lastWriteTime, $size, $phash)
+            INSERT INTO PHashTable(Path, LastWriteTime, Size, Phash, Width, Height)
+            VALUES ($path, $lastWriteTime, $size, $phash, $width, $height)
             ON CONFLICT (Path, LastWriteTime, Size) DO UPDATE SET
-                Phash = $phash;";
+                Phash = $phash,
+                Width = $width,
+                Height = $height;";
 
             cmd.Parameters.AddWithValue("$path", path);
             cmd.Parameters.AddWithValue("$lastWriteTime", lastWriteTime.Ticks);
             cmd.Parameters.AddWithValue("$size", size.ToString());
             cmd.Parameters.AddWithValue("$phash", phash.ToString());
+            cmd.Parameters.AddWithValue("$width", width);
+            cmd.Parameters.AddWithValue("$height", height);
 
             cmd.ExecuteNonQuery();
         }

@@ -16,7 +16,7 @@ namespace DupTerminator.ImageHash
     {
         private readonly int _hashLength;
         private bool _trained = false;
-        private List<ExtendedFileInfo> _fileInfos = new List<ExtendedFileInfo>();
+        private List<PHashFileInfo> _fileInfos = new List<PHashFileInfo>();
         private Dictionary<ulong, List<int>>? _items;
         private List<(ulong Hash, List<int> FileInfoIndices)>? _index;
         private List<Dictionary<ulong, HashSet<int>>>? _words;
@@ -37,7 +37,7 @@ namespace DupTerminator.ImageHash
             _vectorSize = Vector<byte>.Count;
         }
 
-        public void Update(IDictionary<ulong, IList<ExtendedFileInfo>> newHashes)
+        public void Update(IDictionary<ulong, IList<PHashFileInfo>> newHashes)
         {
             ThrowIfDisposed();
 
@@ -123,7 +123,7 @@ namespace DupTerminator.ImageHash
             _trained = true;
         }
 
-        public IEnumerable<(ulong Hash, List<ExtendedFileInfo> FileInfos, int HammingDistance)> Query(ulong hash)
+        public IEnumerable<(ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)> Query(ulong hash)
         {
             ThrowIfDisposed();
 
@@ -148,7 +148,7 @@ namespace DupTerminator.ImageHash
                                 int hamming = GetHammingDistance(hash, _index![index].Hash, _threshold);
                                 if (hamming <= _threshold)
                                 {
-                                    List<ExtendedFileInfo> fileInfos = _index[index].FileInfoIndices
+                                    List<PHashFileInfo> fileInfos = _index[index].FileInfoIndices
                                         .Select(fileInfoIndex => _fileInfos[fileInfoIndex])
                                         .ToList();
 
