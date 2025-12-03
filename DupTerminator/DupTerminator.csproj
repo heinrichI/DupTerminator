@@ -62,33 +62,17 @@
     <Compile Update="View\FileViewer.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="View\FormAbout.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormFileFilterSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormFileNameSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormFolderSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormJobLoad.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormProgress.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="View\FormAbout.cs" />
+    <Compile Update="View\FormFileFilterSelect.cs" />
+    <Compile Update="View\FormFileNameSelect.cs" />
+    <Compile Update="View\FormFolderSelect.cs" />
+    <Compile Update="View\FormJobLoad.cs" />
+    <Compile Update="View\FormProgress.cs" />
     <Compile Update="View\FormProgressWithBackgroundWorker.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="View\FormSetting.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="View\FormUpdate.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="View\FormSetting.cs" />
+    <Compile Update="View\FormUpdate.cs" />
     <Compile Update="View\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

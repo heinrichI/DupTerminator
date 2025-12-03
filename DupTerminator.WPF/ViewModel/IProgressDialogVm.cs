@@ -13,7 +13,7 @@ namespace DupTerminator.WPF.ViewModel
     {
         ObservableCollection<ProgressItemViewModel> ProgressItems { get; }
 
-        void Update(ProgressDto dto);           // data path
+        void UpdateProgress(ProgressDto dto);           // data path
         CancellationToken Token { get; }        // cancel path
     }
 }

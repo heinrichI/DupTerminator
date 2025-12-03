@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Xml.Linq;
+using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
 using DupTerminator.BusinessLogic.Model;
@@ -25,19 +27,20 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                    using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                     {
-                        entry.Extract(entryMemoryStream);
+                        entry.Extract(entryStream);
 
-                        string checksumInArchive = entryMemoryStream.ToArray().MD5String();
+                        //string checksumInArchive = entryStream.ToArray().MD5String();
+                        string checksumInArchive = string.Empty;
 
                         var fileInfo = Map(entry, container, archiveInArchive, checksumInArchive);
                         infos.Add(fileInfo);
 
-                        entryMemoryStream.Position = 0;
-                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+                        entryStream.Position = 0;
+                        if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, fileInfo, archiveInArchive: true));
+                            infos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }
                 }
@@ -45,7 +48,7 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        private ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, bool archiveInArchive, string? checksumInArchive = null)
+        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, bool archiveInArchive, string? checksumInArchive = null)
         {
             ArchiveFileInfo efi = new ArchiveFileInfo()
             {
@@ -125,17 +128,17 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                    using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                     {
-                        entry.Extract(entryMemoryStream);
+                        entry.Extract(entryStream);
 
                         var fileInfo = Map(entry, container, archiveInArchive);
                         infos.Add(fileInfo);
 
-                        entryMemoryStream.Position = 0;
-                        if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+                        entryStream.Position = 0;
+                        if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryMemoryStream, fileInfo, archiveInArchive: true));
+                            infos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }
                 }
@@ -160,12 +163,12 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == fileInfo.Container.Name)
                         {
-                            using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                             {
-                                entry.Extract(entryMemoryStream);
+                                entry.Extract(entryStream);
 
-                                entryMemoryStream.Position = 0;
-                                using (ArchiveFile archiveFile2 = new ArchiveFile(entryMemoryStream))
+                                entryStream.Position = 0;
+                                using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
                                 {
                                     foreach (var entry2 in archiveFile2.Entries)
                                     {
@@ -176,12 +179,12 @@ namespace SevenZipExtractor
 
                                         if (Path.GetFileName(entry2.FileName) == fileInfo.Name)
                                         {
-                                            using (MemoryStream entryMemoryStream2 = new MemoryStream(Convert.ToInt32(entry2.Size)))
+                                            using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
                                             {
-                                                entry2.Extract(entryMemoryStream2);
+                                                entry2.Extract(entryStream2);
 
-                                                entryMemoryStream2.Position = 0;
-                                                return calculator(entryMemoryStream2);
+                                                entryStream2.Position = 0;
+                                                return calculator(entryStream2);
                                             }
                                         }
                                     }
@@ -205,12 +208,12 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == fileInfo.Name)
                         {
-                            using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                             {
-                                entry.Extract(entryMemoryStream);
+                                entry.Extract(entryStream);
 
-                                entryMemoryStream.Position = 0;
-                                return calculator(entryMemoryStream);
+                                entryStream.Position = 0;
+                                return calculator(entryStream);
                             }
                         }
                     }
@@ -234,12 +237,12 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == archiveFileInfo.Container.Name)
                         {
-                            using (MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                             {
-                                entry.Extract(entryMemoryStream);
+                                entry.Extract(entryStream);
 
-                                entryMemoryStream.Position = 0;
-                                using (ArchiveFile archiveFile2 = new ArchiveFile(entryMemoryStream))
+                                entryStream.Position = 0;
+                                using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
                                 {
                                     foreach (var entry2 in archiveFile2.Entries)
                                     {
@@ -250,11 +253,11 @@ namespace SevenZipExtractor
 
                                         if (Path.GetFileName(entry2.FileName) == archiveFileInfo.Name)
                                         {
-                                            MemoryStream entryMemoryStream2 = new MemoryStream(Convert.ToInt32(entry2.Size));
-                                            entry2.Extract(entryMemoryStream2);
+                                            var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size));
+                                            entry2.Extract(entryStream2);
 
-                                            entryMemoryStream2.Position = 0;
-                                            return entryMemoryStream2;
+                                            entryStream2.Position = 0;
+                                            return entryStream2;
                                         }
                                     }
                                 }
@@ -276,16 +279,146 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == archiveFileInfo.Name)
                         {
-                            MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size));
-                            entry.Extract(entryMemoryStream);
+                            var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size));
+                            entry.Extract(entryStream);
 
-                            entryMemoryStream.Position = 0;
-                            return entryMemoryStream;
+                            entryStream.Position = 0;
+                            return entryStream;
                         }
                     }
                 }
             }
             return null;
+        }
+
+        //public IList<(ArchiveFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, Func<string, bool> isSupportedExtension, CancellationToken cancelToken)
+        //{
+        //    List<(ArchiveFileInfo, Stream) > streams = new();
+        //    using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Path))
+        //    {
+        //        foreach (var entry in archiveFile.Entries)
+        //        {
+        //            if (entry.IsFolder)
+        //            {
+        //                continue;
+        //            }
+
+        //            MemoryStream entryMemoryStream = new MemoryStream(Convert.ToInt32(entry.Size));
+        //            entry.Extract(entryMemoryStream);
+        //            entryMemoryStream.Position = 0;
+        //            if (isSupportedExtension(Path.GetExtension(entry.FileName)))
+        //            {
+        //                var archInfo = Map(entry, fileInfo, false);
+        //                streams.Add((archInfo, entryMemoryStream));
+        //            }
+        //            else
+        //            {
+        //                if (ArchiveFile.IsArchiveByStream(entryMemoryStream))
+        //                {
+        //                    using (ArchiveFile archiveFile2 = new ArchiveFile(entryMemoryStream))
+        //                    {
+        //                        var container = Map(entry, fileInfo, true);
+        //                        foreach (var entry2 in archiveFile2.Entries)
+        //                        {
+        //                            if (entry2.IsFolder)
+        //                            {
+        //                                continue;
+        //                            }
+
+        //                            MemoryStream entryMemoryStream2 = new MemoryStream(Convert.ToInt32(entry2.Size));
+        //                            entry2.Extract(entryMemoryStream2);
+        //                            entryMemoryStream2.Position = 0;
+
+        //                            if (isSupportedExtension(Path.GetExtension(entry2.FileName)))
+        //                            {
+        //                                var archInfo = Map(entry2, container, true);
+        //                                streams.Add((archInfo, entryMemoryStream2));
+        //                            }
+        //                            else
+        //                            {
+        //                                if (ArchiveFile.IsArchiveByStream(entryMemoryStream2))
+        //                                {
+        //                                    using (ArchiveFile archiveFile3 = new ArchiveFile(entryMemoryStream2))
+        //                                    {
+        //                                        foreach (var entry3 in archiveFile3.Entries)
+        //                                        {
+        //                                            if (entry3.IsFolder)
+        //                                            {
+        //                                                continue;
+        //                                            }
+
+        //                                            if (isSupportedExtension(Path.GetExtension(entry3.FileName)))
+        //                                            {
+        //                                                MemoryStream entryMemoryStream3 = new MemoryStream(Convert.ToInt32(entry3.Size));
+        //                                                entry3.Extract(entryMemoryStream3);
+        //                                                entryMemoryStream3.Position = 0;
+        //                                                var archInfo = Map(entry3, fileInfo, true);
+        //                                                streams.Add((archInfo, entryMemoryStream3));
+        //                                            }
+        //                                        }
+        //                                    }
+        //                                }
+        //                                entryMemoryStream2.Dispose();
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //                entryMemoryStream.Dispose();
+        //            }
+        //        }
+        //    }
+        //    return streams;
+        //}
+
+        public IList<(ArchiveFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, Func<string, bool> isSupportedExtension, CancellationToken cancelToken)
+        {
+            var streams = new List<(ArchiveFileInfo, Stream)>();
+            using var archiveFile = new ArchiveFile(fileInfo.Path);
+
+            CollectImageStreams(archiveFile, fileInfo, isNested: false, streams, isSupportedExtension, cancelToken);
+            return streams;
+        }
+
+        private static void CollectImageStreams(ArchiveFile archive, ExtendedFileInfo container, bool isNested,
+            List<(ArchiveFileInfo, Stream)> streams, Func<string, bool> isSupportedExtension, CancellationToken cancelToken)
+        {
+            foreach (var entry in archive.Entries)
+            {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    System.Diagnostics.Debug.WriteLine("CollectImageStreams was canceled.");
+                    break;
+                }
+
+                if (entry.IsFolder)
+                {
+                    continue;
+                }
+
+                var entryStream = new ChunkedMemoryStream((int)entry.Size);
+                entry.Extract(entryStream);
+                entryStream.Position = 0;
+
+                if (isSupportedExtension(Path.GetExtension(entry.FileName)))
+                {
+                    var archInfo = Map(entry, container, isNested);
+                    streams.Add((archInfo, entryStream));  // Transfer ownership
+                    //entryStream = null;  // Skip dispose
+                }
+                else
+                {
+                    if (ArchiveFile.IsArchiveByStream(entryStream))
+                    {
+                        // Critical: Reset position after IsArchiveByStream (it may advance it)
+                        entryStream.Position = 0;
+                        using var nestedArchive = new ArchiveFile(entryStream);
+                        var nestedContainer = Map(entry, container, true);
+                        CollectImageStreams(nestedArchive, nestedContainer, true, streams, isSupportedExtension, cancelToken);
+                        // Intermediate stream auto-disposes here → buffer returned
+                    }
+                    entryStream.Dispose();
+                }
+            }
         }
     }
 }

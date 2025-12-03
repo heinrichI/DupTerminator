@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    [DebuggerDisplay("{FileItem.Name}")]
+    [DebuggerDisplay("{FileItem.FileInfo.Name}")]
     public class PHashFileInfoSearchItem
     {
         public PHashFileInfoSearchItem(PHashFileInfo fileItem, SearchType type)

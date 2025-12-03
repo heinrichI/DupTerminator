@@ -24,18 +24,21 @@ namespace DupTerminator.WPF.ViewModel
 
         public ObservableCollection<ProgressItemViewModel> ProgressItems { get; } = new();
 
-        private readonly Dispatcher _dispatcher;
+        //private readonly Dispatcher _dispatcher;
+
+        public IProgress<ProgressDto> Progress { get; }
 
         public ProgressDialogViewModel()
         {
-            _dispatcher = Dispatcher.CurrentDispatcher;
+            //_dispatcher = Dispatcher.CurrentDispatcher;
+            Progress = new Progress<ProgressDto>(UpdateProgress);
         }
 
-        public void Update(ProgressDto dto)
+        public void UpdateProgress(ProgressDto dto)
         {
-            Application.Current.Dispatcher.Invoke(() => // Ensure UI thread
-            {
-                System.Diagnostics.Debug.WriteLine($"{dto.PhisicalDrive} {dto.State} {dto.Status}");
+            //_dispatcher.BeginInvoke(() => // Ensure UI thread
+            //{
+                //System.Diagnostics.Debug.WriteLine($"{dto.PhisicalDrive} {dto.State} {dto.Status}");
                 var item = ProgressItems.SingleOrDefault(i => i.PhisicalDrive == dto.PhisicalDrive);
                 if (item != null)  // update
                 {
@@ -48,7 +51,7 @@ namespace DupTerminator.WPF.ViewModel
                     item = new ProgressItemViewModel(dto);
                     ProgressItems.Add(item);
                 }
-            });
+            //}, DispatcherPriority.Background);
         }
 
         private void UpdateCore(ProgressDto dto)

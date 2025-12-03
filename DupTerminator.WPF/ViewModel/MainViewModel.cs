@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.WPF.Commands;
 using DupTerminator.WPF.Model;
@@ -52,8 +53,13 @@ namespace DupTerminator.WPF.ViewModel
             //RaisePropertyChangedEvent("SearchResults");
             //}
 
-            if (e.Results is PHashResult pResult)
-                ImageGroupsViewModel.UpdateGroups(pResult.Result);
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                if (e.Results is PHashResult pResult)
+                    ImageGroupsViewModel.UpdateGroups(pResult.Result);
+            });
+
+            SelectedTabPageIndex = 1;
         }
 
 
@@ -109,5 +115,17 @@ namespace DupTerminator.WPF.ViewModel
                 }, arg => arg != null));
             }
         }
+
+        private int _selectedTabPageIndex;
+        public int SelectedTabPageIndex
+        {
+            get { return _selectedTabPageIndex; }
+            set
+            {
+                _selectedTabPageIndex = value;
+                RaisePropertyChangedEvent();
+            }
+        }
+
     }
 }

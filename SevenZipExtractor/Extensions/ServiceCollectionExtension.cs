@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
 
+[assembly: InternalsVisibleTo("DupTerminator.Benchmark")]
 namespace SevenZipExtractor.Extensions
 {
     public static class ServiceCollectionExtension

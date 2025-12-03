@@ -17,15 +17,15 @@ namespace DupTerminator.View
         private int _currentImageWidth;
         private int _currentImageHeight;
 
-        private Rectangle m_bitmapRect;
+        private Rectangle _bitmapRect;
         private MemoryStream _memoryStream;
-        private Bitmap m_bitmap;
+        private Bitmap _bitmap;
         private bool _animationEnable = false;
         private bool _currentlyAnimating = false;
 
         private int _charHeight = 15;
-        private ToolTip toolTip1;
-        private System.ComponentModel.IContainer components;
+        private ToolTip _toolTip1;
+        private System.ComponentModel.IContainer _components;
         private int _charWidth = 9;
 
         public FileViewer()
@@ -57,8 +57,8 @@ namespace DupTerminator.View
             //Size = new System.Drawing.Size(146, 145);
             //TabIndex = 6;
             //TabStop = false;
-            toolTip1 = new ToolTip();
-            toolTip1.AutomaticDelay = 100;
+            _toolTip1 = new ToolTip();
+            _toolTip1.AutomaticDelay = 100;
         }
 
         public void UpdateImage(string imagePath)
@@ -66,7 +66,7 @@ namespace DupTerminator.View
             _imagePath = imagePath;
             if (imagePath != null)
             {
-                toolTip1.SetToolTip(this, imagePath);
+                _toolTip1.SetToolTip(this, imagePath);
                 StopAnimate();
                 if (imagePath.Length < MAX_PATH)
                 {
@@ -74,23 +74,23 @@ namespace DupTerminator.View
                     {
                         if (LoadFileToMemoryStream(imagePath))
                         {
-                            m_bitmap = new Bitmap(_memoryStream);
+                            _bitmap = new Bitmap(_memoryStream);
                             AutoScroll = false;
-                            _currentImageWidth = m_bitmap.Width;
-                            _currentImageHeight = m_bitmap.Height;
-                            _animationEnable = ImageAnimator.CanAnimate(m_bitmap);
+                            _currentImageWidth = _bitmap.Width;
+                            _currentImageHeight = _bitmap.Height;
+                            _animationEnable = ImageAnimator.CanAnimate(_bitmap);
                             UpdateImagePadding();
                             if (_animationEnable)
                                 _currentlyAnimating = false;
                         }
                         else
                         {
-                            m_bitmap = null;
+                            _bitmap = null;
                         }
                     }
                     catch //не удалось создать Bitmap, показываем в виде текста
                     {
-                        m_bitmap = null;
+                        _bitmap = null;
                         //m_bitmap = LoadBitmap(imagePath);
                         AutoScroll = true;
                         CalculateAutoScrollSize();
@@ -98,7 +98,7 @@ namespace DupTerminator.View
                 }
                 else
                 {
-                    m_bitmap = new Bitmap(_memoryStream);
+                    _bitmap = new Bitmap(_memoryStream);
                 }
                 Refresh();
             }
@@ -137,7 +137,7 @@ namespace DupTerminator.View
         {
             if (!_currentlyAnimating)
             {
-                ImageAnimator.Animate(m_bitmap, new EventHandler(OnFrameChanged));
+                ImageAnimator.Animate(_bitmap, new EventHandler(OnFrameChanged));
                 _currentlyAnimating = true;
             }
         }
@@ -145,7 +145,7 @@ namespace DupTerminator.View
         private void StopAnimate()
         {
             _animationEnable = false;
-            ImageAnimator.StopAnimate(m_bitmap, new EventHandler(OnFrameChanged));
+            ImageAnimator.StopAnimate(_bitmap, new EventHandler(OnFrameChanged));
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -163,9 +163,9 @@ namespace DupTerminator.View
                     _animationEnable = false;
                 }
             }
-            if (m_bitmap != null)
+            if (_bitmap != null)
             {
-                e.Graphics.DrawImage(m_bitmap, m_bitmapRect);
+                e.Graphics.DrawImage(_bitmap, _bitmapRect);
             }
             else if (_memoryStream != null)
             {
@@ -213,7 +213,7 @@ namespace DupTerminator.View
 
         private void CalculateAutoScrollSize()
         {
-            if (_memoryStream != null && ClientRectangle.Width * ClientRectangle.Height > 0 && m_bitmap == null)
+            if (_memoryStream != null && ClientRectangle.Width * ClientRectangle.Height > 0 && _bitmap == null)
             {
                 int symbolsPerPageLine = ClientRectangle.Width / _charWidth;
                 int linesPerPage = ClientRectangle.Height / _charHeight;
@@ -262,7 +262,7 @@ namespace DupTerminator.View
                         horPos = (controlWidth - imageWidth) / 2;
                     }*/
                 }
-                m_bitmapRect = new Rectangle(horPos, verPos, controlWidth - 2 * horPos, controlHeight - 2 * verPos);
+                _bitmapRect = new Rectangle(horPos, verPos, controlWidth - 2 * horPos, controlHeight - 2 * verPos);
             }
             Refresh();
         }
@@ -275,8 +275,8 @@ namespace DupTerminator.View
 
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this._components = new System.ComponentModel.Container();
+            this._toolTip1 = new System.Windows.Forms.ToolTip(this._components);
             this.SuspendLayout();
             // 
             // FileViewer

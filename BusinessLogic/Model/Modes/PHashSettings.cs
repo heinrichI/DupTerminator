@@ -30,5 +30,9 @@ namespace DupTerminator.BusinessLogic.Model.Modes
             get => _wordLength;
             set { _wordLength = value; OnPropertyChanged(nameof(WordLength)); }
         }
+
+        [DisplayName("CheckAllFilesInGroup")] // Custom display name
+        [Description("CheckAllFilesInGroup.")]
+        public bool CheckAllFilesInGroup { get; set; } = false;
     }
 }

@@ -80,8 +80,10 @@
 
 
     </Window.Resources>
-    
-    <TabControl >
+
+    <TabControl SelectedIndex="{Binding SelectedTabPageIndex, 
+                                            Mode=TwoWay,
+                                            UpdateSourceTrigger=PropertyChanged}" >
         <TabItem DataContext="{Binding SettingViewModel}" Header="Settings">
             <Grid >
                 <Grid.ColumnDefinitions>

@@ -7,5 +7,7 @@ namespace DupTerminator.DataBase
         public (ulong phash, int width, int height)? Get(string path, DateTime lastWriteTime, ulong size);
 
         public void Add(string path, DateTime lastWriteTime, ulong size, ulong phash, int width, int height);
+        public (ArchiveFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo);
+        void AddContainerStreams(ExtendedFileInfo fileInfo, (ArchiveFileInfo efi, ulong phash, int width, int height)[] collection);
     }
 }

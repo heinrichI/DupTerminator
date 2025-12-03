@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.WPF.View;
@@ -21,13 +22,18 @@ namespace DupTerminator.WPF.Service
 
             //// Create progress reporter with throttling
             var progress = new ProgressWithTimer<ProgressDto>(
-                TimeSpan.FromMilliseconds(200),
-                vm.Update
+                TimeSpan.FromMilliseconds(250),
+                vm.Progress
             );
             //IProgress<ProgressDto> progress = new ThrottledProgress<ProgressDto>(
             //    TimeSpan.FromMilliseconds(200),
             //    vm.Update
             //);
+            //var progress = new Progress<ProgressDto>(dto =>
+            //{
+            //    Debug.WriteLine(dto.Status);
+            //    vm.Update(dto);
+            //});
 
             var dialog = new ProgressWindow{
                 Owner = Application.Current.MainWindow,
@@ -59,7 +65,8 @@ namespace DupTerminator.WPF.Service
             try
             {
                 // Start the worker operation
-                var workerTask = worker(progress, vm.Token);
+                //var workerTask = worker(progress, vm.Token);
+                var workerTask = Task.Run(() => worker(progress, vm.Token));
                 //workerTaskSource.SetResult(true);
                 _ = workerTask.ContinueWith(t =>
                 {

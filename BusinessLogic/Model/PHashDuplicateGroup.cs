@@ -11,7 +11,7 @@ namespace DupTerminator.BusinessLogic.Model
     {
         internal bool ContainsPath(string path)
         {
-            return this.Any(f => f.FileItem.Path == path);
+            return this.Any(f => f.FileItem.FileInfo.Path == path);
         }
     }
 }

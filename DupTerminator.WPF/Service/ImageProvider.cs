@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Automation;
 using System.Windows.Media.Imaging;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
@@ -94,6 +95,9 @@ namespace DupTerminator.WPF.Service
 
         private BitmapImage CreateZoomedBitmap(Stream src, int size)
         {
+            if (src == null)
+                throw new ArgumentNullException(nameof(src));
+
             var bmp = new BitmapImage();
             bmp.BeginInit();
             bmp.StreamSource = src;

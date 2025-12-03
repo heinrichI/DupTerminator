@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.Pdf", "DupTer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.ImageHash", "DupTerminator.ImageHash\DupTerminator.ImageHash.csproj", "{8B937A67-B981-4CA0-B2B7-E2744EB69D71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DupTerminator.Benchmark", "DupTerminator.Benchmark\DupTerminator.Benchmark.csproj", "{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -167,6 +169,18 @@ Global
 		{8B937A67-B981-4CA0-B2B7-E2744EB69D71}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8B937A67-B981-4CA0-B2B7-E2744EB69D71}.Release|x86.ActiveCfg = Release|Any CPU
 		{8B937A67-B981-4CA0-B2B7-E2744EB69D71}.Release|x86.Build.0 = Release|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Debug|x86.Build.0 = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.DebugNUnit|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.DebugNUnit|Any CPU.Build.0 = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.DebugNUnit|x86.ActiveCfg = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.DebugNUnit|x86.Build.0 = Debug|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Release|x86.ActiveCfg = Release|Any CPU
+		{6DBE798D-53EE-4C87-98C3-C8BB5DE67262}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

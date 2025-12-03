@@ -16,7 +16,7 @@ namespace DupTerminator.BusinessLogic.Abstraction
 
         IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container, bool archiveInArchive = false);
         Stream GetStream(ArchiveFileInfo archiveFileInfo);
-
+        IList<(ArchiveFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, Func<string, bool> isSupportedExtension, CancellationToken cancelToken);
         bool IsArchiveFile(string? fullName);
     }
 }

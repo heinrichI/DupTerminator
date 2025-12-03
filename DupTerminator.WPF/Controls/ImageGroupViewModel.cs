@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -53,9 +54,9 @@ namespace DupTerminator.WPF.ViewModel
         private BitmapImage? _thumbnail;
         private bool _isLoading;
 
-        public ExtendedFileInfo FileInfo => _searchItem.FileItem;
-        public string FilePath => _searchItem.FileItem.Path;
-        public string FileName => Path.GetFileName(_searchItem.FileItem.Name);
+        public ExtendedFileInfo FileInfo => _searchItem.FileItem.FileInfo;
+        public string FilePath => _searchItem.FileItem.FileInfo.Path;
+        public string FileName => Path.GetFileName(_searchItem.FileItem.FileInfo.Name);
         public string Query
         {
             get
@@ -70,11 +71,31 @@ namespace DupTerminator.WPF.ViewModel
 
         public string Dimensions => $"{_searchItem.FileItem.Width}x{_searchItem.FileItem.Height}";
 
-        public ulong Size => _searchItem.FileItem.Size;
+        public ulong Size => _searchItem.FileItem.FileInfo.Size;
 
         public BitmapImage? Thumbnail
         {
-            get => _thumbnail;
+            get
+            {
+                if (_thumbnail != null)
+                    return _thumbnail;
+                else
+                {
+                    IsLoading = true;
+                    try
+                    {
+                        if (FileInfo is ArchiveFileInfo archiveFileInfo)
+                            _thumbnail = _imageLoadingService.GetThumbnailFromArchiveAsync(archiveFileInfo).Result;
+                        else
+                            _thumbnail = _imageLoadingService.GetThumbnailAsync(FilePath).Result;
+                    }
+                    finally
+                    {
+                        IsLoading = false;
+                    }
+                    return _thumbnail;
+                }
+            }
             private set
             {
                 _thumbnail = value;
@@ -103,13 +124,14 @@ namespace DupTerminator.WPF.ViewModel
             RenameCommand = new RelayCommand((_) => OnRename(), (_) => CanRename());
             ViewFullSizeCommand = new RelayCommand((_) => OnViewFullSize());
 
-            LoadThumbnail();
+            //LoadThumbnail();
         }
 
         private async void LoadThumbnail()
         {
             if (_thumbnail != null) return;
 
+            Debug.WriteLine("LoadThumbnail");
             IsLoading = true;
             try
             {

@@ -21,6 +21,7 @@ using DupTerminator.WPF.View;
 using DupTerminator.WPF.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using UglyToad.PdfPig.Tokens;
 
 namespace DupTerminator.WPF.Commands
 {
@@ -104,6 +105,7 @@ namespace DupTerminator.WPF.Commands
 
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {
+                    //ReadOnlyCollection<DuplicateGroup>? result = await Task.Run(() => searcher.StartAsync(progress, cancelToken)).ConfigureAwait(false);
                     ReadOnlyCollection<DuplicateGroup>? result = await searcher.StartAsync(progress, cancelToken);
                     //ResultType2 type1 = new ResultType2 { Discount = 4536 };
                     //ResultType2 type2 = new ResultType2 { Discount = 4537 };
@@ -141,7 +143,7 @@ namespace DupTerminator.WPF.Commands
                     _phashRepository,
                     _windowsUtil,
                    _archiveService,
-                   _dbArchiveService,
+                   //_dbArchiveService,
                    _pHashService,
                    _mihFactory,
                    _serachLogger);
@@ -149,6 +151,7 @@ namespace DupTerminator.WPF.Commands
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {
                     var result = await searcher.StartAsync(progress, cancelToken);
+                    progress.Report(new ProgressDto { State = "UpdateResultOnGUI"});
                     _updateResults(new PHashResult(result));
                 });
             }

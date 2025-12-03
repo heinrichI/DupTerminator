@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,7 +16,11 @@ namespace DupTerminator.DataBase
     public class PhashRepository : IPhashRepository
     {
         private readonly string _connectionString;
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = false };
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            IncludeFields = true,
+        };
 
         public PhashRepository(string connectionString = "Data Source=phash.db;")
         {
@@ -37,6 +44,14 @@ namespace DupTerminator.DataBase
                 Phash TEXT NOT NULL,
                 Width INTEGER,
                 Height INTEGER,
+                PRIMARY KEY (Path, LastWriteTime, Size)
+            );
+
+            CREATE TABLE IF NOT EXISTS PHashContainerTable (
+                Path TEXT NOT NULL,
+                LastWriteTime INTEGER NOT NULL,
+                Size TEXT NOT NULL,
+                SerializedFiles BLOB,
                 PRIMARY KEY (Path, LastWriteTime, Size)
             );";
             createTable.ExecuteNonQuery();
@@ -103,6 +118,53 @@ namespace DupTerminator.DataBase
             cmd.Parameters.AddWithValue("$phash", phash.ToString());
             cmd.Parameters.AddWithValue("$width", width);
             cmd.Parameters.AddWithValue("$height", height);
+
+            cmd.ExecuteNonQuery();
+        }
+
+        public (ArchiveFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+            SELECT SerializedFiles FROM PHashContainerTable
+            WHERE Path = $path AND LastWriteTime = $lastWriteTime AND Size = $size;";
+
+            cmd.Parameters.AddWithValue("$path", fileInfo.Path);
+            cmd.Parameters.AddWithValue("$lastWriteTime", fileInfo.LastWriteTime.Ticks);
+            cmd.Parameters.AddWithValue("$size", fileInfo.Size.ToString());
+
+            using var reader = cmd.ExecuteReader();
+
+            if (reader.Read() && !reader.IsDBNull(0))
+            {
+                var data = (string)reader.GetValue(0);
+                return JsonSerializer.Deserialize<(ArchiveFileInfo efi, ulong phash, int width, int height)[]>(data, _jsonOptions);
+            }
+
+            return null;
+        }
+
+        public void AddContainerStreams(ExtendedFileInfo fileInfo, (ArchiveFileInfo efi, ulong phash, int width, int height)[] collection)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            var jsonData = JsonSerializer.Serialize(collection, _jsonOptions);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+            INSERT INTO PHashContainerTable(Path, LastWriteTime, Size, SerializedFiles)
+            VALUES ($path, $lastWriteTime, $size, $serialized)
+            ON CONFLICT (Path, LastWriteTime, Size) DO UPDATE SET
+                SerializedFiles = $serialized;";
+
+            cmd.Parameters.AddWithValue("$path", fileInfo.Path);
+            cmd.Parameters.AddWithValue("$lastWriteTime", fileInfo.LastWriteTime.Ticks);
+            cmd.Parameters.AddWithValue("$size", fileInfo.Size.ToString());
+            cmd.Parameters.AddWithValue("$serialized", jsonData);
 
             cmd.ExecuteNonQuery();
         }

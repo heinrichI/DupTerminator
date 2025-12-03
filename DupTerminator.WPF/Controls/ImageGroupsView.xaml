@@ -46,16 +46,18 @@
         </Style>-->
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <ItemsControl ItemsSource="{Binding ImageGroups}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
+    <ListBox ItemsSource="{Binding ImageGroups}" 
+         ScrollViewer.VerticalScrollBarVisibility="Auto"
+         VirtualizingPanel.IsVirtualizing="True"
+         VirtualizingPanel.VirtualizationMode="Recycling">
+        <ListBox.ItemTemplate>
+            <DataTemplate>
                     <Border BorderBrush="Gray" BorderThickness="0,0,0,1" Margin="0,0,0,10" Padding="0,0,0,10"
                         Focusable="True" >
 
                         <StackPanel>
-                            <TextBlock Text="{Binding DuplicateGroup.Name}" 
-                                       FontWeight="Bold" Margin="0,0,0,10"/>
+                            <!--<TextBlock Text="{Binding DuplicateGroup.Name}" 
+                                       FontWeight="Bold" Margin="0,0,0,10"/>-->
 
                             <ItemsControl ItemsSource="{Binding Images}">
                                 <ItemsControl.ItemsPanel>
@@ -135,7 +137,6 @@
                         </StackPanel>
                     </Border>
                 </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </ScrollViewer>
+        </ListBox.ItemTemplate>
+    </ListBox>
 </UserControl>

@@ -9,8 +9,8 @@ namespace DupTerminator.BusinessLogic.Model
     public class ProgressDto : IEquatable<ProgressDto>
     {
         public string PhisicalDrive { get; internal set; }
-        public string Status { get; internal set; }
-        public string State { get; internal set; }
+        public string Status { get; set; }
+        public string State { get; set; }
         public string RemainSize { get; internal set; }
 
         public bool Equals(ProgressDto? other)
