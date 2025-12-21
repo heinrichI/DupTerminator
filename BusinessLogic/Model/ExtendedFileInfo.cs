@@ -33,7 +33,7 @@ namespace DupTerminator.BusinessLogic.Model
 
         //public bool InArchive { get; set; }
 
-        public int ContainerFilesCount { get; internal set; }
+        public int ContainerFilesCount { get; set; }
 
         public ExtendedFileInfo Container { get; set; }
 

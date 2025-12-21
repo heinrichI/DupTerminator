@@ -37,7 +37,7 @@ namespace DupTerminator
         private string[] _separators = new string[] { "|", ";" };
 
         public Settings settings; //= new Settings(); //экземпляр класса с настройками 
-        private readonly IDBManager _dbManager;
+        private readonly IMd5Repository _dbManager;
         private readonly SearchSetting _searchSetting;
         #endregion //"Declarations"
 
@@ -61,7 +61,7 @@ namespace DupTerminator
         public event SearchCancelledDelegate SearchCancelledEvent;
         #endregion //"Events"
 
-        public FileFunctions(IDBManager dbManager, SearchSetting searchSetting)
+        public FileFunctions(IMd5Repository dbManager, SearchSetting searchSetting)
         {
             settings = Settings.GetInstance();
             _dbManager = dbManager ?? throw new ArgumentNullException(nameof(dbManager));
@@ -389,10 +389,10 @@ namespace DupTerminator
             Debug.WriteLine("Паттерны включения: " + String.Join(", ", _includePattern.ToArray()));
             Debug.WriteLine("Паттерны исключения: " + String.Join(", ", _excludePattern.ToArray()));
 
-            if (settings.Fields.UseDB)
-            {
-                _dbManager.CreateDataBase();
-            }
+            //if (settings.Fields.UseDB)
+            //{
+            //    _dbManager.CreateDataBase();
+            //}
             //System.Diagnostics.Debug.WriteLine("ScanForDuplicates dbManager.Active=" + dbManager.Active);
 
             // Get the total number of files we are going to check.

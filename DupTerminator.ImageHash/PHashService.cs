@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
+using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.ImageHash
 {
@@ -19,21 +20,35 @@ namespace DupTerminator.ImageHash
         private static readonly double _sqrt2DivSize = Math.Sqrt(2.0 / SIZE);
         private static readonly double _sqrt2 = Math.Sqrt(2.0);
 
+        public PHashService(ILogger<PHashService> logger)
+        {
+            _logger = logger;
+        }
+
         // SIMD-оптимизированные коэффициенты DCT
         private static readonly List<Vector<double>>[] _dctCoeffsSimd = GenerateDctCoeffsSimd();
+        private readonly ILogger<PHashService> _logger;
 
         public (ulong phash, int width, int height) CalculatePHash(string path)
         {
             using var image = LoadAndPreprocessImage(path, out int width, out int height);
-            var dctCoefficients = ComputeDCT(image);
-            return (ComputeHash(dctCoefficients), width, height);
+            if (image != null)
+            {
+                var dctCoefficients = ComputeDCT(image);
+                return (ComputeHash(dctCoefficients), width, height);
+            }
+            return (0, width, height);
         }
 
         public (ulong phash, int width, int height) CalculatePHash(Stream stream)
         {
             using var image = LoadAndPreprocessImage(stream, out int width, out int height);
-            var dctCoefficients = ComputeDCT(image);
-            return (ComputeHash(dctCoefficients), width, height);
+            if (image != null)
+            {
+                var dctCoefficients = ComputeDCT(image);
+                return (ComputeHash(dctCoefficients), width, height);
+            }
+            return (0, width, height);
         }
 
         public bool IsSupportedExtension(string extension)
@@ -45,13 +60,23 @@ namespace DupTerminator.ImageHash
             return false;
         }
 
-        private static Bitmap LoadAndPreprocessImage(Stream stream, out int width, out int height)
+        private Bitmap LoadAndPreprocessImage(Stream stream, out int width, out int height)
         {
-            using var original = new Bitmap(stream);
-            width = original.Width;
-            height = original.Height;
+            try
+            {
+                using var original = new Bitmap(stream);
+                width = original.Width;
+                height = original.Height;
 
-            return PreprocessImage(original);
+                return PreprocessImage(original);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                width = 0;
+                height = 0;
+                return null;
+            }
         }
 
 

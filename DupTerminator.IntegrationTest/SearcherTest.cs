@@ -13,7 +13,7 @@ namespace DupTerminator.IntegrationTest
         [Fact]
         public async void TestDir()
         {
-            Mock<IDBManager> dbManager = new Mock<IDBManager>();
+            Mock<IMd5Repository> dbManager = new Mock<IMd5Repository>();
             using (Searcher searcher = new Searcher(
                 new ReadOnlyCollection<(string DirectoryPath, bool SearchInSubdirectory)>(
                 new (string DirectoryPath, bool SearchInSubdirectory)[]

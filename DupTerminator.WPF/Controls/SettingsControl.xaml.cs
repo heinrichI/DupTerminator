@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Model.Modes;
+using DupTerminator.WPF.Helper;
 using DupTerminator.WPF.ViewModel;
 using static DupTerminator.WPF.ViewModel.SettingsViewModel;
 
@@ -62,6 +63,13 @@ namespace DupTerminator.WPF.Controls
             //    viewModel.SelectedMode = (SettingsBase)e.NewValue; // Update the ViewModel's property
             //}
             //control.LoadSettings(); // Load settings after the ViewModel is updated
+
+            // Update the ViewModel's property through binding
+            BindingExpression be = control.GetBindingExpression(SettingsControl.SelectedModeProperty);
+            be?.UpdateSource();
+
+            // Load settings after the ViewModel is updated
+            control.LoadSettings();
         }
 
         public ObservableCollection<SettingsBase> Modes
@@ -85,10 +93,10 @@ namespace DupTerminator.WPF.Controls
         {
 
         }
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            LoadSettings();
-        }
+        //private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        //{
+        //    LoadSettings();
+        //}
 
        
 
@@ -131,5 +139,48 @@ namespace DupTerminator.WPF.Controls
                 });
             }
         }
+
+        // SettingsControl.xaml.cs
+        private void IntTemplate_TextBox_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop))
+                return; // nothing to do
+
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length == 0)
+                return;
+
+            // pick the first file and set it into the current SettingItem
+            var settingItem = (SettingItem)((FrameworkElement)sender).DataContext;
+            settingItem.Value = files[0];     // will trigger the two‑way binding
+        }
+
+        // In SettingsControl.xaml.cs
+        private void IntTemplate_TextBox_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;  // This is critical!
+        }
+
+        //private void IntTemplate_TextBox_Drop(object sender, DragEventArgs e)
+        //{
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    {
+        //        string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+        //        if (sender is TextBox textBox && files?.Length > 0)
+        //        {
+        //            textBox.Text = files[0];
+        //        }
+        //    }
+        //    e.Handled = true;
+        //}
+
     }
 }

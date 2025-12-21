@@ -16,9 +16,37 @@ namespace DupTerminator.WPF.Behavior
 
             this.AssociatedObject.AllowDrop = true;
             //this.AssociatedObject.DragEnter += new DragEventHandler(AssociatedObject_DragEnter);
+            this.AssociatedObject.PreviewDragOver += AssociatedObject__PreviewDragOver;
             this.AssociatedObject.DragOver += new DragEventHandler(AssociatedObject_DragOver);
             this.AssociatedObject.Drop += new DragEventHandler(AssociatedObject_Drop);
         }
+
+
+        private void AssociatedObject__PreviewDragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;  // This is critical!
+        }
+
+        //private void AssociatedObject_DragEnter(object sender, DragEventArgs e)
+        //{
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    {
+        //        e.Effects = DragDropEffects.Copy;
+        //    }
+        //    else
+        //    {
+        //        e.Effects = DragDropEffects.None;
+        //    }
+        //    e.Handled = true;  // This is critical!
+        //}
 
         void AssociatedObject_Drop(object sender, DragEventArgs e)
         {

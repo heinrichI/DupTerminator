@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using DupTerminator.WPF.Helper;
 
 namespace DupTerminator.WPF.ViewModel
 {
@@ -61,14 +62,84 @@ namespace DupTerminator.WPF.ViewModel
         }
 
         // Helper class for each setting (used in the collection)
-        public class SettingItem
+        public class SettingItem : PropertyChangedBase, IDropable
         {
             public string Name { get; set; }
             public string Description { get; set; }
             public string Category { get; set; }
             public Type PropertyType { get; set; }
-            public object Value { get; set; }
+            //public object Value { get; set; }
+            private object _value;
+            public object Value
+            {
+                get => _value;
+                set
+                {
+                    // Only update if value changed
+                    if (Equals(_value, value)) return;
+
+                    _value = value;
+                    RaisePropertyChangedEvent();
+
+                    // Propagate change to the SelectedMode property
+                    Setter?.Invoke(ConvertValue(value, PropertyType));
+                }
+            }
+
+            // Handle type conversion (string → int, bool, etc.)
+            private object ConvertValue(object value, Type targetType)
+            {
+                if (value != null && targetType.IsAssignableFrom(value.GetType()))
+                    return value;
+
+                try
+                {
+                    return Convert.ChangeType(value, targetType);
+                }
+                catch
+                {
+                    return value; // Fallback (may require validation)
+                }
+            }
+
             public Action<object> Setter { get; set; } // Callback to update the original property
+
+            #region IDropable Members
+
+            void IDropable.Drop(object dropData)
+            {
+                var filepaths = dropData as string[];
+                if (filepaths != null && filepaths.Any())
+                {
+                    Value = filepaths[0];
+                    //foreach (string path in filepaths)
+                    //{
+                    //    if (!String.IsNullOrEmpty(path))
+                    //    {
+                    //        if (IOHelper.IsDirectory(path))
+                    //        {
+                    //            _locationsObservable.Add(new SearchPathViewModel
+                    //            {
+                    //                Path = path,
+                    //                IsDirectory = true,
+                    //                SearchInSubfolder = true
+                    //                //Image = IconReader.GetIcon(path, true);
+                    //            });
+                    //        }
+                    //        else if (System.IO.File.Exists(path))
+                    //        {
+                    //            _locationsObservable.Add(new SearchPathViewModel
+                    //            {
+                    //                Path = path,
+                    //                IsDirectory = false
+                    //            });
+                    //        }
+                    //    }
+                    //}
+                }
+            }
+
+            #endregion
         }
     }
 }

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model.Modes
 {
-    public class DuplicateContainerResult : ResultBase
+    public class MD5ContainerResult : ResultBase
     {
-        public DuplicateContainerResult(ReadOnlyCollection<DuplicateContainer> result)
+        public MD5ContainerResult(ReadOnlyCollection<DuplicateContainer> result)
         {
             Result = result;
         }

@@ -16,6 +16,8 @@ namespace DupTerminator.DataBase
     public class PhashRepository : IPhashRepository
     {
         private readonly string _connectionString;
+        private readonly object _lock = new();
+
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = false,
@@ -100,11 +102,16 @@ namespace DupTerminator.DataBase
 
         public void Add(string path, DateTime lastWriteTime, ulong size, ulong phash, int width, int height)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
+            if (lastWriteTime == DateTime.MinValue)
+                throw new ArgumentOutOfRangeException(nameof(lastWriteTime));
 
-            using var cmd = connection.CreateCommand();
-            cmd.CommandText = @"
+            lock (_lock)
+            {
+                using var connection = new SqliteConnection(_connectionString);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
             INSERT INTO PHashTable(Path, LastWriteTime, Size, Phash, Width, Height)
             VALUES ($path, $lastWriteTime, $size, $phash, $width, $height)
             ON CONFLICT (Path, LastWriteTime, Size) DO UPDATE SET
@@ -112,14 +119,15 @@ namespace DupTerminator.DataBase
                 Width = $width,
                 Height = $height;";
 
-            cmd.Parameters.AddWithValue("$path", path);
-            cmd.Parameters.AddWithValue("$lastWriteTime", lastWriteTime.Ticks);
-            cmd.Parameters.AddWithValue("$size", size.ToString());
-            cmd.Parameters.AddWithValue("$phash", phash.ToString());
-            cmd.Parameters.AddWithValue("$width", width);
-            cmd.Parameters.AddWithValue("$height", height);
+                cmd.Parameters.AddWithValue("$path", path);
+                cmd.Parameters.AddWithValue("$lastWriteTime", lastWriteTime.Ticks);
+                cmd.Parameters.AddWithValue("$size", size.ToString());
+                cmd.Parameters.AddWithValue("$phash", phash.ToString());
+                cmd.Parameters.AddWithValue("$width", width);
+                cmd.Parameters.AddWithValue("$height", height);
 
-            cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         public (ArchiveFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo)

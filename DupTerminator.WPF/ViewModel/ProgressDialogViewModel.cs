@@ -42,7 +42,7 @@ namespace DupTerminator.WPF.ViewModel
                 var item = ProgressItems.SingleOrDefault(i => i.PhisicalDrive == dto.PhisicalDrive);
                 if (item != null)  // update
                 {
-                    item.Status = dto.Status;
+                    item.Path = dto.Path;
                     item.State = dto.State;
                     item.RemainSize = dto.RemainSize;
                 }
@@ -56,11 +56,11 @@ namespace DupTerminator.WPF.ViewModel
 
         private void UpdateCore(ProgressDto dto)
         {
-            System.Diagnostics.Debug.WriteLine($"{dto.PhisicalDrive} {dto.State} {dto.Status}");
+            System.Diagnostics.Debug.WriteLine($"{dto.PhisicalDrive} {dto.State} {dto.Path}");
             var item = ProgressItems.SingleOrDefault(i => i.PhisicalDrive == dto.PhisicalDrive);
             if (item != null)  // update
             {
-                item.Status = dto.Status;
+                item.Path = dto.Path;
                 item.State = dto.State;
                 item.RemainSize = dto.RemainSize;
             }

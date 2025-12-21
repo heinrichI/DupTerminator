@@ -9,7 +9,7 @@ namespace DupTerminator.BusinessLogic.Model
     public class ProgressDto : IEquatable<ProgressDto>
     {
         public string PhisicalDrive { get; internal set; }
-        public string Status { get; set; }
+        public string Path { get; set; }
         public string State { get; set; }
         public string RemainSize { get; internal set; }
 
@@ -36,7 +36,7 @@ namespace DupTerminator.BusinessLogic.Model
             // Note that the base class is not invoked because it is
             // System.Object, which defines Equals as reference equality.
             return PhisicalDrive == other.PhisicalDrive
-                && Status == other.Status
+                && Path == other.Path
                 && State == other.State
                 && RemainSize == other.RemainSize;
         }

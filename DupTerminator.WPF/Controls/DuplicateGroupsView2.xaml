@@ -88,10 +88,10 @@
 
                 <!-- Path Column -->
                 <DataGridTextColumn Header="Path" 
-                                    Binding="{Binding CombinedPath}" 
+                                    Binding="{Binding Path}" 
                                     Width="*"
                                     CanUserSort="True"
-                                    SortMemberPath="CombinedPath"/>
+                                    SortMemberPath="Path"/>
 
                 <!-- Extension Column -->
                 <DataGridTextColumn Header="Extension" 
@@ -107,13 +107,6 @@
                                     CanUserSort="True"
                                     SortMemberPath="LastWriteTime"/>
 
-                <!-- In Archive Column -->
-                <DataGridCheckBoxColumn Header="In Archive" 
-                                        Binding="{Binding InArchive, Mode=OneWay}" 
-                                        Width="80"
-                                        IsReadOnly="True"
-                                        CanUserSort="True"
-                                        SortMemberPath="InArchive"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

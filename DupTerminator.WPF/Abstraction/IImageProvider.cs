@@ -13,6 +13,7 @@ namespace DupTerminator.WPF.Abstraction
         Task<BitmapImage?> GetThumbnailAsync(string fullPath);
 
         BitmapImage? GetFullSizeAsync(string fullPath);
-        Task<BitmapImage?> GetThumbnailFromArchiveAsync(ArchiveFileInfo archiveFileInfo);
+        BitmapImage? GetThumbnailFromArchive(ArchiveFileInfo archiveFileInfo);
+        BitmapImage? GetThumbnailFromPdf(PdfFileInfo pdfFileInfo);
     }
 }

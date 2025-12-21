@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Xml.Linq;
+using System.Linq;
 using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
@@ -31,10 +32,7 @@ namespace SevenZipExtractor
                     {
                         entry.Extract(entryStream);
 
-                        //string checksumInArchive = entryStream.ToArray().MD5String();
-                        string checksumInArchive = string.Empty;
-
-                        var fileInfo = Map(entry, container, archiveInArchive, checksumInArchive);
+                        var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
                         infos.Add(fileInfo);
 
                         entryStream.Position = 0;
@@ -48,7 +46,7 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, bool archiveInArchive, string? checksumInArchive = null)
+        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, int containerFilesCount, bool archiveInArchive)
         {
             ArchiveFileInfo efi = new ArchiveFileInfo()
             {
@@ -63,12 +61,9 @@ namespace SevenZipExtractor
                 Size = entry.Size,
                 Path = $"{container.Path}\\{entry.FileName}",
                 Container = container,
+                ContainerFilesCount = containerFilesCount,
                 ArchiveInArchive = archiveInArchive
             };
-            if (checksumInArchive != null)
-            {
-                efi.CheckSum = checksumInArchive;
-            }
             return efi;
         }
 
@@ -110,7 +105,7 @@ namespace SevenZipExtractor
             return ArchiveFile.IsArchive(fullName);
         }
 
-        public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token, bool archiveInArchive = false)
+        public ArchiveFileInfo[] GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token, bool archiveInArchive = false)
         {
             List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
 
@@ -132,7 +127,7 @@ namespace SevenZipExtractor
                     {
                         entry.Extract(entryStream);
 
-                        var fileInfo = Map(entry, container, archiveInArchive);
+                        var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
                         infos.Add(fileInfo);
 
                         entryStream.Position = 0;
@@ -376,6 +371,11 @@ namespace SevenZipExtractor
             using var archiveFile = new ArchiveFile(fileInfo.Path);
 
             CollectImageStreams(archiveFile, fileInfo, isNested: false, streams, isSupportedExtension, cancelToken);
+
+            foreach (var item in streams)
+            {
+                item.Item1.ContainerFilesCount = streams.Count;
+            }
             return streams;
         }
 
@@ -401,7 +401,7 @@ namespace SevenZipExtractor
 
                 if (isSupportedExtension(Path.GetExtension(entry.FileName)))
                 {
-                    var archInfo = Map(entry, container, isNested);
+                    var archInfo = Map(entry, container, archive.Entries.Count(e => !e.IsFolder), isNested);
                     streams.Add((archInfo, entryStream));  // Transfer ownership
                     //entryStream = null;  // Skip dispose
                 }
@@ -412,7 +412,7 @@ namespace SevenZipExtractor
                         // Critical: Reset position after IsArchiveByStream (it may advance it)
                         entryStream.Position = 0;
                         using var nestedArchive = new ArchiveFile(entryStream);
-                        var nestedContainer = Map(entry, container, true);
+                        var nestedContainer = Map(entry, container, archive.Entries.Count(e => !e.IsFolder), true);
                         CollectImageStreams(nestedArchive, nestedContainer, true, streams, isSupportedExtension, cancelToken);
                         // Intermediate stream auto-disposes here → buffer returned
                     }

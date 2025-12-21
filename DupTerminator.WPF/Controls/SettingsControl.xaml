@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:behavior="clr-namespace:DupTerminator.WPF.Behavior"
              xmlns:local="clr-namespace:DupTerminator.WPF.Controls"
              xmlns:viewmodel="clr-namespace:DupTerminator.WPF.ViewModel"
              x:Name="Root"
@@ -14,10 +16,17 @@
             <CheckBox IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         </DataTemplate>
         <DataTemplate x:Key="StringTemplate">
-            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200" />
+            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Width="200" >
+                <i:Interaction.Behaviors>
+                    <behavior:FrameworkElementDropBehavior/>
+                </i:Interaction.Behaviors>
+            </TextBox>
         </DataTemplate>
         <DataTemplate x:Key="IntTemplate">
-            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Width="100"/>
+
             <!-- Add validation here if needed, e.g., via Binding.ValidationRules -->
         </DataTemplate>
 
@@ -32,9 +41,12 @@
         <!-- Optional: Mode selector -->
         <TextBlock Text="Select Mode:" />
         <ComboBox ItemsSource="{Binding ElementName=Root, Path=Modes}"
-                  SelectedItem="{Binding ElementName=Root, Path=SelectedMode}"
-                  SelectionChanged="ComboBox_SelectionChanged" />
-                
+                  SelectedItem="{Binding ElementName=Root, Path=SelectedMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                  DisplayMemberPath="Name"/>
+        <!-- <ComboBox ItemsSource="{Binding DataContext.Modes, RelativeSource={RelativeSource AncestorType=UserControl}}"
+          SelectedItem="{Binding DataContext.SelectedMode, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+          DisplayMemberPath="Name" /> -->
+
         <!-- Auto-generated settings UI -->
         <ItemsControl ItemsSource="{Binding ElementName=Root, Path=SettingsList}"  Margin="0,10,0,0">
             <ItemsControl.ItemTemplate>

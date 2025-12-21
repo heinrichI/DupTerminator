@@ -9,9 +9,11 @@ using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using DupTerminator.DataBase.Extensions;
 using DupTerminator.ImageHash.Extensions;
+using DupTerminator.Pdf.Extensions;
 using DupTerminator.WindowsSpecific;
 using DupTerminator.WPF.Abstraction;
 using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Controls;
 using DupTerminator.WPF.Service;
 using DupTerminator.WPF.ViewModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,14 +69,15 @@ namespace DupTerminator.WPF
             });
 
             services
-                .AddTransient<MainViewModel>()
-                .AddTransient<MainWindow>()
+                .AddSingleton<MainViewModel>()
+                .AddSingleton<MainWindow>()
                 .AddTransient<SettingViewModel>();
 
 
             //services.AddSingleton<IImageLoadingService, ImageLoadingService>();
             services.AddSingleton<IImageProvider, ImageProvider>();
             services.AddTransient<ImageGroupsViewModel>();
+            services.AddTransient<ImageListViewModel>();
             //services.AddTransient<ImageGroupViewerViewModel>();
             //services.AddTransient<ImageGroupViewer>(sp =>
             //{
@@ -101,10 +104,11 @@ namespace DupTerminator.WPF
             //services.AddLocalization(o => o.ResourcesPath = "Resources");
 
             services.AddArchive();
+            services.AddPdf();
             services.AddWindowsUtil();
 
             services.AddSingleton<IMessageService, Service.MessageService>();
-            services.TryAddSingleton<DbArchiveService>();
+            //services.TryAddSingleton<DbArchiveService>();
         }
     }
 

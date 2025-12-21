@@ -21,10 +21,10 @@ namespace DupTerminator.View
 
         //public DBManager dbManager;
         private FormProgress _formProgress;
-        private readonly IDBManager _dbManager;
+        private readonly IMd5Repository _dbManager;
         private readonly SearchSetting _searchSetting;
 
-        public FormSetting(IDBManager dbManager, SearchSetting searchSetting)
+        public FormSetting(IMd5Repository dbManager, SearchSetting searchSetting)
         {
             settings = Settings.GetInstance();
             InitializeComponent();

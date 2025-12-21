@@ -30,26 +30,26 @@ namespace DupTerminator.View
             {
                 if (!_models.ContainsKey("Unknown"))
                 {
-                    var progressModel = new ProgressModel { Status = progressDto.Status, PhisicalDrive = "Unknown" };
+                    var progressModel = new ProgressModel { Status = progressDto.Path, PhisicalDrive = "Unknown" };
                     _models.Add("Unknown", progressModel);
 
                     CreatePanel(progressModel);
                 }
                 else
                 {
-                    _models["Unknown"].Status = progressDto.Status;
+                    _models["Unknown"].Status = progressDto.Path;
                 }
             }
             else if (!_models.ContainsKey(progressDto.PhisicalDrive))
             {
-                var progressModel = new ProgressModel { Status = progressDto.Status, PhisicalDrive = progressDto.PhisicalDrive };
+                var progressModel = new ProgressModel { Status = progressDto.Path, PhisicalDrive = progressDto.PhisicalDrive };
                 _models.Add(progressDto.PhisicalDrive, progressModel);
 
                 CreatePanel(progressModel);
             }
             else
             {
-                _models[progressDto.PhisicalDrive].Status = progressDto.Status;
+                _models[progressDto.PhisicalDrive].Status = progressDto.Path;
             }
         }
 

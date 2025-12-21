@@ -9,9 +9,9 @@ using Microsoft.Data.Sqlite;
 
 namespace DupTerminator.DataBase
 {
-    class DBManager : IDBManager
+    class Md5Repository : IMd5Repository
     {
-        private const string SQL_CONNECTION_FILE = "Data Source=database.db;";
+        private const string SQL_CONNECTION_FILE = "Data Source=md5.db;";
         //private const string sqlConnectionMemory = "Data Source=:memory:;Version=3;New=True;";
         //private const string SQL_CONNECTION_MEMORY = "Data Source=:memory:";
         private const string SQL_CREATE = @" PRAGMA synchronous = OFF;
@@ -45,7 +45,7 @@ namespace DupTerminator.DataBase
         public event SetMaxValueDelegate SetMaxValueEvent;
 
         // Private constructor allowing this type to construct the Singleton.
-        public DBManager(IMessageService messageService)
+        public Md5Repository(IMessageService messageService)
         {
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
 
@@ -114,8 +114,12 @@ namespace DupTerminator.DataBase
 
         public void Add(string path, DateTime lastWriteTime, ulong size, string md5)
         {
-            if (path == null || lastWriteTime == null)
-                throw new ArgumentNullException("path == null || lastWriteTim == null");
+            if (path == null)
+                throw new ArgumentNullException(nameof(path));
+            if (lastWriteTime == null)
+                throw new ArgumentNullException(nameof(lastWriteTime));
+            if (string.IsNullOrEmpty(md5))
+                throw new ArgumentNullException(nameof(md5));
 
             CheckMemoryState();
 

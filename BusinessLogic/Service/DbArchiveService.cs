@@ -10,7 +10,7 @@ using DupTerminator.DataBase;
 
 namespace DupTerminator.BusinessLogic.Service
 {
-    public class DbArchiveService
+   /* public class DbArchiveService
     {
         private readonly IArchiveService _archiveService;
         private readonly IExtendedFileInfoRepository _extendedFileInfoRepository;
@@ -45,5 +45,5 @@ namespace DupTerminator.BusinessLogic.Service
                 return _archiveService.GetInfoFromArchive(item.Path, item, token);
             }
         }
-    }
+    }*/
 }

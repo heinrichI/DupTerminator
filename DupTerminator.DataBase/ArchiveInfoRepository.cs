@@ -7,12 +7,12 @@ using Microsoft.Data.Sqlite;
 
 namespace DupTerminator.DataBase
 {
-    public class ExtendedFileInfoRepository : IExtendedFileInfoRepository
+    public class ArchiveInfoRepository : IArchiveInfoRepository
     {
         private readonly string _connectionString;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = false };
 
-        public ExtendedFileInfoRepository(string connectionString = "Data Source=archiveInfo.db;")
+        public ArchiveInfoRepository(string connectionString = "Data Source=archiveInfo.db;")
         {
             _connectionString = connectionString;
             Initialize();
@@ -37,7 +37,7 @@ namespace DupTerminator.DataBase
             createTable.ExecuteNonQuery();
         }
 
-        public IEnumerable<ArchiveFileInfo>? Get(string path, DateTime lastWriteTime, ulong size)
+        public ArchiveFileInfo[] Get(string path, DateTime lastWriteTime, ulong size)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();

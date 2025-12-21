@@ -9,6 +9,8 @@ namespace DupTerminator.BusinessLogic.Model.Modes
 {
     public class MD5ModeSettings : SettingsBase
     {
+        public override string Name { get; } = "MD5";
+
         private bool _isEnabled;
         private string _userName;
         private int _timeoutSeconds;
@@ -19,7 +21,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public bool IsEnabled
         {
             get => _isEnabled;
-            set { _isEnabled = value; OnPropertyChanged(nameof(IsEnabled)); }
+            set { _isEnabled = value; RaisePropertyChangedEvent(); }
         }
 
         [DisplayName("User Name")]
@@ -27,7 +29,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public string UserName
         {
             get => _userName;
-            set { _userName = value; OnPropertyChanged(nameof(UserName)); }
+            set { _userName = value; RaisePropertyChangedEvent(); ; }
         }
 
         [DisplayName("Timeout (seconds)")]
@@ -35,7 +37,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public int TimeoutSeconds
         {
             get => _timeoutSeconds;
-            set { _timeoutSeconds = value; OnPropertyChanged(nameof(TimeoutSeconds)); }
+            set { _timeoutSeconds = value; RaisePropertyChangedEvent(); }
         }
     }
 }

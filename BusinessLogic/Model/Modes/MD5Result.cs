@@ -10,11 +10,11 @@ namespace DupTerminator.BusinessLogic.Model.Modes
 {
     public class MD5Result : ResultBase
     {
-        public MD5Result(ReadOnlyCollection<DuplicateGroup> result)
+        public MD5Result(ICollection<DuplicateGroup> result)
         {
             Result = result;
         }
 
-        public ReadOnlyCollection<DuplicateGroup> Result { get; }
+        public ICollection<DuplicateGroup> Result { get; }
     }
 }

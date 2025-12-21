@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model.Modes
 {
-    public class DuplicateContainerSettings : SettingsBase
+    public class PHashContainerSettings : PHashSettings
     {
+        public override string Name { get; } = "PHash Container";
+
         private int _moreThanFileCount = 1;
 
         [DisplayName("MoreThanFileCount")]
@@ -16,7 +18,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public int MoreThanFileCount
         {
             get => _moreThanFileCount;
-            set { _moreThanFileCount = value; OnPropertyChanged(nameof(MoreThanFileCount)); }
+            set { _moreThanFileCount = value; RaisePropertyChangedEvent(); }
         }
     }
 }

@@ -10,8 +10,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
+using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Controls;
 using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using Microsoft.Extensions.Logging;
@@ -23,14 +25,17 @@ namespace DupTerminator.WPF.ViewModel
     {
         public SettingViewModel SettingViewModel { get; set; }
 
-        public ImageGroupsViewModel ImageGroupsViewModel { get; set; }
+        public ImageGroupsViewModel ImageGroupsViewModel { get; }
+        public ImageListViewModel ImageListViewModel { get; }
 
         public MainViewModel(
             SettingViewModel settingViewModel,
-            ImageGroupsViewModel imageGroupsViewModel)
+            ImageGroupsViewModel imageGroupsViewModel,
+            ImageListViewModel imageListViewModel)
         {
             SettingViewModel = settingViewModel;
             ImageGroupsViewModel = imageGroupsViewModel;
+            ImageListViewModel = imageListViewModel;
             SettingViewModel.SearchCompleted += OnSearchCompleted;
         }
 
@@ -55,8 +60,11 @@ namespace DupTerminator.WPF.ViewModel
 
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                if (e.Results is PHashResult pResult)
+                if (e.Results is PHashSearchImageResult pHashSearchImageResult)
+                    ImageListViewModel.UpdateList(pHashSearchImageResult.Images);
+                else if (e.Results is PHashResult pResult)
                     ImageGroupsViewModel.UpdateGroups(pResult.Result);
+
             });
 
             SelectedTabPageIndex = 1;
@@ -104,13 +112,32 @@ namespace DupTerminator.WPF.ViewModel
             {
                 return _openFileCommand ?? (_openFileCommand = new RelayCommand(arg =>
                 {
-                    if (arg is string filePath && !string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))
+                    if (arg is ContainerEqInfo info)
                     {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                        if (System.IO.File.Exists(info.Path))
                         {
-                            FileName = filePath,
-                            UseShellExecute = true
-                        });
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = info.Path,
+                                UseShellExecute = true
+                            });
+                        }
+                        else if(System.IO.File.Exists(info.FileInfo.Container.Path))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = info.FileInfo.Container.Path,
+                                UseShellExecute = true
+                            });
+                        }
+                        else if (System.IO.Directory.Exists(info.Path))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = info.Path,
+                                UseShellExecute = true
+                            });
+                        }
                     }
                 }, arg => arg != null));
             }

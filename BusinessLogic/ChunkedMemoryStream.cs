@@ -82,6 +82,31 @@ namespace DupTerminator.BusinessLogic
             }
         }
 
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            while (buffer.Length > 0)
+            {
+                int currentChunkIndex = (int)(_position / _chunkSize);
+                int currentChunkOffset = (int)(_position % _chunkSize);
+
+                // Ensure chunk exists and is large enough
+                if (currentChunkIndex >= _chunks.Count)
+                {
+                    _chunks.Add(_arrayPool.Rent(_chunkSize));
+                }
+                byte[] currentChunk = _chunks[currentChunkIndex];
+
+                int bytesToWriteInChunk = Math.Min(buffer.Length, _chunkSize - currentChunkOffset);
+
+                // Copy the span portion directly to the chunk
+                buffer.Slice(0, bytesToWriteInChunk).CopyTo(currentChunk.AsSpan(currentChunkOffset));
+
+                _position += bytesToWriteInChunk;
+                buffer = buffer.Slice(bytesToWriteInChunk);
+                _length = Math.Max(_length, _position);
+            }
+        }
+
         public override long Seek(long offset, SeekOrigin origin)
         {
             switch (origin)

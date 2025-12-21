@@ -4,7 +4,7 @@
     public delegate void SetMaxValueDelegate(int value);
     public delegate void DeletingCompletedDelegate();
 
-    public interface IDBManager
+    public interface IMd5Repository
     {
         event DeletingCompletedDelegate DeletingCompletedEvent;
         event ProgressChangedDelegate ProgressChangedEvent;

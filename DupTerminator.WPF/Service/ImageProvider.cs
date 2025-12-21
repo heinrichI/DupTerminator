@@ -18,10 +18,12 @@ namespace DupTerminator.WPF.Service
         private readonly LruCache<string, BitmapImage> _thumbCache = new(500); // keep 500 thumbnails
         private readonly LruCache<string, BitmapImage> _fullCache = new(50);  // keep 50 full images
         private readonly IArchiveService _archiveService;
+        private readonly IPdfService _pdfService;
 
-        public ImageProvider(IArchiveService archiveService)
+        public ImageProvider(IArchiveService archiveService, IPdfService pdfService)
         {
             _archiveService = archiveService;
+            _pdfService = pdfService;
         }
 
         public Task<BitmapImage?> GetThumbnailAsync(string fullPath)
@@ -136,7 +138,7 @@ namespace DupTerminator.WPF.Service
             return (parts[0], parts[1]);
         }
 
-        public async Task<BitmapImage?> GetThumbnailFromArchiveAsync(ArchiveFileInfo archiveFileInfo)
+        public BitmapImage? GetThumbnailFromArchive(ArchiveFileInfo archiveFileInfo)
         {
             using var stream = _archiveService.GetStream(archiveFileInfo);
 
@@ -159,6 +161,14 @@ namespace DupTerminator.WPF.Service
             return CreateZoomedBitmap(stream, _thumbSize);
             //return null;
         }
+
+        public BitmapImage? GetThumbnailFromPdf(PdfFileInfo pdfFileInfo)
+        {
+            using var stream = _pdfService.GetStream(pdfFileInfo);
+
+            return CreateZoomedBitmap(stream, _thumbSize);
+        }
+
 
         //private async Task<Stream> GetArchiveStreamAsync(string archivePath, string innerFile)
         //{

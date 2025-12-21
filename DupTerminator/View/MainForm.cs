@@ -65,7 +65,7 @@ namespace DupTerminator.View
         private ITaskbarList3 _taskbarProgress;
 
         private UndoRedoEngine _undoRedoEngine;
-        private readonly IDBManager _dbManager;
+        private readonly IMd5Repository _dbManager;
         private readonly IStringLocalizer<MainForm> _stringLocalizer;
         private readonly IArchiveService _archiveService;
         private bool _beginUpdate = false;
@@ -94,7 +94,7 @@ namespace DupTerminator.View
             IServiceProvider serviceProvider,
             MainViewModel model,
             UndoRedoEngine undoRedoEngine,
-            IDBManager dbManager,
+            IMd5Repository dbManager,
             IStringLocalizer<MainForm> stringLocalizer,
             IArchiveService archiveService)
         {
@@ -906,7 +906,7 @@ namespace DupTerminator.View
 
             SetWidthOfListView();
 
-            SetStatusState(StatusState.Duplicate); ;
+            SetStatusState(StatusState.Duplicate);
             SetStatusDuplicate(_fFunctions.DuplicateFileCount, _fFunctions.DuplicateFileSize, true);
 
             System.Media.SystemSounds.Beep.Play();  // Beep

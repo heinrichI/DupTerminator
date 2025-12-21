@@ -19,13 +19,13 @@
                     <GridViewColumn Header="PhisicalDrive" DisplayMemberBinding="{Binding PhisicalDrive}" Width="100" />
                     <GridViewColumn Header="State" DisplayMemberBinding="{Binding State, UpdateSourceTrigger=PropertyChanged}" Width="100" />
                     <!-- <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}" Width="Auto" />-->
-                    <GridViewColumn Header="Status"
+                    <GridViewColumn Header="Path"
                             Width="400">
                         <!-- give it some space or use * if your view uses a Grid -->
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <!-- The TextBlock will grow vertically to fit the text -->
-                                <TextBlock Text="{Binding Status}"
+                                <TextBlock Text="{Binding Path}"
                                    TextWrapping="Wrap"
                                    Margin="2,0,2,0" />
                             </DataTemplate>

@@ -12,7 +12,7 @@ namespace DupTerminator.BusinessLogic.Abstraction
         T CalculateHashInArchive<T>(ArchiveFileInfo fileInfo, Func<Stream, T> calculator);
 
         //IEnumerable<ExtendedFileInfo> GetHashesFromArchive(ExtendedFileInfo fileInfo);
-        IEnumerable<ArchiveFileInfo> GetInfoFromArchive(string path, ExtendedFileInfo container, CancellationToken token, bool archiveInArchive = false);
+        ArchiveFileInfo[] GetInfoFromArchive(string path, ExtendedFileInfo container, CancellationToken token, bool archiveInArchive = false);
 
         IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container, bool archiveInArchive = false);
         Stream GetStream(ArchiveFileInfo archiveFileInfo);

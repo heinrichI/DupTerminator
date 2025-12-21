@@ -23,13 +23,13 @@ namespace DupTerminator.WPF.ViewModel
 {
     internal class SettingViewModel : PropertyChangedBase, IDropable
     {
-        private const string LOCATION_FILE_NAME = "locations.json";
-        private const string SEARCH_SETTING_FILE_NAME = "searchSetting.json";
-        private readonly IDBManager _dBManager;
+        private const string SETTINGS_FILE_NAME = "setting.json";
+        private readonly IMd5Repository _md5Repository;
         private readonly IPhashRepository _phashRepository;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
-        private readonly DbArchiveService _dbArchiveService;
+        private readonly IArchiveInfoRepository _archiveInfoRepository;
+        private readonly IPdfService _pdfService;
         private readonly IPHashService _pHashService;
         private readonly IMIHFactory _mihFactory;
         private readonly ILogger<Searcher> _searchLogger;
@@ -37,29 +37,38 @@ namespace DupTerminator.WPF.ViewModel
         public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
         public SettingViewModel(
-            IDBManager dBManager,
+            IMd5Repository md5Repository,
             IPhashRepository phashRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
-            DbArchiveService dbArchiveService,
+            IArchiveInfoRepository archiveInfoRepository,
+            IPdfService pdfService,
             IPHashService pHashService,
             IMIHFactory mihFactory,
             ILogger<Searcher> searchLogger,
             IProgressDialogService progressDialogService)
         {
-            var locations = SerializeHelper<SearchPathViewModel[]>.Load(LOCATION_FILE_NAME) ?? new SearchPathViewModel[0];
-            SearchSetting = SerializeHelper<SearchSetting>.Load(SEARCH_SETTING_FILE_NAME) ?? new SearchSetting();
-
-            _locationsObservable = new ObservableCollection<SearchPathViewModel>(locations);
-            _dBManager = dBManager;
+            _md5Repository = md5Repository;
             _phashRepository = phashRepository;
             _windowsUtil = windowsUtil;
             _archiveService = archiveService;
-            _dbArchiveService = dbArchiveService;
+            _archiveInfoRepository = archiveInfoRepository;
+            _pdfService = pdfService;
             _pHashService = pHashService;
             _mihFactory = mihFactory;
             _searchLogger = searchLogger;
             _progressDialogService = progressDialogService;
+
+            LoadSettings();
+        }
+
+        private void LoadSettings()
+        {
+            SettingsSerializable? settingsSerializable = SerializeHelper<SettingsSerializable>.Load(SETTINGS_FILE_NAME) ?? new SettingsSerializable();
+            _locationsObservable = new ObservableCollection<SearchPathViewModel>(settingsSerializable.Locations);
+            SearchSetting = settingsSerializable.SearchSetting;
+            SelectedMode = Modes.SingleOrDefault(m => m.Name == settingsSerializable.SelectedMode);
+            //Modes.Curr
         }
 
         //private void OnSearchCompleted(ReadOnlyCollection<ResultBase> results)
@@ -71,7 +80,18 @@ namespace DupTerminator.WPF.ViewModel
             SearchCompleted?.Invoke(this, new SearchCompletedEventArgs(results));
         }
 
-        public ObservableCollection<SettingsBase> Modes => new ObservableCollection<SettingsBase>(new List<SettingsBase>{ new MD5ModeSettings(), new DuplicateContainerSettings(), new PHashSettings() });
+        // Initialize Modes collection ONCE with concrete instances
+        private readonly ObservableCollection<SettingsBase> _modes = new ObservableCollection<SettingsBase>(new List<SettingsBase>
+        {
+            new MD5ModeSettings(),
+            new MD5ContainerSettings(),
+            new PHashSettings(),
+            new PHashContainerSettings(),
+            new PHashSearchImageSettings(),
+            new PHashSearchContainerSettings()
+        });
+
+        public ObservableCollection<SettingsBase> Modes => _modes;
 
 
         private SettingsBase _selectedMode;
@@ -150,13 +170,17 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
-        internal void Save()
-        {
-            SerializeHelper<SearchPathViewModel[]>.Save(_locationsObservable.ToArray(), LOCATION_FILE_NAME);
-            SerializeHelper<SearchSetting>.Save(SearchSetting, SEARCH_SETTING_FILE_NAME);
-        }
 
         #endregion
+
+        internal void Save()
+        {
+            SettingsSerializable settingsSerializable = new SettingsSerializable();
+            settingsSerializable.Locations = _locationsObservable.ToArray();
+            settingsSerializable.SearchSetting = SearchSetting;
+            settingsSerializable.SelectedMode = SelectedMode.Name;
+            SerializeHelper<SettingsSerializable>.Save(settingsSerializable, SETTINGS_FILE_NAME);
+        }
 
         ICommand _startCommand;
         public ICommand StartCommand
@@ -171,11 +195,12 @@ namespace DupTerminator.WPF.ViewModel
                     //locations,
                     //searchSetting,
                     this,
-                    _dBManager,
+                    _md5Repository,
                     _phashRepository,
+                    _archiveInfoRepository,
                     _windowsUtil,
                     _archiveService,
-                    _dbArchiveService,
+                    _pdfService,
                     _pHashService,
                     _mihFactory,
                     _searchLogger,

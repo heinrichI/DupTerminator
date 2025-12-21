@@ -99,7 +99,7 @@
                                                 </TextBlock>
                                               
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <TextBlock Text="{Binding Query}" Margin="0,0,5,0" />
+                                                    <TextBox Text="{Binding Query}" Margin="0,0,5,0" />
                                                     <TextBlock Text="{Binding Dimensions}" Margin="0,0,5,0"/>
                                                     <TextBox Text="{Binding Size, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
                                                             IsReadOnly="True" ToolTip="FileSize" />

@@ -14,7 +14,7 @@ namespace DupTerminator.WPF.ViewModel
         public ProgressItemViewModel(ProgressDto dto)
         {
             PhisicalDrive = dto.PhisicalDrive;
-            Status = dto.Status;
+            Path = dto.Path;
             State = dto.State;
             RemainSize = dto.RemainSize;
         }
@@ -31,18 +31,18 @@ namespace DupTerminator.WPF.ViewModel
         }
 
 
-        private string _status = "";
-        public string Status
+        private string _path = string.Empty;
+        public string Path
         {
-            get => _status;
+            get => _path;
             set
             {
-                _status = value;
+                _path = value;
                 RaisePropertyChangedEvent();
             }
         }
 
-        private string _state = "";
+        private string _state = string.Empty;
         public string State
         {
             get => _state;

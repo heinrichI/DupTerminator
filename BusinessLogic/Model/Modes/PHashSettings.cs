@@ -9,7 +9,9 @@ namespace DupTerminator.BusinessLogic.Model.Modes
 {
     public class PHashSettings : SettingsBase
     {
-        private int _hammingDistance = 7;
+        public override string Name { get; } = "PHash";
+
+        private int _hammingDistance = 1;
 
         [DisplayName("Hamming Distance")] // Custom display name
         [Description("Turns on the main feature.")]
@@ -17,7 +19,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public int HammingDistance
         {
             get => _hammingDistance;
-            set { _hammingDistance = value; OnPropertyChanged(nameof(HammingDistance)); }
+            set { _hammingDistance = value; RaisePropertyChangedEvent(); }
         }
 
         private int _wordLength = 16;
@@ -28,7 +30,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
         public int WordLength
         {
             get => _wordLength;
-            set { _wordLength = value; OnPropertyChanged(nameof(WordLength)); }
+            set { _wordLength = value; RaisePropertyChangedEvent(); }
         }
 
         [DisplayName("CheckAllFilesInGroup")] // Custom display name

@@ -1,25 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
+    [DebuggerDisplay("{Path}")]
     public class ContainerEqInfo
     {
-        public ContainerEqInfo(string path)
+        public ContainerEqInfo(ExtendedFileInfo fileInfo)
         {
-            Path = path;
+            FileInfo = fileInfo;
         }
 
-        public ContainerEqInfo(string path, int containerFilesCount) : this(path)
+        public ContainerEqInfo(ExtendedFileInfo fileInfo, int containerFilesCount) : this(fileInfo)
         {
             ContainerFilesCount = containerFilesCount;
         }
 
-        public string Path { get; }
+        public string Path => FileInfo.Path;
         public int ContainerFilesCount { get; }
+        public ExtendedFileInfo FileInfo { get; }
 
         public override bool Equals(object? obj)
         {
