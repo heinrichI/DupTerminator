@@ -11,7 +11,7 @@ namespace DupTerminator.BusinessLogic.Model.Modes
     {
         public override string Name { get; } = "PHash";
 
-        private int _hammingDistance = 1;
+        private int _hammingDistance = 7;
 
         [DisplayName("Hamming Distance")] // Custom display name
         [Description("Turns on the main feature.")]

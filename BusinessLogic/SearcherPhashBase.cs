@@ -64,6 +64,13 @@ namespace DupTerminator.BusinessLogic
             ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(locations, progress, cancelToken);
 
             //Debug.Assert(_checksumDictionary.Count > 0, "Файлов нет!");
+            //var paths = checksumDictionary.SelectMany(f => f.Value.Select(h => h.FileInfo.Path)).ToArray();
+            //foreach (var path in paths)
+            //{
+            //    if (paths.Count(f => f == path) > 1)
+            //        throw new Exception("Что-то не так");
+            //}
+
 
             if (checksumDictionary.Any())
             {

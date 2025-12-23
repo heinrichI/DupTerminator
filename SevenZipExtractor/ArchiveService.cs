@@ -46,24 +46,26 @@ namespace SevenZipExtractor
             return infos;
         }
 
-        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo container, int containerFilesCount, bool archiveInArchive)
+        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo archive, int containerFilesCount, bool archiveInArchive)
         {
             ArchiveFileInfo efi = new ArchiveFileInfo()
             {
                 //InArchive = true,
                 ArchiveCRC = entry.CRC,
-                ArchiveFileName = container.Name,
-                ArchivePath = container.Path,
-                ArchiveExtension = container.Extension,
+                ArchiveFileName = archive.Name,
+                ArchivePath = archive.Path,
+                ArchiveExtension = archive.Extension,
                 LastAccessTime = entry.LastAccessTime,
                 Name = Path.GetFileName(entry.FileName),
                 Extension = Path.GetExtension(entry.FileName),
                 Size = entry.Size,
-                Path = $"{container.Path}\\{entry.FileName}",
-                Container = container,
+                Path = $"{archive.Path}\\{entry.FileName}",
+                Container = archive,
                 ContainerFilesCount = containerFilesCount,
                 ArchiveInArchive = archiveInArchive
             };
+            Debug.Assert(!string.IsNullOrEmpty(efi.ArchiveExtension));
+            Debug.Assert(!string.IsNullOrEmpty(efi.Path));
             return efi;
         }
 
@@ -105,11 +107,11 @@ namespace SevenZipExtractor
             return ArchiveFile.IsArchive(fullName);
         }
 
-        public ArchiveFileInfo[] GetInfoFromArchive(string fullName, ExtendedFileInfo container, CancellationToken token, bool archiveInArchive = false)
+        public ArchiveFileInfo[] GetInfoFromArchive(ExtendedFileInfo archive, CancellationToken token, bool archiveInArchive = false)
         {
             List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
 
-            using (ArchiveFile archiveFile = new ArchiveFile(fullName))
+            using (ArchiveFile archiveFile = new ArchiveFile(archive.Path))
             {
                 foreach (var entry in archiveFile.Entries)
                 {
@@ -127,7 +129,7 @@ namespace SevenZipExtractor
                     {
                         entry.Extract(entryStream);
 
-                        var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
+                        var fileInfo = Map(entry, archive, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
                         infos.Add(fileInfo);
 
                         entryStream.Position = 0;

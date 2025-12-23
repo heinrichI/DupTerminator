@@ -44,7 +44,7 @@ namespace DupTerminator.BusinessLogic.Model
 
         public int SecondContainerFilesCount { get;  }
 
-        public decimal SizeOfEqualFiles => TheyThemselvesAreEqual ? FirstInfo.FileInfo.Size : FirstEqualFiles.Sum(f => (decimal)f.Size);
+        public decimal SizeOfEqualFiles => TheyThemselvesAreEqual ? FirstInfo.FileInfo.Size : FirstEqualFiles.Distinct().Sum(f => (decimal)f.Size);
 
 
         //public string Similarity { get; set; }

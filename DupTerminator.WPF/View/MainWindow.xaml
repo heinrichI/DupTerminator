@@ -126,7 +126,7 @@
                                     </DataTemplate>
                                 </Expander.HeaderTemplate>
                                 <!-- Содержимое выпадающей панели -->
-                                <ListBox ItemsSource="{Binding FirstEqualFiles}" 
+                                <ListBox ItemsSource="{Binding SecondEqualFiles}" 
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                                     <ListBox.ItemTemplate>

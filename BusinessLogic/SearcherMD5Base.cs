@@ -501,7 +501,7 @@ namespace DupTerminator.BusinessLogic
                             filesInArchive = _archiveInfoRepository.Get(file.Path, fi.LastWriteTime, efi.Size);
                             if (filesInArchive == null)
                             {
-                                filesInArchive = _archiveService.GetInfoFromArchive(file.Path, efi.Container, token);
+                                filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
                                 if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
                                 {
                                     _archiveInfoRepository.Add(efi.Container, filesInArchive);
@@ -512,7 +512,7 @@ namespace DupTerminator.BusinessLogic
                         }
                         else
                         {
-                            filesInArchive = _archiveService.GetInfoFromArchive(file.Path, efi.Container, token);
+                            filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
                         }
                         foreach (ExtendedFileInfo fileArch in filesInArchive)
                         {
@@ -641,7 +641,7 @@ namespace DupTerminator.BusinessLogic
                         filesInArchive = _archiveInfoRepository.Get(item.Path, item.LastWriteTime, item.Size);
                         if (filesInArchive == null)
                         {
-                            filesInArchive = _archiveService.GetInfoFromArchive(item.Path, item, token);
+                            filesInArchive = _archiveService.GetInfoFromArchive(item, token);
                             if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
                             {
                                 _archiveInfoRepository.Add(item, filesInArchive);
@@ -657,7 +657,7 @@ namespace DupTerminator.BusinessLogic
                     }
                     else
                     {
-                        filesInArchive = _archiveService.GetInfoFromArchive(item.Path, item, token);
+                        filesInArchive = _archiveService.GetInfoFromArchive(item, token);
                     }
                     //var filesInArchive = _archiveService.GetInfoFromArchive(item.Path, item, token);
                     //var res = DeepComparer.DeepEquals(filesInArchive, filesInArchive2);

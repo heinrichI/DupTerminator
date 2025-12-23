@@ -64,8 +64,7 @@
                                     <ItemsPanelTemplate>
                                         <WrapPanel Orientation="Horizontal"/>
                                     </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                
+                                </ItemsControl.ItemsPanel>                                
                                 
 
                                 <ItemsControl.ItemTemplate>
@@ -85,7 +84,8 @@
                                                     </i:Interaction.Triggers>
                                                 </Image>
 
-                                                <TextBlock Text="{Binding FileName}" 
+                                            <TextBox Text="{Binding FileName, Mode=OneWay}" 
+                                                     IsReadOnly="True"
                                                    TextWrapping="Wrap"
                                                    MaxWidth="200"
                                                    TextAlignment="Center"
@@ -96,14 +96,32 @@
                                                                 <i:InvokeCommandAction Command="{Binding RenameCommand}"/>
                                                             </i:KeyTrigger>
                                                     </i:Interaction.Triggers>
-                                                </TextBlock>
+                                                </TextBox>
                                               
                                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                    <TextBox Text="{Binding Query}" Margin="0,0,5,0" />
-                                                    <TextBlock Text="{Binding Dimensions}" Margin="0,0,5,0"/>
-                                                    <TextBox Text="{Binding Size, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
-                                                            IsReadOnly="True" ToolTip="FileSize" />
-                                                </StackPanel>
+                                                <Border BorderBrush="Black" 
+                                                        BorderThickness="1" 
+                                                        CornerRadius="4" 
+                                                        Padding="4" 
+                                                        Background="White">
+                                                    <TextBlock Text="{Binding Query, Mode=OneWay}" Margin="0,0,5,0" />
+                                                </Border>
+                                                <Border BorderBrush="Black" 
+                                                        BorderThickness="1" 
+                                                        CornerRadius="4" 
+                                                        Padding="4" 
+                                                        Background="White">
+                                                    <TextBlock Text="{Binding Dimensions, Mode=OneWay}" Margin="0,0,5,0"/>
+                                                </Border>
+                                                <Border BorderBrush="Black" 
+                                                        BorderThickness="1" 
+                                                        CornerRadius="4" 
+                                                        Padding="4" 
+                                                        Background="White">
+                                                    <TextBlock Text="{Binding Size, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
+                                                           ToolTip="FileSize" />
+                                                </Border>
+                                            </StackPanel>
 
                                                 <ProgressBar Height="4" Margin="2" 
                                                      IsIndeterminate="True"
@@ -111,8 +129,7 @@
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                                
+                                </ItemsControl.ItemTemplate>                                
                                 
                                 
                                 <!--<ItemsControl.ItemContainerStyle>
