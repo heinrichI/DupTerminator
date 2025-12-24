@@ -19,133 +19,7 @@
         <converters:FileSizeConverter x:Key="fileSizeConverter"/>
 
         <DataTemplate DataType="{x:Type modes:MD5ContainerResult}">
-            <ListView x:Name="myListView" ItemsSource="{Binding Result}"
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      HorizontalContentAlignment="Stretch">
-                <ListView.ItemTemplate>
-                    <DataTemplate DataType="{x:Type model:DuplicateContainer}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.5*"/>
-                                <ColumnDefinition Width="0.5*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding TheyThemselvesAreEqual}" Value="True">
-                                            <Setter Property="Background" Value="LightGreen"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
-
-                            <TextBox Grid.Row="0" Grid.Column="0"
-                                Text="{Binding FirstInfo.Path, Mode=OneWay}" 
-                                IsReadOnly="True"
-                                    TextWrapping="Wrap" >
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
-                                                <Setter Property="Background" Value="LightGreen"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                                <TextBox.InputBindings>
-                                    <MouseBinding MouseAction="LeftDoubleClick"
-                                    Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding FirstInfo}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
-                            <!--<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" >
-                                <Label Content="{Binding FirstEqualCount}" />
-                                <Label Content="/" />
-                                <Label Content="{Binding FirstContainerFilesCount}" />
-                            </StackPanel>-->
-                            <Expander Grid.Row="1" Grid.Column="0" 
-                                      Header="{Binding FirstEqualCount}"
-                                      IsExpanded="{Binding IsExpanded, ElementName=SecondExpander}" >
-                                <Expander.HeaderTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="{Binding}" />
-                                            <Label Content="/" />
-                                            <Label Content="{Binding Path=DataContext.FirstContainerFilesCount, RelativeSource={RelativeSource AncestorType=Expander}}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </Expander.HeaderTemplate>
-
-                                <!-- Содержимое выпадающей панели -->
-                                <ListBox ItemsSource="{Binding FirstEqualFiles}" 
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" />
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Expander>
-
-                            <TextBox  Grid.Row="0" Grid.Column="1"
-                                Text="{Binding SecondInfo.Path, Mode=OneWay}" 
-                                IsReadOnly="True" TextWrapping="Wrap" >
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
-                                                <Setter Property="Background" Value="LightGreen"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                                <TextBox.InputBindings>
-                                    <MouseBinding MouseAction="LeftDoubleClick"
-                                    Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding SecondInfo}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
-                            <Expander Grid.Row="1" Grid.Column="1" Header="{Binding SeconEqualCount}" 
-                                      x:Name="SecondExpander" >
-                                <Expander.HeaderTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="{Binding}" />
-                                            <Label Content="/" />
-                                            <Label Content="{Binding Path=DataContext.SecondContainerFilesCount, RelativeSource={RelativeSource AncestorType=Expander}}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </Expander.HeaderTemplate>
-                                <!-- Содержимое выпадающей панели -->
-                                <ListBox ItemsSource="{Binding SecondEqualFiles}" 
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2"/>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </Expander>
-
-                            <TextBox Grid.Row="0" Grid.Column="2"
-                                     Text="{Binding SizeOfEqualFiles, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
-                                     IsReadOnly="True" />                            
-                        </Grid>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>          
+            <controls:DuplicateContainerControl ItemsSource="{Binding Result}"/>
         </DataTemplate>
 
         <!-- Display for MD5Result -->
@@ -169,7 +43,7 @@
 
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem DockPanel.Dock="Left" >
-                <TextBlock Text="Файлов обработано: 0" />
+                <TextBlock Text="{Binding SettingViewModel.TotalInfo, Mode=OneWay}" />
             </StatusBarItem>
             <Separator DockPanel.Dock="Left" />
         </StatusBar>

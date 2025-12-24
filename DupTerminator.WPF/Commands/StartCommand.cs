@@ -138,6 +138,7 @@ namespace DupTerminator.WPF.Commands
                     //ResultType1 type2 = new ResultType1 { Property1 = "4536", Property2 = 3 };
                     //var col = new ReadOnlyCollection<ResultBase>(new[] { type1, type2 } );
                     _updateResults(new MD5ContainerResult(result));
+                    _settingViewModel.TotalInfo = result.Count.ToString();
                     System.Media.SystemSounds.Beep.Play();
                 });
             }

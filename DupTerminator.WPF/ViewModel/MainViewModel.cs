@@ -153,6 +153,5 @@ namespace DupTerminator.WPF.ViewModel
                 RaisePropertyChangedEvent();
             }
         }
-
     }
 }

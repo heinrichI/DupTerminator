@@ -208,5 +208,16 @@ namespace DupTerminator.WPF.ViewModel
                     OnSearchCompleted));
             }
         }
+
+        private string _totalInfo;
+        public string TotalInfo
+        {
+            get { return _totalInfo; }
+            set
+            {
+                _totalInfo = value;
+                RaisePropertyChangedEvent();
+            }
+        }
     }
 }
