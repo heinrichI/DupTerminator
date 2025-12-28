@@ -95,6 +95,8 @@ namespace DupTerminator.BusinessLogic
                     });
 
 
+                    int total = checksumDictionary.Count;
+                    int index = 0;
                     foreach (var pair in checksumDictionary)
                     {
                         if (cancelToken.IsCancellationRequested)
@@ -111,8 +113,9 @@ namespace DupTerminator.BusinessLogic
                         {
                             Path = pair.Value.First().FileInfo.Path,
                             State = "QueryMIH",
-                            RemainSize = string.Empty,
+                            RemainSize = $"{index }/{total}",
                         });
+                        index++;
 
                         PHashDuplicateGroup duplicateGroup = null;
                         //if (pair.Value.Count > 1)

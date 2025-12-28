@@ -77,8 +77,9 @@
                                 <Label Content="{Binding FirstContainerFilesCount}" />
                             </StackPanel>-->
                         <Expander Grid.Row="1" Grid.Column="0" 
-                                      Header="{Binding FirstEqualCount}"
-                                      IsExpanded="{Binding IsExpanded, ElementName=SecondExpander}" >
+                                  Header="{Binding FirstEqualCount}"
+                                  IsExpanded="{Binding IsExpanded, ElementName=SecondExpander}" 
+                                  MaxHeight="400">
                             <Expander.HeaderTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
@@ -88,19 +89,56 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </Expander.HeaderTemplate>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                            <!-- Содержимое выпадающей панели -->
-                            <ListBox ItemsSource="{Binding FirstEqualFiles}" 
+                                <ListBox ItemsSource="{Binding FirstEqualFiles}" 
                                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
+                                         Grid.Column="0" >
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" >
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                              Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" />
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <ListBox Grid.Column="1"
+                                         ItemsSource="{Binding FirstDiffrentFiles}" >
+                                        <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"
+                                                       ToolTip="{Binding Path}">
+                                                <TextBlock.InputBindings>
+                                                    <MouseBinding MouseAction="LeftDoubleClick"
+                                                          Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          CommandParameter="{Binding}" />
+                                                </TextBlock.InputBindings>
+                                            </TextBlock>
+                                            <!--<StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" />
+                                            </StackPanel>-->
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <!-- <TextBox
+                                    Text="{Binding FirstDopInfo, Mode=OneWay}" 
+                                    TextWrapping="Wrap"
+                                    IsReadOnly="True"
+                                    Width="100"
+                                    Grid.Column="1"/>-->
+                            </Grid>
                         </Expander>
 
                         <TextBox  Grid.Row="0" Grid.Column="1"
@@ -121,8 +159,10 @@
                                     CommandParameter="{Binding SecondInfo}" />
                             </TextBox.InputBindings>
                         </TextBox>
-                        <Expander Grid.Row="1" Grid.Column="1" Header="{Binding SeconEqualCount}" 
-                                      x:Name="SecondExpander" >
+                        <Expander Grid.Row="1" Grid.Column="1" 
+                                  Header="{Binding SeconEqualCount}" 
+                                  x:Name="SecondExpander" 
+                                  MaxHeight="400">
                             <Expander.HeaderTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
@@ -132,18 +172,48 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </Expander.HeaderTemplate>
-                            <!-- Содержимое выпадающей панели -->
-                            <ListBox ItemsSource="{Binding SecondEqualFiles}" 
-                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                         ScrollViewer.VerticalScrollBarVisibility="Auto">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Содержимое выпадающей панели -->
+                                <ListBox ItemsSource="{Binding SecondEqualFiles}" 
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" >
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                              Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" />
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                                <ListBox Grid.Column="1"
+                                         ItemsSource="{Binding SecondDiffrentFiles}" >
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" ToolTip="{Binding Path}" Margin="2" >
+                                                    <TextBlock.InputBindings>
+                                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                              Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              CommandParameter="{Binding}" />
+                                                    </TextBlock.InputBindings>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Grid>
                         </Expander>
 
                         <TextBox Grid.Row="0" Grid.Column="2"

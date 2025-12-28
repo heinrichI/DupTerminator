@@ -27,10 +27,12 @@ namespace DupTerminator.BusinessLogic.Model
             FirstEqualFiles = firstFiles;
             SecondEqualFiles = secondFiles;
             TheyThemselvesAreEqual = theyThemselvesAreEqual;
+
+
         }
 
-        public IList<ExtendedFileInfo> FirstEqualFiles { get; }
-        public IList<ExtendedFileInfo> SecondEqualFiles { get; }
+        public List<ExtendedFileInfo> FirstEqualFiles { get; }
+        public List<ExtendedFileInfo> SecondEqualFiles { get; }
         public bool TheyThemselvesAreEqual { get; }
 
         public int FirstEqualCount => FirstEqualFiles.Count;
@@ -46,6 +48,9 @@ namespace DupTerminator.BusinessLogic.Model
 
         public decimal SizeOfEqualFiles => TheyThemselvesAreEqual ? FirstInfo.FileInfo.Size : FirstEqualFiles.Distinct().Sum(f => (decimal)f.Size);
 
+        public SimpleFileInfo[] FirstDiffrentFiles { get; set; }
+
+        public SimpleFileInfo[] SecondDiffrentFiles { get; set; }
 
         //public string Similarity { get; set; }
     }

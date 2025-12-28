@@ -18,7 +18,9 @@ namespace SevenZipExtractor
     {
         public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container, bool archiveInArchive = false)
         {
-            List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
+            List<ArchiveFileInfo> containerInfos = new List<ArchiveFileInfo>();
+            List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
+
             using (ArchiveFile archiveFile = new ArchiveFile(stream))
             {
                 foreach (var entry in archiveFile.Entries)
@@ -33,17 +35,23 @@ namespace SevenZipExtractor
                         entry.Extract(entryStream);
 
                         var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
-                        infos.Add(fileInfo);
+                        containerInfos.Add(fileInfo);
 
                         entryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
+                            archiveInArchiveInfos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }
                 }
+                var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c)).ToArray();
+                foreach (var fileInfo in containerInfos)
+                {
+                    fileInfo.ContainerFiles = freeze;
+                }
             }
-            return infos;
+            containerInfos.AddRange(archiveInArchiveInfos);
+            return containerInfos.ToArray();
         }
 
         private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo archive, int containerFilesCount, bool archiveInArchive)
@@ -56,6 +64,7 @@ namespace SevenZipExtractor
                 ArchivePath = archive.Path,
                 ArchiveExtension = archive.Extension,
                 LastAccessTime = entry.LastAccessTime,
+                LastWriteTime = entry.LastWriteTime,
                 Name = Path.GetFileName(entry.FileName),
                 Extension = Path.GetExtension(entry.FileName),
                 Size = entry.Size,
@@ -109,7 +118,8 @@ namespace SevenZipExtractor
 
         public ArchiveFileInfo[] GetInfoFromArchive(ExtendedFileInfo archive, CancellationToken token, bool archiveInArchive = false)
         {
-            List<ArchiveFileInfo> infos = new List<ArchiveFileInfo>();
+            List<ArchiveFileInfo> containerInfos = new List<ArchiveFileInfo>();
+            List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
 
             using (ArchiveFile archiveFile = new ArchiveFile(archive.Path))
             {
@@ -130,17 +140,23 @@ namespace SevenZipExtractor
                         entry.Extract(entryStream);
 
                         var fileInfo = Map(entry, archive, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
-                        infos.Add(fileInfo);
+                        containerInfos.Add(fileInfo);
 
                         entryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
-                            infos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
+                            archiveInArchiveInfos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }
                 }
+                var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c)).ToArray();
+                foreach (var fileInfo in containerInfos)
+                {
+                    fileInfo.ContainerFiles = freeze;
+                }
             }
-            return infos.ToArray();
+            containerInfos.AddRange(archiveInArchiveInfos);
+            return containerInfos.ToArray();
         }
 
         public T CalculateHashInArchive<T>(ArchiveFileInfo fileInfo, Func<Stream, T> calculator)
@@ -421,6 +437,30 @@ namespace SevenZipExtractor
                     entryStream.Dispose();
                 }
             }
+        }
+
+        public Stream GetStream(ArchiveSimpleFileInfo archiveSimpleFileInfo)
+        {
+            using (ArchiveFile archiveFile = new ArchiveFile(archiveSimpleFileInfo.ArchivePath))
+            {
+                foreach (var entry in archiveFile.Entries)
+                {
+                    if (entry.IsFolder)
+                    {
+                        continue;
+                    }
+
+                    if (Path.GetFileName(entry.FileName) == archiveSimpleFileInfo.Name)
+                    {
+                        var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size));
+                        entry.Extract(entryStream);
+
+                        entryStream.Position = 0;
+                        return entryStream;
+                    }
+                }
+            }
+            return null;
         }
     }
 }

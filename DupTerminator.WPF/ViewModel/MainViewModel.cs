@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Configuration;
+using System.Diagnostics;
 using System.DirectoryServices;
 using System.Linq;
 using System.Text;
@@ -12,10 +13,12 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Model.Modes;
+using DupTerminator.WPF.Abstraction;
 using DupTerminator.WPF.Commands;
 using DupTerminator.WPF.Controls;
 using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
+using DupTerminator.WPF.View;
 using Microsoft.Extensions.Logging;
 using static System.Formats.Asn1.AsnWriter;
 
@@ -31,11 +34,13 @@ namespace DupTerminator.WPF.ViewModel
         public MainViewModel(
             SettingViewModel settingViewModel,
             ImageGroupsViewModel imageGroupsViewModel,
-            ImageListViewModel imageListViewModel)
+            ImageListViewModel imageListViewModel,
+            IImageProvider imageProvider)
         {
             SettingViewModel = settingViewModel;
             ImageGroupsViewModel = imageGroupsViewModel;
             ImageListViewModel = imageListViewModel;
+            _imageProvider = imageProvider;
             SettingViewModel.SearchCompleted += OnSearchCompleted;
         }
 
@@ -139,11 +144,35 @@ namespace DupTerminator.WPF.ViewModel
                             });
                         }
                     }
+                    else if (arg is ArchiveSimpleFileInfo asfi)
+                    {
+                        var image = _imageProvider.GetFullSizeFromArchive(asfi);
+                        var dialog = new ImageWindow(image)
+                        {
+                            Owner = System.Windows.Application.Current.MainWindow,
+                        };
+
+                        // Show dialog and wait for either worker completion or dialog close
+                        dialog.Show();
+                    }
+                    else if (arg is ArchiveFileInfo afi)
+                    {
+                        var image = _imageProvider.GetFullSizeFromArchive(afi);
+                        var dialog = new ImageWindow(image)
+                        {
+                            Owner = System.Windows.Application.Current.MainWindow,
+                        };
+
+                        // Show dialog and wait for either worker completion or dialog close
+                        dialog.Show();
+                    }
                 }, arg => arg != null));
             }
         }
 
         private int _selectedTabPageIndex;
+        private readonly IImageProvider _imageProvider;
+
         public int SelectedTabPageIndex
         {
             get { return _selectedTabPageIndex; }

@@ -110,7 +110,7 @@ namespace DupTerminator.BusinessLogic
                             }
 
 
-                            var containersKey = (new ContainerEqInfo(first.Container, first.ContainerFilesCount), new ContainerEqInfo(second.Container, second.ContainerFilesCount));
+                            var containersKey = (new ContainerEqInfo(first.Container, first.ContainerFilesCount, first), new ContainerEqInfo(second.Container, second.ContainerFilesCount, second));
 
                             // Initialize the list if the key doesn't exist
                             if (!containers.TryGetValue(containersKey, out ContainerInfo value))
@@ -147,7 +147,16 @@ namespace DupTerminator.BusinessLogic
                 List<(ContainerEqInfo, ContainerEqInfo)> list = new List<(ContainerEqInfo, ContainerEqInfo)>();
                 for (int i = 0; i < v.FirstFiles.Count; i++)
                 {
-                    list.Add((new ContainerEqInfo(v.FirstFiles[i]), new ContainerEqInfo(v.SecondFiles[i])));
+                    var first = v.FirstFiles[i];
+                    var second = v.SecondFiles[i];
+
+                    if (string.Compare(first.Container.Path, second.Container.Path, StringComparison.Ordinal) > 0)
+                    {
+                        // Swap if first.Path > second.Path
+                        (first, second) = (second, first);
+                    }
+
+                    list.Add((new ContainerEqInfo(first), new ContainerEqInfo(second)));
                 }
                 return list;
             }).ToArray();
@@ -177,6 +186,23 @@ namespace DupTerminator.BusinessLogic
                 .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual))
                 .OrderByDescending(d => d.SizeOfEqualFiles)
                 .ToList();
+
+            foreach (var item in cts)
+            {
+                // Sort by Name
+                item.FirstEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
+                item.SecondEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
+                if (item.FirstInfo.ContainerFiles is not null)
+                {
+                    var fiEquals = item.FirstEqualFiles.Select(f => new SimpleFileInfo(f));
+                    item.FirstDiffrentFiles = item.FirstInfo.ContainerFiles.Except(fiEquals).ToArray();
+                }
+                if (item.SecondInfo.ContainerFiles is not null)
+                {
+                    var fiEquals = item.SecondEqualFiles.Select(f => new SimpleFileInfo(f));
+                    item.SecondDiffrentFiles = item.SecondInfo.ContainerFiles.Except(fiEquals).ToArray();
+                }
+            }
 
             return new ReadOnlyCollection<DuplicateContainer>(cts);
 

@@ -12,17 +12,11 @@ namespace DupTerminator.BusinessLogic.Model
     /// FileInfo can not be inherited since it is sealed.
     /// </summary>
     [DebuggerDisplay("{CheckSum} {Name}")]
-    public class ExtendedFileInfo
+    public class ExtendedFileInfo : SimpleFileInfo
     {
         //public byte[] Chunk;
 
         public string CheckSum { get; set; }
-
-        public ulong Size { get; set; }
-
-        public string Name { get; set; }
-
-        public virtual string Path { get; set; }
 
         public DateTime LastAccessTime { get; set; }
 

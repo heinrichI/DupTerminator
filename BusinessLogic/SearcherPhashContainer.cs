@@ -78,8 +78,8 @@ namespace DupTerminator.BusinessLogic
                             }
 
 
-                            var key = (new ContainerEqInfo(first.FileItem.FileInfo.Container, first.FileItem.FileInfo.ContainerFilesCount),
-                                new ContainerEqInfo(second.FileItem.FileInfo.Container, second.FileItem.FileInfo.ContainerFilesCount));
+                            var key = (new ContainerEqInfo(first.FileItem.FileInfo.Container, first.FileItem.FileInfo.ContainerFilesCount, first.FileItem.FileInfo),
+                                new ContainerEqInfo(second.FileItem.FileInfo.Container, second.FileItem.FileInfo.ContainerFilesCount, second.FileItem.FileInfo));
 
                             // Initialize the list if the key doesn't exist
                             if (!containers.TryGetValue(key, out (List<ExtendedFileInfo>, List<ExtendedFileInfo>) value))

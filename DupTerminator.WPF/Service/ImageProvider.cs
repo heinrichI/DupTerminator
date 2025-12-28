@@ -169,6 +169,32 @@ namespace DupTerminator.WPF.Service
             return CreateZoomedBitmap(stream, _thumbSize);
         }
 
+        public BitmapImage? GetFullSizeFromArchive(ArchiveSimpleFileInfo archiveSimpleFileInfo)
+        {
+            if (_fullCache.TryGet(archiveSimpleFileInfo.Path, out var cached))
+                return cached;
+
+            using var stream = _archiveService.GetStream(archiveSimpleFileInfo);
+
+            var bmp = CreateFullSizedBitmap(stream);
+            _fullCache.Add(archiveSimpleFileInfo.Path, bmp);
+
+            return bmp;
+        }
+
+        public BitmapImage? GetFullSizeFromArchive(ArchiveFileInfo archiveFileInfo)
+        {
+            if (_fullCache.TryGet(archiveFileInfo.Path, out var cached))
+                return cached;
+
+            using var stream = _archiveService.GetStream(archiveFileInfo);
+
+            var bmp = CreateFullSizedBitmap(stream);
+            _fullCache.Add(archiveFileInfo.Path, bmp);
+
+            return bmp;
+        }
+
 
         //private async Task<Stream> GetArchiveStreamAsync(string archivePath, string innerFile)
         //{

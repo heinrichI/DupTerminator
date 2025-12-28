@@ -15,14 +15,21 @@ namespace DupTerminator.BusinessLogic.Model
             FileInfo = fileInfo;
         }
 
-        public ContainerEqInfo(ExtendedFileInfo fileInfo, int containerFilesCount) : this(fileInfo)
+        public ContainerEqInfo(ExtendedFileInfo container, int containerFilesCount, ExtendedFileInfo fileInfo) : this(container)
         {
             ContainerFilesCount = containerFilesCount;
+            if (fileInfo is ArchiveFileInfo afi)
+                ContainerFiles = afi.ContainerFiles;
         }
 
         public string Path => FileInfo.Path;
+
         public int ContainerFilesCount { get; }
+
+        public SimpleFileInfo[] ContainerFiles { get; }
+
         public ExtendedFileInfo FileInfo { get; }
+
 
         public override bool Equals(object? obj)
         {
