@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.WPF.Abstraction;
+using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.WPF.Service
 {
@@ -20,11 +21,13 @@ namespace DupTerminator.WPF.Service
         private readonly LruCache<string, BitmapImage> _fullCache = new(50);  // keep 50 full images
         private readonly IArchiveService _archiveService;
         private readonly IPdfService _pdfService;
+        private readonly ILogger<ImageProvider> _logger;
 
-        public ImageProvider(IArchiveService archiveService, IPdfService pdfService)
+        public ImageProvider(IArchiveService archiveService, IPdfService pdfService, ILogger<ImageProvider> logger)
         {
             _archiveService = archiveService;
             _pdfService = pdfService;
+            _logger = logger;
         }
 
         public Task<BitmapImage?> GetThumbnailAsync(string fullPath)
@@ -141,26 +144,35 @@ namespace DupTerminator.WPF.Service
 
         public BitmapImage? GetThumbnailFromArchive(ArchiveFileInfo archiveFileInfo)
         {
-            using var stream = _archiveService.GetStream(archiveFileInfo);
+            try
+            {
+                using var stream = _archiveService.GetStream(archiveFileInfo);
 
-            //if (stream != null)
-            //{
-            //    // Copy the stream to a new MemoryStream within this method's scope.
-            //    // This new stream will not be closed prematurely by the service layer's logic.
-            //    using (MemoryStream localStream = new MemoryStream())
-            //    {
-            //        await stream.CopyToAsync(localStream);
-            //        localStream.Position = 0; // Reset the position for the BitmapImage to read from the beginning.
+                //if (stream != null)
+                //{
+                //    // Copy the stream to a new MemoryStream within this method's scope.
+                //    // This new stream will not be closed prematurely by the service layer's logic.
+                //    using (MemoryStream localStream = new MemoryStream())
+                //    {
+                //        await stream.CopyToAsync(localStream);
+                //        localStream.Position = 0; // Reset the position for the BitmapImage to read from the beginning.
 
-            //        // The CreateZoomedBitmap method now receives this local stream.
-            //        return CreateZoomedBitmap(localStream, _thumbSize);
-            //    }
-            //    // NOTE: The original 'stream' should be handled for disposal if necessary
-            //    // within the _archiveService logic or after this method returns.
-            //}
+                //        // The CreateZoomedBitmap method now receives this local stream.
+                //        return CreateZoomedBitmap(localStream, _thumbSize);
+                //    }
+                //    // NOTE: The original 'stream' should be handled for disposal if necessary
+                //    // within the _archiveService logic or after this method returns.
+                //}
 
-            return CreateZoomedBitmap(stream, _thumbSize);
-            //return null;
+                return CreateZoomedBitmap(stream, _thumbSize);
+                //return null;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                return null;
+            }
         }
 
         public BitmapImage? GetThumbnailFromPdf(PdfFileInfo pdfFileInfo)
@@ -185,6 +197,11 @@ namespace DupTerminator.WPF.Service
 
                 return bmp;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                return null;
+            }
             finally
             {
                 Mouse.OverrideCursor = null; // Revert cursor
@@ -205,6 +222,11 @@ namespace DupTerminator.WPF.Service
                 _fullCache.Add(archiveFileInfo.Path, bmp);
 
                 return bmp;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message, ex);
+                return null;
             }
             finally
             {

@@ -147,24 +147,30 @@ namespace DupTerminator.WPF.ViewModel
                     else if (arg is ArchiveSimpleFileInfo asfi)
                     {
                         var image = _imageProvider.GetFullSizeFromArchive(asfi);
-                        var dialog = new ImageWindow(image)
+                        if (image is not null)
                         {
-                            Owner = System.Windows.Application.Current.MainWindow,
-                        };
+                            var dialog = new ImageWindow(image, asfi.Size)
+                            {
+                                Owner = System.Windows.Application.Current.MainWindow,
+                            };
 
-                        // Show dialog and wait for either worker completion or dialog close
-                        dialog.Show();
+                            // Show dialog and wait for either worker completion or dialog close
+                            dialog.Show();
+                        }
                     }
                     else if (arg is ArchiveFileInfo afi)
                     {
                         var image = _imageProvider.GetFullSizeFromArchive(afi);
-                        var dialog = new ImageWindow(image)
+                        if (image is not null)
                         {
-                            Owner = System.Windows.Application.Current.MainWindow,
-                        };
+                            var dialog = new ImageWindow(image, afi.Size)
+                            {
+                                Owner = System.Windows.Application.Current.MainWindow,
+                            };
 
-                        // Show dialog and wait for either worker completion or dialog close
-                        dialog.Show();
+                            // Show dialog and wait for either worker completion or dialog close
+                            dialog.Show();
+                        }
                     }
                 }, arg => arg != null));
             }

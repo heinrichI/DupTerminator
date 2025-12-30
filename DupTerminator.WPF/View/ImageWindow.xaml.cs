@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,9 +21,20 @@ namespace DupTerminator.WPF.View
     /// </summary>
     public partial class ImageWindow : Window
     {
-        public ImageWindow(BitmapImage image)
+        // Create the OnPropertyChanged method to raise the event
+        // The calling member's name will be used as the parameter.
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void RaisePropertyChangedEvent([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public ImageWindow(BitmapImage image, ulong size)
         {
             InitializeComponent();
+
+            // Set the DataContext to this instance
+            DataContext = this;
 
             imgPreview.Source = image;
             if (image.IsDownloading)
@@ -33,6 +46,7 @@ namespace DupTerminator.WPF.View
             {
                 UpdateResolutionText(image);
             }
+            Size = size;
         }
 
         private void UpdateResolutionText(BitmapImage image)
@@ -45,6 +59,13 @@ namespace DupTerminator.WPF.View
             {
                 txtResolution.Text = "Resolution: N/A";
             }
+        }
+
+        private ulong _size;
+        public ulong Size
+        {
+            get => _size;
+            set { _size = value; RaisePropertyChangedEvent(); }
         }
     }
 }

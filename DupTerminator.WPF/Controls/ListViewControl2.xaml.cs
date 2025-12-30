@@ -124,9 +124,12 @@ namespace DupTerminator.WPF.Controls
             {
                 foreach (var group in DuplicateGroups)
                 {
+                    DuplicateGroupViewModel duplicateGroupViewModel = new DuplicateGroupViewModel();
                     foreach (var file in group.Files)
                     {
-                        ExtendedFileInfos.Add(new ExtendedFileInfoViewModel(file));
+                        var efi = new ExtendedFileInfoViewModel(file, duplicateGroupViewModel);
+                        duplicateGroupViewModel.Files.Add(efi);
+                        ExtendedFileInfos.Add(efi);
                     }
                 }
             }

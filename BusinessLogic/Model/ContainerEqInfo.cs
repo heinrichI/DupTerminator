@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,11 @@ namespace DupTerminator.BusinessLogic.Model
         public ContainerEqInfo(ExtendedFileInfo fileInfo)
         {
             FileInfo = fileInfo;
+        }
+
+        public ContainerEqInfo(ExtendedFileInfo container, int containerFilesCount) : this(container)
+        {
+            ContainerFilesCount = containerFilesCount;
         }
 
         public ContainerEqInfo(ExtendedFileInfo container, int containerFilesCount, ExtendedFileInfo fileInfo) : this(container)

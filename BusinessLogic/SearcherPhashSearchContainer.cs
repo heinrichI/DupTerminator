@@ -25,13 +25,13 @@ namespace DupTerminator.BusinessLogic
     public class SearcherPhashSearchContainer : SearcherPhashBase, IDisposable
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
-        private readonly PHashSearchImageSettings _pHashSearchImageSettings;
+        private readonly PHashSearchContainerSettings _pHashSearchContainerSettings;
         private readonly IMIHFactory _mIHFactory;
         private readonly Stopwatch _stopwatch = new();
         public SearcherPhashSearchContainer(
             ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
-            PHashSearchImageSettings pHashSearchImageSettings,
+            PHashSearchContainerSettings pHashSearchContainerSettings,
             IPhashRepository phashRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
@@ -41,15 +41,18 @@ namespace DupTerminator.BusinessLogic
             ILogger<Searcher> logger) : base(searchSetting, new PHashSettings(), mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
             _locations = locations;
-            _pHashSearchImageSettings = pHashSearchImageSettings;
+            _pHashSearchContainerSettings = pHashSearchContainerSettings;
             _mIHFactory = mIHFactory;
         }
 
         public async Task<ReadOnlyCollection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
-            if (Directory.Exists(_pHashSearchImageSettings.Target))
+            var finalResultBag = new ConcurrentBag<(ArchiveFileInfo efi, ulong phash, int width, int height)>();
+            ExtendedFileInfo? targetEfi = null;
+
+            if (Directory.Exists(_pHashSearchContainerSettings.Target))
             {
-                DirectoryInfo di = new System.IO.DirectoryInfo(_pHashSearchImageSettings.Target);
+                DirectoryInfo di = new System.IO.DirectoryInfo(_pHashSearchContainerSettings.Target);
                 var dFiles = di.GetFiles();
                 var files3 = dFiles.Select(f => new ExtendedFileInfo()
                 {
@@ -66,54 +69,134 @@ namespace DupTerminator.BusinessLogic
                 {
                 }
             }
-            else if (_archiveService.IsArchiveFile(_pHashSearchImageSettings.Target))
+            else if (_archiveService.IsArchiveFile(_pHashSearchContainerSettings.Target))
             {
+                var fi = new FileInfo(_pHashSearchContainerSettings.Target);
+                if (fi.Exists)
+                {
+                    targetEfi = new ExtendedFileInfo()
+                    {
+                        Size = Convert.ToUInt64(fi.Length),
+                        Name = fi.Name,
+                        Path = fi.FullName,
+                        LastAccessTime = fi.LastAccessTime,
+                        LastWriteTime = fi.LastWriteTime,
+                        DirectoryName = fi.DirectoryName,
+                        Extension = fi.Extension,
+                    };
+
+                    var streamPairs = _archiveService.GetStreams(targetEfi, _pHashService.IsSupportedExtension, cancelToken);
+                    targetEfi.ContainerFilesCount = streamPairs.Count;
+
+                    Parallel.ForEach(
+                       streamPairs,
+                       new ParallelOptions { MaxDegreeOfParallelism = _numberOfConsumers },
+                       // localInit
+                       () => new List<(ArchiveFileInfo efi, ulong phash, int width, int height)>(), // localInit: Initialize a new local list for each task/partition
+                                                                                                    // body
+                       (item, loopState, localList) => // body: The loop body logic
+                       {
+                           using (item.Item2)
+                           {
+                               try
+                               {
+                                   (ulong? phash, int width, int height) result = _pHashService.CalculatePHash(item.Item2);
+                                   if (result.phash.HasValue)
+                                   {
+                                       localList.Add((item.Item1, result.phash.Value, result.width, result.height));
+                                   }
+                                   else
+                                   {
+                                       _logger.LogWarning($"phash empty for {item.Item1.Path}");
+                                   }
+                               }
+                               catch (Exception ex)
+                               {
+                                   _logger.LogError(ex.Message, ex);
+                               }
+                               return localList; // Return the updated local list for the next iteration
+                           }
+                       },
+                       (finalLocalList) => // localFinally: Action to combine results
+                       {
+                           foreach ((ArchiveFileInfo efi, ulong phash, int width, int height) item2 in finalLocalList)
+                           {
+                               Debug.Assert(item2.phash != 0);
+                               finalResultBag.Add(item2);
+                           }
+                       }
+                    );
+                }
+
             }
 
-                var target = _pHashService.CalculatePHash(_pHashSearchImageSettings.Target);
+            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_locations, progress, cancelToken);
 
-                ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_locations, progress, cancelToken);
-
-                if (checksumDictionary.Any())
+            if (checksumDictionary.Any())
+            {
+                List<DuplicateContainer>? resultList = new List<DuplicateContainer>();
+                using (var mih = _mIHFactory.Create())
                 {
-                    List<DuplicateContainer>? resultList = new List<DuplicateContainer>();
-                    using (var mih = _mIHFactory.Create())
+                    progress?.Report(new ProgressDto
                     {
-                        progress?.Report(new ProgressDto
-                        {
-                            State = "Start train MIH",
-                            RemainSize = string.Empty,
-                        });
+                        State = "Start train MIH",
+                        RemainSize = string.Empty,
+                    });
 
-                        mih.Update(checksumDictionary);
-                        mih.Train(wordLength: _pHashSearchImageSettings.WordLength, threshold: _pHashSearchImageSettings.HammingDistance);
+                    mih.Update(checksumDictionary);
+                    mih.Train(wordLength: _pHashSearchContainerSettings.WordLength, threshold: _pHashSearchContainerSettings.HammingDistance);
 
-                        progress?.Report(new ProgressDto
-                        {
-                            State = "Ended train MIH",
-                            RemainSize = string.Empty,
-                        });
+                    progress?.Report(new ProgressDto
+                    {
+                        State = "Ended train MIH",
+                        RemainSize = string.Empty,
+                    });
 
+                    Dictionary<string, ContainerInfo> containers = new Dictionary<string, ContainerInfo>();
+                    foreach (var targetItem in finalResultBag)
+                    {
+                        Debug.Assert(targetItem.phash != 0);
 
-                        (ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(target.phash.Value).ToArray();
+                        (ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(targetItem.phash).ToArray();
 
                         foreach ((ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance) queryItem in resultQuery)
                         {
                             foreach (var fileItem in queryItem.FileInfos)
                             {
-                                var isi = new PHashFileInfoSearchItem(fileItem, queryItem.HammingDistance);
-                                //resultList.Add(isi);
+                                if (fileItem.FileInfo.Container.Path != _pHashSearchContainerSettings.Target)
+                                {
+                                    ContainerInfo container;
+                                    if (!containers.ContainsKey(fileItem.FileInfo.Container.Path))
+                                    {
+                                        container = new ContainerInfo(fileItem.FileInfo.Container);
+                                        container.Info.ContainerFilesCount = fileItem.FileInfo.ContainerFilesCount;
+                                        containers.Add(fileItem.FileInfo.Container.Path, container);
+                                    }
+                                    else
+                                    {
+                                        container = containers[fileItem.FileInfo.Container.Path];
+                                    }
+                                    container.FirstFiles.Add(targetItem.efi);
+                                    container.SecondFiles.Add(fileItem.FileInfo);
+                                }
                             }
                         }
                     }
-                    //resultList.Sort((x, y) => x.HammingDistance.CompareTo(y.HammingDistance));
-                    return new ReadOnlyCollection<DuplicateContainer>(resultList);
-                }
 
-                return null;
+                    var cts = containers
+                        .Where(c => c.Value.FirstFiles.Count > _pHashSearchContainerSettings.MoreThanFileCount)
+                        .Select(c => new DuplicateContainer(targetEfi, c.Value.Info, c.Value.FirstFiles, c.Value.SecondFiles))
+                        .OrderByDescending(d => d.SizeOfEqualFiles)
+                        .ToList();
+
+                    return new ReadOnlyCollection<DuplicateContainer>(cts);
+                }
+                //resultList.Sort((x, y) => x.HammingDistance.CompareTo(y.HammingDistance));
+                return new ReadOnlyCollection<DuplicateContainer>(resultList);
             }
 
-
+            return null;
+        }
 
         public void Dispose()
         {
@@ -125,5 +208,19 @@ namespace DupTerminator.BusinessLogic
         //    // Token can only be canceled once.
         //    _cts.Cancel();
         //}
+
+        class ContainerInfo()
+        {
+            public List<ExtendedFileInfo> FirstFiles { get; } = new List<ExtendedFileInfo>();
+
+            public List<ExtendedFileInfo> SecondFiles { get; } = new List<ExtendedFileInfo>();
+
+            public ContainerInfo(ExtendedFileInfo container) : this()
+            {
+                Info = container;
+            }
+
+            public ExtendedFileInfo Info { get; }
+        }
     }
 }

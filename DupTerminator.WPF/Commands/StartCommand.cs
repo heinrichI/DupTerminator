@@ -189,6 +189,30 @@ namespace DupTerminator.WPF.Commands
                     }
                 });
             }
+            else if (_settingViewModel.SelectedMode is PHashSearchContainerSettings pHashSearchContainerSettings)
+            {
+                var searcher = new SearcherPhashSearchContainer(
+                   locations,
+                   _settingViewModel.SearchSetting,
+                   pHashSearchContainerSettings,
+                    _phashRepository,
+                    _windowsUtil,
+                   _archiveService,
+                   _pdfService,
+                   _pHashService,
+                   _mihFactory,
+                   _serachLogger);
+
+                await _progressDlg.RunAsync(async (progress, cancelToken) =>
+                {
+                    var result = await searcher.StartAsync(progress, cancelToken);
+                    if (result is not null)
+                    {
+                        _updateResults(new MD5ContainerResult(result));
+                        System.Media.SystemSounds.Beep.Play();
+                    }
+                });
+            }
             else if (_settingViewModel.SelectedMode is PHashSettings pHashSettings)
             {
                 var searcher = new SearcherPhash(

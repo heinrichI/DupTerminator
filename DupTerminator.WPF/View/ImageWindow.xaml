@@ -4,10 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DupTerminator.WPF.View"
+        xmlns:converters="clr-namespace:DupTerminator.WPF.Converters"
         mc:Ignorable="d"
         Title="ImageWindow" Height="450" Width="800"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <converters:FileSizeConverter x:Key="fileSizeConverter"/>
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -20,6 +26,7 @@
 
         <StatusBar Grid.Row="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
                    HorizontalAlignment="Center">
+            <TextBlock Text="{Binding Size, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" />
             <TextBlock x:Name="txtResolution" Margin="5,0" />
         </StatusBar>
     </Grid>

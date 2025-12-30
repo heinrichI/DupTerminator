@@ -81,8 +81,12 @@ namespace DupTerminator.BusinessLogic
                     {
                         foreach (var fileItem in queryItem.FileInfos)
                         {
-                            var isi = new PHashFileInfoSearchItem(fileItem, queryItem.HammingDistance);
-                            resultList.Add(isi);
+                            if (fileItem.FileInfo.Path != _pHashSearchImageSettings.Target
+                                && !resultList.Any(r => r.FileItem.FileInfo.Path == fileItem.FileInfo.Path))
+                            {
+                                var isi = new PHashFileInfoSearchItem(fileItem, queryItem.HammingDistance);
+                                resultList.Add(isi);
+                            }
                         }
                     }
                 }

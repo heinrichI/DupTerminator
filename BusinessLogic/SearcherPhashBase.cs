@@ -19,7 +19,7 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearcherPhashBase
     {
-        private readonly int _numberOfConsumers = Environment.ProcessorCount;
+        protected readonly int _numberOfConsumers = Environment.ProcessorCount;
         protected readonly SearchSetting _searchSetting;
         protected readonly PHashSettings _pHashSettings;
         private readonly IMIHFactory _mihFactory;
@@ -610,10 +610,7 @@ namespace DupTerminator.BusinessLogic
                         {
                             var streamPairs = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
 
-                            // The master list to collect all results
-                            var finalResultCollection = new List<(ArchiveFileInfo efi, ulong phash, int width, int height)>(streamPairs.Count);
-                            // Local bag for combining results without a global lock
-                            var localBag = new ConcurrentBag<(ArchiveFileInfo efi, ulong phash, int width, int height)>();
+                            var finalResultBag = new ConcurrentBag<(ArchiveFileInfo efi, ulong phash, int width, int height)>();
 
                             Parallel.ForEach(
                                streamPairs,
@@ -639,15 +636,19 @@ namespace DupTerminator.BusinessLogic
                                },
                                (finalLocalList) => // localFinally: Action to combine results
                                {
-                                   finalResultCollection.AddRange(finalLocalList);
+                                   foreach (var item in finalLocalList)
+                                   {
+                                       Debug.Assert(item.phash != 0);
+                                       finalResultBag.Add(item);
+                                   }
                                }
                             );
 
                             if (!cancelToken.IsCancellationRequested)
                             {
-                                _phashRepository.AddContainerStreams(fileInfo, finalResultCollection.ToArray());
+                                _phashRepository.AddContainerStreams(fileInfo, finalResultBag.ToArray());
                             }
-                            foreach (var item in finalResultCollection)
+                            foreach (var item in finalResultBag)
                             {
                                 Debug.Assert(item.phash != 0);
                                 checksumDictionary.AddOrUpdate(item.phash,
@@ -669,8 +670,7 @@ namespace DupTerminator.BusinessLogic
                                             return list;
                                         });
                             }
-                            localBag.Clear();
-                            finalResultCollection = null;
+                            finalResultBag.Clear();
                             //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
                             //{
                             //    item.Item2.Dispose();
@@ -724,11 +724,8 @@ namespace DupTerminator.BusinessLogic
                         if (dbCollection == null)
                         {
                             var streamPairs = _pdfService.GetStreams(fileInfo, cancelToken);
-
-                            // The master list to collect all results
-                            var finalResultCollection = new List<(ExtendedFileInfo efi, ulong phash, int width, int height)>(streamPairs.Count);
-                            // Local bag for combining results without a global lock
-                            var localBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
+                            
+                            var finalResultBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
 
                             var result = Parallel.ForEach(
                                streamPairs,
@@ -748,13 +745,17 @@ namespace DupTerminator.BusinessLogic
                                },
                                (finalLocalList) => // localFinally: Action to combine results
                                {
-                                   finalResultCollection.AddRange(finalLocalList);
+                                   foreach (var item in finalLocalList)
+                                   {
+                                       Debug.Assert(item.phash != 0);
+                                       finalResultBag.Add(item);
+                                   }
                                }
                             );
                             Debug.Assert(result.IsCompleted);
 
                             //_phashRepository.AddContainerStreams(fileInfo, finalResultCollection.ToArray());
-                            foreach (var item in finalResultCollection)
+                            foreach (var item in finalResultBag)
                             {
                                 checksumDictionary.AddOrUpdate(item.phash,
                                         addValueFactory: (checksum) =>
@@ -775,8 +776,7 @@ namespace DupTerminator.BusinessLogic
                                             return list;
                                         });
                             }
-                            localBag.Clear();
-                            finalResultCollection = null;
+                            finalResultBag.Clear();
                             //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
                             //{
                             //    item.Item2.Dispose();

@@ -79,7 +79,7 @@
             </ListView.GroupStyle>
 
                 <ListView.InputBindings>
-                   <KeyBinding Key="F5"  Command="{Binding SelectAllInFolderCommand}" />
+                    <KeyBinding Key="F5"  Command="{Binding SelectAllInFolderCommand}" />
                 </ListView.InputBindings>
             
                 <!-- Context menu -->
@@ -99,6 +99,7 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding IsSelected}" 
+                                          IsEnabled="{Binding CanBeSelected}"
                                   HorizontalAlignment="Left" 
                                   VerticalAlignment="Center"/>
                             </DataTemplate>

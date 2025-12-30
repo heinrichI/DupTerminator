@@ -36,7 +36,6 @@
             <controls:ImageListView DataContext="{Binding DataContext.ImageListViewModel, RelativeSource={RelativeSource AncestorType=Window}}"/>
         </DataTemplate>
 
-
     </Window.Resources>
 
     <DockPanel>

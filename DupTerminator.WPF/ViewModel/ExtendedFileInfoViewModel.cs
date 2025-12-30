@@ -11,10 +11,12 @@ namespace DupTerminator.WPF.ViewModel
     {
         private readonly ExtendedFileInfo _fileInfo;
         private bool _isSelected;
+        private DuplicateGroupViewModel _group;
 
-        public ExtendedFileInfoViewModel(ExtendedFileInfo fileInfo)
+        public ExtendedFileInfoViewModel(ExtendedFileInfo fileInfo, DuplicateGroupViewModel group)
         {
             _fileInfo = fileInfo;
+            _group = group;
         }
 
         public bool IsSelected
@@ -26,6 +28,10 @@ namespace DupTerminator.WPF.ViewModel
                 {
                     _isSelected = value;
                     this.RaisePropertyChangedEvent();
+                    foreach (var item in _group.Files)
+                    {
+                        item.RaisePropertyChangedEvent(nameof(CanBeSelected));
+                    }
                 }
             }
         }
@@ -36,5 +42,7 @@ namespace DupTerminator.WPF.ViewModel
         public string CheckSum => _fileInfo.CheckSum;
         public ulong Size => _fileInfo.Size;
         public string Extension => _fileInfo.Extension;
+
+        public bool CanBeSelected => IsSelected || _group.Files.Count - _group.Files.Count(f => f.IsSelected) > 1;
     }
 }
