@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.WindowsSpecific;
+using DupTerminator.WPF.ViewModel;
 
 namespace DupTerminator.WPF.Converters
 {
@@ -22,7 +23,8 @@ namespace DupTerminator.WPF.Converters
             //        return IconCache.Instance.GetIcon(afi.Extension);
             //}
             //else
-            if (value is ExtendedFileInfo efi)
+            //if (value is ExtendedFileInfo efi)
+            if (value is ExtendedFileInfoViewModel efi)
             {
                 return IconCache.Instance.GetIcon(efi.Extension);
             }

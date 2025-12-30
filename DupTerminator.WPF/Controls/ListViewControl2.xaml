@@ -20,7 +20,26 @@
         <converters:FileExtensionToIconConverter x:Key="IconConverter"/>
     </UserControl.Resources>
 
-    <Grid>
+    <DockPanel>
+        <!-- Toolbar -->
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="Select All"
+                    Command="{Binding SelectAllCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <Button Content="Deselect All"
+                    Command="{Binding DeselectAllCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+            <Button Content="Delete Selected"
+                    Command="{Binding DeleteSelectedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+        </ToolBar>
+
+
+        <!-- Status Bar -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding SelectedItemsCount, ElementName=Root}" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -39,7 +58,8 @@
                   GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  VirtualizingStackPanel.IsVirtualizingWhenGrouping="True"> 
+                  VirtualizingStackPanel.IsVirtualizingWhenGrouping="True"
+                  DataContext="{Binding ElementName=Root}" > 
             <ListView.GroupStyle>
                 <GroupStyle AlternationCount="2">
                     <GroupStyle.ContainerStyle>
@@ -57,7 +77,22 @@
                     </GroupStyle.ContainerStyle>
                 </GroupStyle>
             </ListView.GroupStyle>
-            <ListView.View>
+
+                <ListView.InputBindings>
+                   <KeyBinding Key="F5"  Command="{Binding SelectAllInFolderCommand}" />
+                </ListView.InputBindings>
+            
+                <!-- Context menu -->
+                <ListView.ContextMenu>
+                    <ContextMenu DataContext="{Binding Path=PlacementTarget, RelativeSource={RelativeSource Self}}">
+                        <MenuItem Header="Select All" Command="{Binding Path=DataContext.SelectAllCommand}" />
+                        <MenuItem Header="Deselect All" Command="{Binding Path=DataContext.DeselectAllCommand}" />
+                        <MenuItem Header="Select All in This Folder"
+                                  Command="{Binding DataContext.SelectAllInFolderCommand}"
+                                  CommandParameter="{Binding Path=SelectedItems}"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.View>
                 <GridView>
                     <!-- Column for the CheckBox -->
                     <GridViewColumn Width="32">
@@ -79,14 +114,28 @@
                                        Source="{Binding Converter={StaticResource IconConverter}}"
                                        Stretch="Uniform"
                                        SnapsToDevicePixels="True"/>
-                                    <TextBox Text="{Binding Name, Mode=OneWay}" 
+                                        <TextBox Text="{Binding Name, Mode=OneWay}" 
                                              Margin="4,0,0,0"
                                              IsReadOnly="True" 
                                              Background="Transparent" 
                                              BorderBrush="Transparent" 
                                              IsTabStop="False"
-                                             BorderThickness="0" />
-                                </StackPanel>
+                                             BorderThickness="0" >
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
+                                                    <Setter Property="TextDecorations" Value="None"/>
+                                                    <Style.Triggers>
+                                                        <!-- When IsSelected = True → Strikethrough -->
+                                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                            <!-- Optional: Change foreground color -->
+                                                            <Setter Property="Foreground" Value="Gray"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBox.Style>
+                                           </TextBox>
+                                    </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -102,23 +151,39 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name, Mode=OneWay}" Width="Auto"/>-->
-                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Mode=OneWay}" Width="Auto"/>
+                        <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Mode=OneWay}" Width="Auto"/>
                     <!--<GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path, Mode=OneWay}" Width="Auto"/>-->
                     <GridViewColumn Header="Path" Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBox Text="{Binding Path, Mode=OneWay}" 
+                                    <TextBox Text="{Binding Path, Mode=OneWay}" 
                                      IsReadOnly="True" 
                                      Background="Transparent" 
                                      BorderBrush="Transparent" 
                                      IsTabStop="False"
-                                     BorderThickness="0" />
-                            </DataTemplate>
+                                     BorderThickness="0" >
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Setter Property="TextDecorations" Value="None"/>
+                                                <Style.Triggers>
+                                                    <!-- When IsSelected = True → Strikethrough -->
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                        <!-- Optional: Change foreground color -->
+                                                        <Setter Property="Foreground" Value="Gray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
-                    <GridViewColumn Header="Extension" DisplayMemberBinding="{Binding Extension, Mode=OneWay}" Width="Auto" />
+                        <GridViewColumn Header="Extension" DisplayMemberBinding="{Binding Extension, Mode=OneWay}" Width="Auto" />
                 </GridView>
             </ListView.View>
         </ListView>
     </Grid>
+
+    </DockPanel>
 </UserControl>

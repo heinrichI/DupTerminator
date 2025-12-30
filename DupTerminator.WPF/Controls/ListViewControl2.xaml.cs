@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,6 +19,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DupTerminator.BusinessLogic.Model;
+using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Service;
+using DupTerminator.WPF.ViewModel;
 using static System.Net.Mime.MediaTypeNames;
 using static DupTerminator.WPF.ViewModel.SettingsViewModel;
 
@@ -26,21 +30,64 @@ namespace DupTerminator.WPF.Controls
     /// <summary>
     /// Interaction logic for ListViewControl.xaml
     /// </summary>
-    public partial class ListViewControl2 : UserControl
+    public partial class ListViewControl2 : UserControl, INotifyPropertyChanged
     {
+        // Create the OnPropertyChanged method to raise the event
+        // The calling member's name will be used as the parameter.
         public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void RaisePropertyChangedEvent([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         private GridViewColumnHeader _listViewSortCol = null;
         private ListSortDirection _listViewSortDir = ListSortDirection.Ascending;
 
+        // --------------------------------------------------------------------
+        //  Commands
+        // --------------------------------------------------------------------
+        public ICommand SelectAllCommand { get; }
+        public ICommand DeselectAllCommand { get; }
+        public ICommand DeleteSelectedCommand { get; }
+        public ICommand SelectAllInFolderCommand { get; }
+
+        // --------------------------------------------------------------------
+        //  Selected count (for status bar)
+        // --------------------------------------------------------------------
+        private int _selectedItemsCount;
+        public int SelectedItemsCount
+        {
+            get => _selectedItemsCount;
+            private set
+            {
+                if (_selectedItemsCount != value)
+                {
+                    _selectedItemsCount = value;
+                    RaisePropertyChangedEvent();
+                }
+            }
+        }
+
+        // --------------------------------------------------------------------
+        //  Constructor
+        // --------------------------------------------------------------------
         public ListViewControl2()
         {
             InitializeComponent();
 
             // Add to your UserControl constructor
-            var cvs = (CollectionViewSource)Resources["GroupedFiles"];
-            cvs.IsLiveFilteringRequested = true;
-            cvs.LiveFilteringProperties.Add("Path");  // Your filtering property
+            //var cvs = (CollectionViewSource)Resources["GroupedFiles"];
+            //cvs.IsLiveFilteringRequested = true;
+            //cvs.LiveFilteringProperties.Add("Path");  // Your filtering property
+
+            // Commands
+            SelectAllCommand = new RelayCommand(_ => SelectAll());
+            DeselectAllCommand = new RelayCommand(_ => DeselectAll());
+            DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => SelectedItemsCount > 0);
+            SelectAllInFolderCommand = new RelayCommand(SelectAllInThisFolder, _ => FilesListView.SelectedItem is ExtendedFileInfoViewModel);
+
+            // Listen to collection changes so we can attach PropertyChanged handlers
+            ExtendedFileInfos.CollectionChanged += ExtendedFileInfos_CollectionChanged;
         }
 
         public static readonly DependencyProperty DuplicateGroupsProperty =
@@ -56,7 +103,7 @@ namespace DupTerminator.WPF.Controls
             set { SetValue(DuplicateGroupsProperty, value); }
         }
 
-        public ObservableCollection<ExtendedFileInfo> ExtendedFileInfos { get; } = new ObservableCollection<ExtendedFileInfo>();
+        public ObservableCollection<ExtendedFileInfoViewModel> ExtendedFileInfos { get; } = new ObservableCollection<ExtendedFileInfoViewModel>();
         //private ObservableCollection<ExtendedFileInfo> _extendedFileInfos;
         //public ObservableCollection<ExtendedFileInfo> ExtendedFileInfos
         //{
@@ -79,7 +126,7 @@ namespace DupTerminator.WPF.Controls
                 {
                     foreach (var file in group.Files)
                     {
-                        ExtendedFileInfos.Add(file);
+                        ExtendedFileInfos.Add(new ExtendedFileInfoViewModel(file));
                     }
                 }
             }
@@ -197,7 +244,7 @@ namespace DupTerminator.WPF.Controls
 
         private bool FilterItems(object item)
         {
-            if (item is not ExtendedFileInfo efi)
+            if (item is not ExtendedFileInfoViewModel efi)
                 return false;
 
             var filter = txtFirstFilter.Text;
@@ -224,5 +271,69 @@ namespace DupTerminator.WPF.Controls
         //        e.Accepted = true;
         //    }
         //}
+
+        // --------------------------------------------------------------------
+        //  Collection change handling
+        // --------------------------------------------------------------------
+        private void ExtendedFileInfos_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Attach to new items
+            if (e.NewItems != null)
+                foreach (ExtendedFileInfoViewModel item in e.NewItems)
+                    item.PropertyChanged += FileInfo_PropertyChanged;
+
+            // Detach from removed items
+            if (e.OldItems != null)
+                foreach (ExtendedFileInfoViewModel item in e.OldItems)
+                    item.PropertyChanged -= FileInfo_PropertyChanged;
+
+            // Re‑count
+            UpdateSelectedCount();
+        }
+
+        private void FileInfo_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ExtendedFileInfoViewModel.IsSelected))
+                UpdateSelectedCount();
+        }
+
+        // --------------------------------------------------------------------
+        //  Helper – count selected items
+        // --------------------------------------------------------------------
+        private void UpdateSelectedCount()
+        {
+            SelectedItemsCount = ExtendedFileInfos.Count(f => f.IsSelected);
+        }
+
+        // --------------------------------------------------------------------
+        //  Command handlers
+        // --------------------------------------------------------------------
+        private void SelectAll()
+        {
+            foreach (var f in ExtendedFileInfos) f.IsSelected = true;
+        }
+
+        private void DeselectAll()
+        {
+            foreach (var f in ExtendedFileInfos) f.IsSelected = false;
+        }
+
+        private void DeleteSelected()
+        {
+            // Remove from the collection – the UI will update automatically
+            var toDelete = ExtendedFileInfos.Where(f => f.IsSelected).ToList();
+            foreach (var f in toDelete)
+                FileUtils.MoveToRecycleBin(f.Path);
+        }
+
+        private void SelectAllInThisFolder(object parameter)
+        {
+            if (FilesListView.SelectedItem is ExtendedFileInfoViewModel sel)
+            {
+                string folder = System.IO.Path.GetDirectoryName(sel.Path) ?? string.Empty;
+                foreach (var f in ExtendedFileInfos)
+                    f.IsSelected = System.IO.Path.GetDirectoryName(f.Path) == folder;
+            }
+        }
     }
 }
