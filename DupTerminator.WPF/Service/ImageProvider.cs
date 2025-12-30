@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Automation;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
@@ -171,28 +172,44 @@ namespace DupTerminator.WPF.Service
 
         public BitmapImage? GetFullSizeFromArchive(ArchiveSimpleFileInfo archiveSimpleFileInfo)
         {
-            if (_fullCache.TryGet(archiveSimpleFileInfo.Path, out var cached))
-                return cached;
+            Mouse.OverrideCursor = Cursors.Wait;
+            try
+            {
+                if (_fullCache.TryGet(archiveSimpleFileInfo.Path, out var cached))
+                    return cached;
 
-            using var stream = _archiveService.GetStream(archiveSimpleFileInfo);
+                using var stream = _archiveService.GetStream(archiveSimpleFileInfo);
 
-            var bmp = CreateFullSizedBitmap(stream);
-            _fullCache.Add(archiveSimpleFileInfo.Path, bmp);
+                var bmp = CreateFullSizedBitmap(stream);
+                _fullCache.Add(archiveSimpleFileInfo.Path, bmp);
 
-            return bmp;
+                return bmp;
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null; // Revert cursor
+            }
         }
 
         public BitmapImage? GetFullSizeFromArchive(ArchiveFileInfo archiveFileInfo)
         {
-            if (_fullCache.TryGet(archiveFileInfo.Path, out var cached))
-                return cached;
+            Mouse.OverrideCursor = Cursors.Wait;
+            try
+            {
+                if (_fullCache.TryGet(archiveFileInfo.Path, out var cached))
+                    return cached;
 
-            using var stream = _archiveService.GetStream(archiveFileInfo);
+                using var stream = _archiveService.GetStream(archiveFileInfo);
 
-            var bmp = CreateFullSizedBitmap(stream);
-            _fullCache.Add(archiveFileInfo.Path, bmp);
+                var bmp = CreateFullSizedBitmap(stream);
+                _fullCache.Add(archiveFileInfo.Path, bmp);
 
-            return bmp;
+                return bmp;
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null; // Revert cursor
+            }
         }
 
 

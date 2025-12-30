@@ -115,6 +115,7 @@ namespace DupTerminator.WPF.Commands
                     //ResultType2 type2 = new ResultType2 { Discount = 4537 };
                     //var col = new ReadOnlyCollection<ResultBase>(new[] { type1, type2 } );
                     _updateResults(new MD5Result(result));
+                    _settingViewModel.TotalInfo = result.Count.ToString();
                     System.Media.SystemSounds.Beep.Play();
                 });
             }

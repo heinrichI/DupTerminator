@@ -29,7 +29,7 @@ namespace DupTerminator.ImageHash
         private static readonly List<Vector<double>>[] _dctCoeffsSimd = GenerateDctCoeffsSimd();
         private readonly ILogger<PHashService> _logger;
 
-        public (ulong phash, int width, int height) CalculatePHash(string path)
+        public (ulong? phash, int width, int height) CalculatePHash(string path)
         {
             using var image = LoadAndPreprocessImage(path, out int width, out int height);
             if (image != null)
@@ -37,10 +37,10 @@ namespace DupTerminator.ImageHash
                 var dctCoefficients = ComputeDCT(image);
                 return (ComputeHash(dctCoefficients), width, height);
             }
-            return (0, width, height);
+            return (null, width, height);
         }
 
-        public (ulong phash, int width, int height) CalculatePHash(Stream stream)
+        public (ulong? phash, int width, int height) CalculatePHash(Stream stream)
         {
             using var image = LoadAndPreprocessImage(stream, out int width, out int height);
             if (image != null)
@@ -48,7 +48,7 @@ namespace DupTerminator.ImageHash
                 var dctCoefficients = ComputeDCT(image);
                 return (ComputeHash(dctCoefficients), width, height);
             }
-            return (0, width, height);
+            return (null, width, height);
         }
 
         public bool IsSupportedExtension(string extension)

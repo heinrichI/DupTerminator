@@ -150,7 +150,7 @@ namespace DupTerminator.BusinessLogic
                     var first = v.FirstFiles[i];
                     var second = v.SecondFiles[i];
 
-                    if (string.Compare(first.Container.Path, second.Container.Path, StringComparison.Ordinal) > 0)
+                    if (string.Compare(first.Path, second.Path, StringComparison.Ordinal) > 0)
                     {
                         // Swap if first.Path > second.Path
                         (first, second) = (second, first);

@@ -26,6 +26,7 @@ namespace DupTerminator.BusinessLogic
 
         //private readonly DbArchiveService _dbArchiveService;
         private readonly ILogger<Searcher> _logger;
+        private readonly ContainerComparer _containerComparer;
 
         //public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
@@ -54,7 +55,27 @@ namespace DupTerminator.BusinessLogic
             //_progress = progress;
             //_dbArchiveService = dbArchiveService;
             _logger = logger;
-        } 
+            _containerComparer = new ContainerComparer();
+        }
+
+        public class ContainerComparer : IEqualityComparer<ExtendedFileInfo>
+        {
+            public bool Equals(ExtendedFileInfo x, ExtendedFileInfo y)
+            {
+                if (x == null || y == null)
+                    return false;
+                return x.Extension == y.Extension &&
+                       x.Size == y.Size &&
+                       x.Name == y.Name &&
+                       x.Path == y.Path;
+            }
+
+            public int GetHashCode(ExtendedFileInfo obj)
+            {
+                return HashCode.Combine(obj.Extension, obj.Size, obj.Name, obj.Path);
+            }
+        }
+
 
         public async Task<ReadOnlyCollection<DuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
@@ -65,14 +86,21 @@ namespace DupTerminator.BusinessLogic
                  .Select(pair => new DuplicateGroup(pair.Key, pair.Value));
             //.OrderByDescending(d => d.Files.Any(f => f.Container is null));
 
-            var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);
-            var d2 = duplicates.Where(d => d.Files.Any(f => withoutContainer.Any(c => f.Container is not null && c.Path == f.Container.Path)));
-            if (d2 != null && d2.Any())
-            {
-                _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
-            }
+            var flat = duplicates.SelectMany(dg => dg.Files).ToArray();
+            var containers = flat.Select(f => f.Container).Distinct();
+            var intersect = containers.Intersect(flat, _containerComparer).ToList();
+            var forRemove = duplicates.Where(d => d.Files.Any(f => intersect.Contains(f.Container)));
+            var filtered = duplicates.Except(forRemove).ToList();
 
-            return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
+            //var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);
+            //var d2 = duplicates.Where(d => d.Files.Any(f => withoutContainer.Any(c => f.Container is not null && c.Path == f.Container.Path)));
+            //if (d2 != null && d2.Any())
+            //{
+            //    _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
+            //}
+
+            return new ReadOnlyCollection<DuplicateGroup>(filtered);
+            //return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
 
             //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
 

@@ -95,7 +95,7 @@ namespace DupTerminator.BusinessLogic
                         });
 
 
-                        (ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(target.phash).ToArray();
+                        (ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)[]? resultQuery = mih.Query(target.phash.Value).ToArray();
 
                         foreach ((ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance) queryItem in resultQuery)
                         {

@@ -108,7 +108,6 @@ namespace DupTerminator.BusinessLogic
                         if (skip.Contains(pair.Key))
                             continue;
 
-                        Debug.WriteLine("QueryMIH" + pair.Value.First().FileInfo.Path);
                         progress?.Report(new ProgressDto
                         {
                             Path = pair.Value.First().FileInfo.Path,
@@ -339,30 +338,34 @@ namespace DupTerminator.BusinessLogic
                 {
                     var result = _pHashService.CalculatePHash(item.Item2);
 
+                    if (!result.phash.HasValue)
+                        continue;
+                    Debug.Assert(result.phash != 0);
+
                     if (_searchSetting.UseDB)
                     {
                         var lastWriteTime = GetLastWriteTime(item);
-                        Task.Run(() => _phashRepository.Add(item.Item1.Path, lastWriteTime, item.Item1.Size, result.phash, result.width, result.height));
+                        Task.Run(() => _phashRepository.Add(item.Item1.Path, lastWriteTime, item.Item1.Size, result.phash.Value, result.width, result.height));
                         _logger.LogDebug($"Add {item.Item1.Path} - {lastWriteTime} - {item.Item1.Size}: {result.phash}");
                     }
-                    checksumDictionary.AddOrUpdate(result.phash,
-                    addValueFactory: (checksum) =>
-                    {
-                        var list = new List<PHashFileInfo>();
-                        PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
-                        pHashFileInfo.Width = result.width;
-                        pHashFileInfo.Height = result.height;
-                        list.Add(pHashFileInfo);
-                        return list;
-                    },
-                    updateValueFactory: (checksum, list) =>
-                    {
-                        PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
-                        pHashFileInfo.Width = result.width;
-                        pHashFileInfo.Height = result.height;
-                        list.Add(pHashFileInfo);
-                        return list;
-                    });
+                    checksumDictionary.AddOrUpdate(result.phash.Value,
+                        addValueFactory: (checksum) =>
+                        {
+                            var list = new List<PHashFileInfo>();
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
+                            pHashFileInfo.Width = result.width;
+                            pHashFileInfo.Height = result.height;
+                            list.Add(pHashFileInfo);
+                            return list;
+                        },
+                        updateValueFactory: (checksum, list) =>
+                        {
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
+                            pHashFileInfo.Width = result.width;
+                            pHashFileInfo.Height = result.height;
+                            list.Add(pHashFileInfo);
+                            return list;
+                        });
                 }
             }
         }
@@ -509,6 +512,7 @@ namespace DupTerminator.BusinessLogic
                         }
                         else
                         {
+                            Debug.Assert(result.Value.phash != 0);
                             checksumDictionary.AddOrUpdate(result.Value.phash,
                                 addValueFactory: (checksum) =>
                                 {
@@ -621,8 +625,15 @@ namespace DupTerminator.BusinessLogic
                                {
                                    using (item.Item2)
                                    {
-                                       var result = _pHashService.CalculatePHash(item.Item2);
-                                       localList.Add((item.Item1, result.phash, result.width, result.height));
+                                       (ulong? phash, int width, int height) result = _pHashService.CalculatePHash(item.Item2);
+                                       if (result.phash.HasValue)
+                                       {
+                                           localList.Add((item.Item1, result.phash.Value, result.width, result.height));
+                                       }
+                                       else
+                                       {
+                                           _logger.LogWarning($"phash empty for {item.Item1.Path}");
+                                       }
                                        return localList; // Return the updated local list for the next iteration
                                    }
                                },
@@ -632,9 +643,13 @@ namespace DupTerminator.BusinessLogic
                                }
                             );
 
-                            _phashRepository.AddContainerStreams(fileInfo, finalResultCollection.ToArray());
+                            if (!cancelToken.IsCancellationRequested)
+                            {
+                                _phashRepository.AddContainerStreams(fileInfo, finalResultCollection.ToArray());
+                            }
                             foreach (var item in finalResultCollection)
                             {
+                                Debug.Assert(item.phash != 0);
                                 checksumDictionary.AddOrUpdate(item.phash,
                                         addValueFactory: (checksum) =>
                                         {
@@ -668,6 +683,7 @@ namespace DupTerminator.BusinessLogic
                         {
                             foreach (var item in dbCollection)
                             {
+                                Debug.Assert(item.phash != 0);
                                 checksumDictionary.AddOrUpdate(item.phash,
                                         addValueFactory: (checksum) =>
                                         {
@@ -725,7 +741,8 @@ namespace DupTerminator.BusinessLogic
                                    using (item.Item2)
                                    {
                                        var result = _pHashService.CalculatePHash(item.Item2);
-                                       localList.Add((item.Item1, result.phash, result.width, result.height));
+                                       if (result.phash.HasValue)
+                                            localList.Add((item.Item1, result.phash.Value, result.width, result.height));
                                        return localList; // Return the updated local list for the next iteration
                                    }
                                },
