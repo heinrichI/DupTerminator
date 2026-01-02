@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using DupTerminator.BusinessLogic.Model;
 using Microsoft.Data.Sqlite;
@@ -37,6 +38,21 @@ namespace DupTerminator.DataBase
             createTable.ExecuteNonQuery();
         }
 
+        public static T DecompressJsonData<T>(byte[] compressedData, JsonSerializerOptions jsonOptions)
+        {
+            using (var inputStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+            using (var outputStream = new MemoryStream())
+            {
+                // Copy the decompressed data to a new stream
+                gzipStream.CopyTo(outputStream);
+                outputStream.Position = 0; // Reset position for reading
+
+                // Deserialize directly from the stream
+                return JsonSerializer.Deserialize<T>(outputStream, jsonOptions);
+            }
+        }
+
         public ArchiveFileInfo[] Get(string path, DateTime lastWriteTime, ulong size)
         {
             using var connection = new SqliteConnection(_connectionString);
@@ -55,11 +71,36 @@ namespace DupTerminator.DataBase
 
             if (reader.Read() && !reader.IsDBNull(0))
             {
-                var data = (string)reader.GetValue(0);
-                return JsonSerializer.Deserialize<ArchiveFileInfo[]>(data, _jsonOptions);
+                using var blobStream = reader.GetStream(0);
+
+                // 2️⃣ Decompress on‑the‑fly
+                using var gzipStream = new GZipStream(blobStream, CompressionMode.Decompress);
+
+                // 3️⃣ Deserialize straight from the decompressed stream
+                return JsonSerializer.Deserialize<ArchiveFileInfo[]>(gzipStream, _jsonOptions);
+
+                //return JsonSerializer.Deserialize<ArchiveFileInfo[]>(data, _jsonOptions);
+                //return DecompressJsonData<ArchiveFileInfo[]>(data, _jsonOptions);
             }
 
             return null;
+        }
+
+        private static byte[] CompressJsonData<T>(T data, JsonSerializerOptions options)
+        {
+            // 1. Serialize the object to a UTF-8 byte array
+            byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(data, options);
+
+            // 2. Compress the byte array using GZipStream
+            using (var outputStream = new MemoryStream())
+            {
+                using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
+                {
+                    gzipStream.Write(jsonBytes, 0, jsonBytes.Length);
+                }
+                // The compressed data is now in the outputStream
+                return outputStream.ToArray();
+            }
         }
 
         public void Add(ExtendedFileInfo container, IEnumerable<ArchiveFileInfo> files)
@@ -67,7 +108,8 @@ namespace DupTerminator.DataBase
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            var jsonData = JsonSerializer.Serialize(files, _jsonOptions);
+            //var jsonData = JsonSerializer.Serialize(files, _jsonOptions);
+            var jsonData = CompressJsonData(files, _jsonOptions);
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"

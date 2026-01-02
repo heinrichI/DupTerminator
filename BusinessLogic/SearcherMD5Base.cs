@@ -50,6 +50,9 @@ namespace DupTerminator.BusinessLogic
             _pdfService = pdfService;
             _archiveInfoRepository = archiveInfoRepository;
             _logger = logger;
+
+            if (_md5Repository is null)
+                throw new ArgumentNullException(nameof(_md5Repository));
         }
 
         protected KeyValuePair<string, List<SearchPath>>[] GetPhisicalDrives(ReadOnlyCollection<SearchPath> locations)
@@ -80,12 +83,12 @@ namespace DupTerminator.BusinessLogic
         {
             KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(locations);
 
-            (BlockingCollection<ExtendedFileInfo> BlockingCollection, string Drive)[] blockingCollectionByPhisDisks =
-                new (BlockingCollection<ExtendedFileInfo>, string drive)[phisicalDrives.Length];
+            (BlockingCollection<ExtendedFileInfo[]> BlockingCollection, string Drive)[] blockingCollectionByPhisDisks =
+                new (BlockingCollection<ExtendedFileInfo[]>, string drive)[phisicalDrives.Length];
             for (int i = 0; i < blockingCollectionByPhisDisks.Length; i++)
             {
                 blockingCollectionByPhisDisks[i] = new(
-                    new BlockingCollection<ExtendedFileInfo>(), phisicalDrives[i].Key);
+                    new BlockingCollection<ExtendedFileInfo[]>(), phisicalDrives[i].Key);
             }
 
             var tasksSearch = new Task<ReadOnlyCollection<ExtendedFileInfo>>[phisicalDrives.Length];
@@ -264,7 +267,7 @@ namespace DupTerminator.BusinessLogic
 
 
         private void CalculateCheckSum(
-            BlockingCollection<ExtendedFileInfo> blockingCollection,
+            BlockingCollection<ExtendedFileInfo[]> blockingCollection,
             string drive,
             IProgress<ProgressDto> progress,
             CancellationToken cancelToken)
@@ -281,7 +284,7 @@ namespace DupTerminator.BusinessLogic
 
             while (!blockingCollection.IsCompleted && !cancelToken.IsCancellationRequested)
             {
-                ExtendedFileInfo data = null;
+                ExtendedFileInfo[] data = null;
                 // Blocks if number.Count == 0
                 // IOE means that Take() was called on a completed collection.
                 // Some other thread can call CompleteAdding after we pass the
@@ -300,29 +303,220 @@ namespace DupTerminator.BusinessLogic
 
                 if (data != null)
                 {
-                    decimal totalSize = blockingCollection.Sum(b => (decimal)b.Size);
+                    decimal totalSize = blockingCollection.SelectMany(c => c).Sum(b => (decimal)b.Size);
                     progress.Report(new ProgressDto
                     {
-                        Path = data.Name,
+                        Path = data.First().Path,
                         State = "CalculateCheckSum",
                         PhisicalDrive = drive,
                         RemainSize = StringHelper.FormatBytes(totalSize)
                     });
 
-                    string checksum = CalculateCheckSum(data);
-                    Debug.Assert(checksum is not null);
-                    _checksumDictionary.AddOrUpdate(checksum,
-                        addValueFactory: (checksum) =>
+
+
+                    if (data.All(d => d is ArchiveFileInfo))
+                    {
+                        foreach (var fileInfo in data)
                         {
-                            var list = new List<ExtendedFileInfo>();
-                            list.Add(data);
-                            return list;
-                        },
-                        updateValueFactory: (checksum, list) =>
+                            string md5 = string.Empty;
+                            //DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
+                            DateTime lastWriteTime = fileInfo is ArchiveFileInfo afi && afi.ArchiveInArchive ? afi.Container.Container.LastWriteTime : fileInfo.Container.LastWriteTime;
+                            if (_searchSetting.UseDB)
+                            {
+                                md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                            }
+
+                            if (string.IsNullOrEmpty(md5))
+                            {
+                                _logger.LogInformation($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
+                                try
+                                {
+                                    var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
+                                    foreach (var checksum in checkSums)
+                                    {
+                                        Debug.Assert(!string.IsNullOrEmpty(checksum.Item2));
+                                        _md5Repository.Add(checksum.Item1.Path, lastWriteTime, checksum.Item1.Size, checksum.Item2);
+                                        _logger.LogInformation($"Save md5 by {checksum.Item1.Path}, {lastWriteTime}, {checksum.Item1.Size}");
+                                        //var md52 = _md5Repository.ReadMD5(fileInfo2.Path, lastWriteTime, fileInfo2.Size);
+                                        if (checksum.Item1.Path == fileInfo.Path && checksum.Item1.Size != fileInfo.Size)
+                                            throw new Exception("Почему то размеры не совпадают!");
+
+
+                                        _checksumDictionary.AddOrUpdate(checksum.Item2,
+                                            addValueFactory: (checkSum) =>
+                                            {
+                                                var list = new List<ExtendedFileInfo>();
+                                                list.Add(checksum.Item1);
+                                                return list;
+                                            },
+                                            updateValueFactory: (checkSum, list) =>
+                                            {
+                                                list.Add(checksum.Item1);
+                                                return list;
+                                            });
+                                    }
+                                    //for (int i = 0; i < data.Length; i++)
+                                    //{
+                                    //    var checkSum = checkSums[i];
+                                    //    var fileInfo2 = data[i];                                      
+                                    //}
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError($"{fileInfo.Path}: {ex.Message}");
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                _checksumDictionary.AddOrUpdate(md5,
+                                        addValueFactory: (checkSum) =>
+                                        {
+                                            var list = new List<ExtendedFileInfo>();
+                                            list.Add(fileInfo);
+                                            return list;
+                                        },
+                                        updateValueFactory: (checkSum, list) =>
+                                        {
+                                            list.Add(fileInfo);
+                                            return list;
+                                        });
+                            }
+                        }
+                    }
+                    else if (data.All(d => d is PdfFileInfo))
+                    {
+                        foreach (var fileInfo in data)
                         {
-                            list.Add(data);
-                            return list;
-                        });
+                            string md5 = string.Empty;
+                            //DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
+                            DateTime lastWriteTime = fileInfo.Container.LastWriteTime;
+                            if (_searchSetting.UseDB)
+                            {
+                                md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                            }
+
+                            if (string.IsNullOrEmpty(md5))
+                            {
+                                var checkSums = _pdfService.CalculateHashes(data.Cast<PdfFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
+                                for (int i = 0; i < data.Length; i++)
+                                {
+                                    var checkSum = checkSums[i];
+                                    var fileInfo2 = data[i];
+
+                                    Debug.Assert(!string.IsNullOrEmpty(checkSum));
+                                    _md5Repository.Add(fileInfo2.Path, lastWriteTime, fileInfo2.Size, checkSum);
+                                    _checksumDictionary.AddOrUpdate(checkSum,
+                                        addValueFactory: (checkSum) =>
+                                        {
+                                            var list = new List<ExtendedFileInfo>();
+                                            list.Add(fileInfo2);
+                                            return list;
+                                        },
+                                        updateValueFactory: (checkSum, list) =>
+                                        {
+                                            list.Add(fileInfo2);
+                                            return list;
+                                        });
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                _checksumDictionary.AddOrUpdate(md5,
+                                        addValueFactory: (checkSum) =>
+                                        {
+                                            var list = new List<ExtendedFileInfo>();
+                                            list.Add(fileInfo);
+                                            return list;
+                                        },
+                                        updateValueFactory: (checkSum, list) =>
+                                        {
+                                            list.Add(fileInfo);
+                                            return list;
+                                        });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var fileInfo in data)
+                        {
+                            string md5 = string.Empty;
+                            DateTime lastWriteTime = fileInfo.LastWriteTime;
+                            if (_searchSetting.UseDB)
+                            {
+                                md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                            }
+                            if (string.IsNullOrEmpty(md5))
+                            {
+                                md5 = HashHelper.CreateMD5Checksum(fileInfo);
+                            }
+                            _checksumDictionary.AddOrUpdate(md5,
+                                addValueFactory: (checksum) =>
+                                {
+                                    var list = new List<ExtendedFileInfo>();
+                                    list.Add(fileInfo);
+                                    return list;
+                                },
+                                updateValueFactory: (checksum, list) =>
+                                {
+                                    list.Add(fileInfo);
+                                    return list;
+                                });
+                        }
+                    }
+
+
+                        //if (string.IsNullOrEmpty(md5))
+                        //{
+                        //    //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
+                        //    if (fileInfo is ArchiveFileInfo afi)
+                        //    {
+                        //        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
+                        //    }
+                        //    else if (fileInfo is PdfFileInfo pdfInfo)
+                        //    {
+                        //        fileInfo.CheckSum = _pdfService.CalculateHash(pdfInfo, HashHelper.CreateMD5Checksum);
+                        //    }
+                        //    else
+                        //    {
+                        //        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                        //    }
+                        //    Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
+                        //    _md5Repository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, fileInfo.CheckSum);
+                        //    //_md5Repository.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
+                        //}
+                        //else
+                        //    fileInfo.CheckSum = md5;
+
+                        //else
+                        //{
+                        //    if (fileInfo is ArchiveFileInfo afi)
+                        //    {
+                        //        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
+                        //    }
+                        //    else
+                        //    {
+                        //        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
+                        //    }
+                        //}
+
+                        //Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
+                    //string checksum = fileInfo.CheckSum;
+                    //Debug.Assert(checksum is not null);
+                    //_checksumDictionary.AddOrUpdate(checksum,
+                    //    addValueFactory: (checksum) =>
+                    //    {
+                    //        var list = new List<ExtendedFileInfo>();
+                    //        list.Add(data);
+                    //        return list;
+                    //    },
+                    //    updateValueFactory: (checksum, list) =>
+                    //    {
+                    //        list.Add(data);
+                    //        return list;
+                    //    });
 
                     //if (_archiveService.IsArchiveFile(data.Path))
                     //{
@@ -354,70 +548,18 @@ namespace DupTerminator.BusinessLogic
             //}
         }
 
-        /// <summary>
-        /// Return check sum of file. If the checksum does not exist, create it.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        private string CalculateCheckSum(ExtendedFileInfo fileInfo)
-        {
-            if (_md5Repository is null)
-                throw new ArgumentNullException(nameof(_md5Repository));
-
-            if (fileInfo.CheckSum == null)
-            {
-                if (_searchSetting.UseDB)
-                {
-                    //System.Diagnostics.Debug.WriteLine("CheckSum _dbManager.Active=" + _dbManager.Active);
-                    string md5 = string.Empty;
-                    DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                    md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
-                    if (string.IsNullOrEmpty(md5))
-                    {
-                        //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
-                        if (fileInfo is ArchiveFileInfo afi)
-                        {
-                            fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
-                        }
-                        else if (fileInfo is PdfFileInfo pdfInfo)
-                        {
-                            fileInfo.CheckSum = _pdfService.CalculateHash(pdfInfo, HashHelper.CreateMD5Checksum);
-                        }
-                        else
-                        {
-                            fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
-                        }
-                        Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
-                        _md5Repository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, fileInfo.CheckSum);
-                        //_md5Repository.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
-                    }
-                    else
-                        fileInfo.CheckSum = md5;
-                }
-                else
-                {
-                    if (fileInfo is ArchiveFileInfo afi)
-                    {
-                        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
-                    }
-                    else
-                    {
-                        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
-                    }
-                }
-            }
-            Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
-            return fileInfo.CheckSum;
-        }
 
 
         protected static void CompareBySize(
             ReadOnlyCollection<ExtendedFileInfo> foundedFiles,
-            BlockingCollection<ExtendedFileInfo> filesWithEqualSize,
+            BlockingCollection<ExtendedFileInfo[]> filesWithEqualSize,
             CancellationToken cancelToken)
         {
-            IEnumerable<IGrouping<ulong, ExtendedFileInfo>>? groupsFilesWithEqualSize = foundedFiles.GroupBy(fi => fi.Size).Where(group => group.Count() > 1);
-            foreach (IGrouping<ulong, ExtendedFileInfo>? items in groupsFilesWithEqualSize)
+            IEnumerable<IGrouping<ExtendedFileInfo, ExtendedFileInfo>>? groups = foundedFiles.GroupBy(fi => fi.Size)
+                .Where(group => group.Count() > 1)
+                .SelectMany(g => g)
+                .GroupBy(gg => gg is ArchiveFileInfo agg && agg.ArchiveInArchive ? gg.Container.Container : gg.Container);
+            foreach (var group in groups)
             {
                 if (cancelToken.IsCancellationRequested)
                 {
@@ -425,16 +567,17 @@ namespace DupTerminator.BusinessLogic
                     break;
                 }
 
-                foreach (ExtendedFileInfo item in items)
-                {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        System.Diagnostics.Debug.WriteLine("CompareBySize was canceled.");
-                        break;
-                    }
+                filesWithEqualSize.Add(group.ToArray());
+                //foreach (ExtendedFileInfo item in group)
+                //{
+                //    if (cancelToken.IsCancellationRequested)
+                //    {
+                //        System.Diagnostics.Debug.WriteLine("CompareBySize was canceled.");
+                //        break;
+                //    }
 
-                    filesWithEqualSize.Add(item);
-                }
+                //    filesWithEqualSize.Add(item);
+                //}
             }
             filesWithEqualSize.CompleteAdding();
             //var paths = filesWithEqualSize.Select(f => f.Path);
@@ -458,7 +601,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (token.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("SearchFileOnPhisicalDrive was canceled.");
+                    _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
                     break;
                 }
 
@@ -472,7 +615,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (token.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("SearchFileOnPhisicalDrive was canceled.");
+                    _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
                     break;
                 }
 
@@ -537,11 +680,79 @@ namespace DupTerminator.BusinessLogic
                     }                     
                 }
             }
+            foreach (var file in locations.Where(p => !p.IsDirectory))
+            {
+                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
+
+                AddFile(file, ref files, token, progress, phisicalDrive);
+            }
 
             //progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = string.Empty, State = "Search ended" });
 
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
+
+        private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, IProgress<ProgressDto> progress, string phisicalDrive)
+        {
+            if (token.IsCancellationRequested)
+            {
+                _logger.LogInformation("AddFiles canceled.");
+                return;
+            }
+
+            progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
+
+            var fi = new FileInfo(file.Path);
+            var efi = new ExtendedFileInfo()
+            {
+                Size = Convert.ToUInt64(fi.Length),
+                Name = fi.Name,
+                Path = fi.FullName,
+                LastAccessTime = fi.LastAccessTime,
+                LastWriteTime = fi.LastWriteTime,
+                DirectoryName = fi.DirectoryName,
+                Extension = fi.Extension
+            };
+
+            files.Add(efi);
+
+            if (_archiveService.IsArchiveFile(efi.Path))
+            {
+                ArchiveFileInfo[] filesInArchive = null;
+                if (_searchSetting.UseDB)
+                {
+                    filesInArchive = _archiveInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
+                    if (filesInArchive == null)
+                    {
+                        filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
+                        if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
+                        {
+                            _archiveInfoRepository.Add(efi, filesInArchive);
+                        }
+                    }
+
+                    if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
+                        throw new Exception("_archiveInfoRepository return empty!");
+                }
+                else
+                {
+                    filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
+                }
+                foreach (ExtendedFileInfo file2 in filesInArchive)
+                {
+                    files.Add(file2);
+                }
+            }
+            else if (efi.Extension.ToLower() == ".pdf")
+            {
+                var streamPairs = _pdfService.GetInfos(efi, token);
+                foreach (var stream in streamPairs)
+                {
+                    files.Add(stream);
+                }
+            }
+        }
+
         /// <summary>
         /// Add all files in the requested directory to the files
         /// </summary>
@@ -565,7 +776,7 @@ namespace DupTerminator.BusinessLogic
                 {
                     if (token.IsCancellationRequested)
                     {
-                        System.Diagnostics.Debug.WriteLine("AddFiles was canceled.");
+                        _logger.LogInformation("AddFiles was canceled.");
                         break;
                     }
                     // Wait on the event to be signaled
@@ -583,7 +794,7 @@ namespace DupTerminator.BusinessLogic
                         // alternative is to do one more item of work,
                         // and throw on next iteration, because
                         // IsCancellationRequested will be true.
-                        System.Diagnostics.Debug.WriteLine("The wait operation was canceled.");
+                        _logger.LogInformation("The wait operation was canceled.");
                         throw;
                     }
 
@@ -614,7 +825,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (token.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("AddFiles canceled.");
+                    _logger.LogInformation("AddFiles canceled.");
                     break;
                 }
 
@@ -652,7 +863,7 @@ namespace DupTerminator.BusinessLogic
                             break;
                         }
 
-                        if (string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
+                        if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
                             throw new Exception("_archiveInfoRepository return empty!");
                     }
                     else

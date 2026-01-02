@@ -9,6 +9,7 @@ namespace DupTerminator.BusinessLogic.Abstraction
 {
     public interface IArchiveService
     {
+        (ArchiveFileInfo, T)[] CalculateHashesInArchive<T>(ArchiveFileInfo[] data, Func<Stream, T> calculator);
         T CalculateHashInArchive<T>(ArchiveFileInfo fileInfo, Func<Stream, T> calculator);
 
         //IEnumerable<ExtendedFileInfo> GetHashesFromArchive(ExtendedFileInfo fileInfo);

@@ -9,19 +9,27 @@ using System.Threading.Tasks;
 using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Model;
+using Microsoft.Extensions.Logging;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig.Logging;
 
 namespace DupTerminator.Pdf
 {
     internal class PdfService : IPdfService
     {
+        private readonly ILogger<PdfService> _logger;
         ParsingOptions _parsingOption = new ParsingOptions()
         {
             UseLenientParsing = true,
             SkipMissingFonts = true,
             FilterProvider = MyFilterProvider.Instance
         };
+
+        public PdfService(ILogger<PdfService> logger)
+        {
+            _logger = logger;
+        }
 
         public string? CalculateHash(PdfFileInfo pdfInfo, Func<Stream, string?> calculator)
         {
@@ -43,6 +51,30 @@ namespace DupTerminator.Pdf
             }
         }
 
+        public T[] CalculateHashes<T>(PdfFileInfo[] pdfFileInfos, Func<Stream, T> calculator)
+        {
+            List<T> result = new List<T>();
+            using (var doc = PdfDocument.Open(pdfFileInfos[0].Container.Path, _parsingOption))
+            {
+                foreach (var pdfInfo in pdfFileInfos)
+                {
+                    var page = doc.GetPage(int.Parse(pdfInfo.Name));
+
+                    var images = page.GetImages();
+                    IPdfImage image = pdfInfo.ImageIndex.HasValue ? images.Skip(pdfInfo.ImageIndex.Value).First() : images.First();
+                    Debug.Assert(image.RawBytes.Length == (int)pdfInfo.Size);
+
+                    using (var entryStream = new ChunkedMemoryStream(image.RawBytes.Length))
+                    {
+                        entryStream.Write(image.RawBytes);
+                        entryStream.Position = 0;
+                        result.Add(calculator(entryStream));
+                    }
+                }
+            }
+            return result.ToArray();
+        }
+
         public IEnumerable<PdfFileInfo> GetInfos(ExtendedFileInfo fileInfo, CancellationToken cancelToken)
         {
             List<PdfFileInfo> infos = new List<PdfFileInfo>();
@@ -57,26 +89,33 @@ namespace DupTerminator.Pdf
                     }
 
                     int imageIndex = 0;
-                    foreach (var pdfImage in page.GetImages())
+                    try
                     {
-                        PdfFileInfo efi = new PdfFileInfo()
+                        foreach (var pdfImage in page.GetImages())
                         {
-                            ImageIndex = imageIndex,
-                            //LastAccessTime = entry.LastAccessTime,
-                            Name = page.Number.ToString(),
-                            //Extension = Path.GetExtension(entry.FileName),
-                            Size = (ulong)pdfImage.RawBytes.Length,
-                            Path = $"{fileInfo.Path}\\{page.Number}",
-                            Container = fileInfo,
-                            //ArchiveInArchive = archiveInArchive
-                        };
-                        imageIndex++;
+                            PdfFileInfo efi = new PdfFileInfo()
+                            {
+                                ImageIndex = imageIndex,
+                                //LastAccessTime = entry.LastAccessTime,
+                                Name = page.Number.ToString(),
+                                //Extension = Path.GetExtension(entry.FileName),
+                                Size = (ulong)pdfImage.RawBytes.Length,
+                                Path = $"{fileInfo.Path}\\{page.Number}",
+                                Container = fileInfo,
+                                //ArchiveInArchive = archiveInArchive
+                            };
+                            imageIndex++;
 
-                        var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
-                        entryStream.Write(pdfImage.RawBytes);
-                        entryStream.Position = 0;
+                            var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
+                            entryStream.Write(pdfImage.RawBytes);
+                            entryStream.Position = 0;
 
-                        infos.Add(efi);
+                            infos.Add(efi);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError($"{fileInfo.Path}: {ex.Message}", ex);
                     }
                 }
             }

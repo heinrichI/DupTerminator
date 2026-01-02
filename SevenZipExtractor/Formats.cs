@@ -11,7 +11,6 @@ namespace SevenZipExtractor
             {"gz", SevenZipFormat.GZip},
             {"tar", SevenZipFormat.Tar},
             {"rar", SevenZipFormat.Rar},
-            {"cbr", SevenZipFormat.Rar},
             {"zip", SevenZipFormat.Zip},
             {"cbz", SevenZipFormat.Zip},
             {"lzma", SevenZipFormat.Lzma},

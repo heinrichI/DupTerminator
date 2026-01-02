@@ -101,7 +101,7 @@ namespace DupTerminator.BusinessLogic
                     {
                         if (cancelToken.IsCancellationRequested)
                         {
-                            System.Diagnostics.Debug.WriteLine("MIH quering was canceled.");
+                            _logger.LogInformation("MIH quering was canceled.");
                             break;
                         }
 
@@ -323,7 +323,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (cancelToken.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("MIH quering was canceled.");
+                    _logger.LogInformation("MIH quering was canceled.");
                     break;
                 }
 
@@ -397,13 +397,13 @@ namespace DupTerminator.BusinessLogic
             IEnumerable<SearchPath> locations,
             CancellationToken token)
         {
-            System.Diagnostics.Debug.WriteLine($"SearchFileOnPhisicalDrive {phisicalDrive} start.");
+            _logger.LogInformation($"SearchFileOnPhisicalDrive {phisicalDrive} start.");
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
             foreach (var directory in locations.Where(p => p.IsDirectory))
             {
                 if (token.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("SearchFileOnPhisicalDrive was canceled.");
+                    _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
                     break;
                 }
 
@@ -430,7 +430,7 @@ namespace DupTerminator.BusinessLogic
         {
             if (token.IsCancellationRequested)
             {
-                System.Diagnostics.Debug.WriteLine("AddFiles canceled.");
+                _logger.LogInformation("AddFiles canceled.");
                 return;
             }
 
@@ -476,7 +476,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (cancelToken.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("CalculateCheckSum was canceled.");
+                    _logger.LogInformation("CalculateCheckSum was canceled.");
                     break;
                 }
 
@@ -1017,7 +1017,7 @@ namespace DupTerminator.BusinessLogic
                 {
                     if (token.IsCancellationRequested)
                     {
-                        System.Diagnostics.Debug.WriteLine("AddFiles was canceled.");
+                        _logger.LogInformation("AddFiles was canceled.");
                         break;
                     }
                     // Wait on the event to be signaled
@@ -1035,7 +1035,7 @@ namespace DupTerminator.BusinessLogic
                         // alternative is to do one more item of work,
                         // and throw on next iteration, because
                         // IsCancellationRequested will be true.
-                        System.Diagnostics.Debug.WriteLine("The wait operation was canceled.");
+                        _logger.LogInformation("The wait operation was canceled.");
                         throw;
                     }
 
@@ -1064,7 +1064,7 @@ namespace DupTerminator.BusinessLogic
             {
                 if (token.IsCancellationRequested)
                 {
-                    System.Diagnostics.Debug.WriteLine("AddFiles canceled.");
+                    _logger.LogInformation("AddFiles canceled.");
                     break;
                 }
 
