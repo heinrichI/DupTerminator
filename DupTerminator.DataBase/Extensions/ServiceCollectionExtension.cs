@@ -14,6 +14,7 @@ namespace DupTerminator.DataBase.Extensions
         {
             services.AddSingleton<IMd5Repository, Md5Repository>();
             services.AddSingleton<IArchiveInfoRepository, ArchiveInfoRepository>();
+            services.AddSingleton<IPdfInfoRepository, PdfInfoRepository>();
             services.AddSingleton<IPhashRepository, PhashRepository>();
         }
     }

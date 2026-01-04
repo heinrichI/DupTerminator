@@ -49,7 +49,8 @@ namespace DupTerminator.BusinessLogic
             IPdfService pdfService,
             //Service.DbArchiveService dbArchiveService,
             IArchiveInfoRepository archiveInfoRepository,
-            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, logger)
+            IPdfInfoRepository pdfInfoRepository,
+            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
         {
             _locations = locations;
             //_progress = progress;

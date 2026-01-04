@@ -34,6 +34,7 @@ namespace DupTerminator.WPF.Commands
         private readonly IMd5Repository _md5Repository;
         private readonly IPhashRepository _phashRepository;
         private readonly IArchiveInfoRepository _archiveInfoRepository;
+        private readonly IPdfInfoRepository _pdfInfoRepository;
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
         private readonly IPdfService _pdfService;
@@ -52,6 +53,7 @@ namespace DupTerminator.WPF.Commands
             IMd5Repository md5Repository,
             IPhashRepository phashRepository,
             IArchiveInfoRepository archiveInfoRepository,
+            IPdfInfoRepository pdfInfoRepository,
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
             IPdfService pdfService,
@@ -68,6 +70,7 @@ namespace DupTerminator.WPF.Commands
             _md5Repository = md5Repository;
             _phashRepository = phashRepository;
             _archiveInfoRepository = archiveInfoRepository;
+            _pdfInfoRepository = pdfInfoRepository;
             _windowsUtil = windowsUtil;
             _archiveService = archiveService;
             _pdfService = pdfService;
@@ -105,6 +108,7 @@ namespace DupTerminator.WPF.Commands
                    _archiveService,
                    _pdfService,
                    _archiveInfoRepository,
+                   _pdfInfoRepository,
                    _serachLogger);
 
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
@@ -127,6 +131,7 @@ namespace DupTerminator.WPF.Commands
                    modeSettings,
                     _md5Repository,
                     _archiveInfoRepository,
+                    _pdfInfoRepository,
                     _windowsUtil,
                    _archiveService,
                    _pdfService,

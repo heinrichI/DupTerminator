@@ -40,12 +40,13 @@ namespace DupTerminator.BusinessLogic
             MD5ContainerSettings modeSettings,
             IMd5Repository md5Repository,
             IArchiveInfoRepository archiveInfoRepository,
+            IPdfInfoRepository pdfInfoRepository,
             IWindowsUtil windowsUtil,
             //IProgress<ProgressDto> progress,
             //CancellationToken cancellationToken,
             IArchiveService archiveService,
             IPdfService pdfService,
-            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, logger)
+            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
         {
             _locations = locations;
             _searchSetting = searchSetting;

@@ -25,6 +25,7 @@ namespace DupTerminator.BusinessLogic
         private readonly IArchiveService _archiveService;
         private readonly IPdfService _pdfService;
         private readonly IArchiveInfoRepository _archiveInfoRepository;
+        private readonly IPdfInfoRepository _pdfInfoRepository;
         private readonly ILogger _logger;
 
 
@@ -41,6 +42,7 @@ namespace DupTerminator.BusinessLogic
             IArchiveService archiveService,
             IPdfService pdfService,
             IArchiveInfoRepository archiveInfoRepository,
+            IPdfInfoRepository pdfInfoRepository,
             ILogger logger)
         {
             _searchSetting = searchSetting;
@@ -49,6 +51,7 @@ namespace DupTerminator.BusinessLogic
             _archiveService = archiveService;
             _pdfService = pdfService;
             _archiveInfoRepository = archiveInfoRepository;
+            _pdfInfoRepository = pdfInfoRepository;
             _logger = logger;
 
             if (_md5Repository is null)
@@ -664,10 +667,30 @@ namespace DupTerminator.BusinessLogic
                     }
                     else if (fi.Extension.ToLower() == ".pdf")
                     {
-                        var streamPairs = _pdfService.GetInfos(efi, token);
-                        foreach (var stream in streamPairs)
+                        IEnumerable<PdfFileInfo> infos;
+                        if (_searchSetting.UseDB)
                         {
-                            files.Add(stream);
+                            infos = _pdfInfoRepository.Get(file.Path, fi.LastWriteTime, efi.Size);
+                            if (infos == null)
+                            {
+                                infos = _pdfService.GetInfos(efi, token);
+                                if (infos is not null && infos.Any() && !token.IsCancellationRequested)
+                                {
+                                    _pdfInfoRepository.Add(efi.Container, infos);
+                                }
+                                foreach (var stream in infos)
+                                {
+                                    files.Add(stream);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            infos = _pdfService.GetInfos(efi, token);
+                            foreach (var stream in infos)
+                            {
+                                files.Add(stream);
+                            }
                         }
                     }
                     else
@@ -745,10 +768,26 @@ namespace DupTerminator.BusinessLogic
             }
             else if (efi.Extension.ToLower() == ".pdf")
             {
-                var streamPairs = _pdfService.GetInfos(efi, token);
-                foreach (var stream in streamPairs)
+                IEnumerable<PdfFileInfo> filesInPdf;
+                if (_searchSetting.UseDB)
                 {
-                    files.Add(stream);
+                    filesInPdf = _pdfInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
+                    if (filesInPdf == null)
+                    {
+                        filesInPdf = _pdfService.GetInfos(efi, token);
+                        if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
+                        {
+                            _pdfInfoRepository.Add(efi, filesInPdf);
+                        }
+                    }
+                }
+                else
+                {
+                    filesInPdf = _pdfService.GetInfos(efi, token);
+                }
+                foreach (var pdfInfo in filesInPdf)
+                {
+                    files.Add(pdfInfo);
                 }
             }
         }
@@ -879,10 +918,26 @@ namespace DupTerminator.BusinessLogic
                 }
                 else if (item.Extension.ToLower() == ".pdf")
                 {
-                    var streamPairs = _pdfService.GetInfos(item, token);
-                    foreach (var stream in streamPairs)
+                    IEnumerable<PdfFileInfo> filesInPdf;
+                    if (_searchSetting.UseDB)
                     {
-                        files.Add(stream);
+                        filesInPdf = _pdfInfoRepository.Get(item.Path, item.LastWriteTime, item.Size);
+                        if (filesInPdf == null)
+                        {
+                            filesInPdf = _pdfService.GetInfos(item, token);
+                            if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
+                            {
+                                _pdfInfoRepository.Add(item, filesInPdf);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        filesInPdf = _pdfService.GetInfos(item, token);
+                    }
+                    foreach (var pdfInfo in filesInPdf)
+                    {
+                        files.Add(pdfInfo);
                     }
                 }
             }

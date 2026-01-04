@@ -29,6 +29,7 @@ namespace DupTerminator.WPF.ViewModel
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
         private readonly IArchiveInfoRepository _archiveInfoRepository;
+        private readonly IPdfInfoRepository _pdfInfoRepository;
         private readonly IPdfService _pdfService;
         private readonly IPHashService _pHashService;
         private readonly IMIHFactory _mihFactory;
@@ -42,6 +43,7 @@ namespace DupTerminator.WPF.ViewModel
             IWindowsUtil windowsUtil,
             IArchiveService archiveService,
             IArchiveInfoRepository archiveInfoRepository,
+            IPdfInfoRepository pdfInfoRepository,
             IPdfService pdfService,
             IPHashService pHashService,
             IMIHFactory mihFactory,
@@ -53,6 +55,7 @@ namespace DupTerminator.WPF.ViewModel
             _windowsUtil = windowsUtil;
             _archiveService = archiveService;
             _archiveInfoRepository = archiveInfoRepository;
+            _pdfInfoRepository = pdfInfoRepository;
             _pdfService = pdfService;
             _pHashService = pHashService;
             _mihFactory = mihFactory;
@@ -198,6 +201,7 @@ namespace DupTerminator.WPF.ViewModel
                     _md5Repository,
                     _phashRepository,
                     _archiveInfoRepository,
+                    _pdfInfoRepository,
                     _windowsUtil,
                     _archiveService,
                     _pdfService,
