@@ -71,7 +71,7 @@ namespace SevenZipExtractor
                 ArchiveFileName = archive.Name,
                 ArchivePath = archive.Path,
                 ArchiveExtension = archive.Extension,
-                LastAccessTime = entry.LastAccessTime,
+                //LastAccessTime = entry.LastAccessTime,
                 LastWriteTime = entry.LastWriteTime,
                 Name = Path.GetFileName(entry.FileName),
                 Extension = Path.GetExtension(entry.FileName),
@@ -481,102 +481,47 @@ namespace SevenZipExtractor
         public (ArchiveFileInfo, T)[] CalculateHashesInArchive<T>(ArchiveFileInfo[] data, Func<Stream, T> calculator)
         {
             List<(ArchiveFileInfo, T)> result = new List<(ArchiveFileInfo, T)>(data.Length);
-            var fileInfo = data.First();
-            Debug.Assert(fileInfo.Container != null);
-            if (fileInfo.ArchiveInArchive)
+
+            var first = data.First();
+            Debug.Assert(first.Container != null);
+            var firsetLevelArchive = first.ArchiveInArchive ? first.Container.Container : first.Container;
+            var byContainer = data.GroupBy(d => d.Container.Name);
+            using (ArchiveFile archiveFile = new ArchiveFile(firsetLevelArchive.Path))
             {
-                using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Container.Container.Path))
+                foreach (var group in byContainer)
                 {
-                    var byContainer = data.GroupBy(d => d.Container.Name);
-                    var c = byContainer.SelectMany(f => f);
-                    foreach (var group in byContainer)
+                    bool groupFinded = false;
+
+                    if (group.Key == firsetLevelArchive.Name)
                     {
-                        bool groupFinded = false;
-                        if (group.Key == fileInfo.Container.Container.Name)
+                        groupFinded = true;
+                        foreach (var item in group)
                         {
-                            groupFinded = true;
-                            foreach (var item in group)
+                            bool fileFinded = false;
+                            foreach (var entry2 in archiveFile.Entries)
                             {
-                                foreach (var entry in archiveFile.Entries)
-                                {
-                                    if (entry.IsFolder)
-                                    {
-                                        continue;
-                                    }
-
-                                    if (Path.GetFileName(entry.FileName) == item.Name)
-                                    {
-                                        using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
-                                        {
-                                            entry.Extract(entryStream2);
-
-                                            entryStream2.Position = 0;
-                                            result.Add((item, calculator(entryStream2)));
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            foreach (var entry in archiveFile.Entries)
-                            {
-                                if (entry.IsFolder)
+                                if (entry2.IsFolder)
                                 {
                                     continue;
                                 }
 
-                                if (Path.GetFileName(entry.FileName) == group.Key)
+                                if (Path.GetFileName(entry2.FileName) == item.Name)
                                 {
-                                    groupFinded = true;
-                                    using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                                    fileFinded = true;
+                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
                                     {
-                                        entry.Extract(entryStream);
+                                        entry2.Extract(entryStream2);
 
-                                        entryStream.Position = 0;
-                                        using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
-                                        {
-                                            foreach (var item in group)
-                                            {
-                                                bool fileFinded = false;
-                                                foreach (var entry2 in archiveFile2.Entries)
-                                                {
-                                                    if (entry2.IsFolder)
-                                                    {
-                                                        continue;
-                                                    }
-
-                                                    if (Path.GetFileName(entry2.FileName) == item.Name)
-                                                    {
-                                                        fileFinded = true;
-                                                        using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
-                                                        {
-                                                            entry2.Extract(entryStream2);
-
-                                                            entryStream2.Position = 0;
-                                                            result.Add((item, calculator(entryStream2)));
-                                                        }
-                                                        break;
-                                                    }
-                                                }
-                                                Debug.Assert(fileFinded);
-                                            }
-                                        }
+                                        entryStream2.Position = 0;
+                                        result.Add((item, calculator(entryStream2)));
                                     }
                                     break;
                                 }
                             }
+                            Debug.Assert(fileFinded);
                         }
-                        Debug.Assert(groupFinded);
                     }
-                }
-            }
-            else
-            {
-                using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.ArchivePath))
-                {
-                    foreach (var item in data)
+                    else
                     {
                         foreach (var entry in archiveFile.Entries)
                         {
@@ -585,21 +530,244 @@ namespace SevenZipExtractor
                                 continue;
                             }
 
-                            if (Path.GetFileName(entry.FileName) == item.Name)
+                            if (Path.GetFileName(entry.FileName) == group.Key)
                             {
+                                groupFinded = true;
                                 using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
                                 {
                                     entry.Extract(entryStream);
-
                                     entryStream.Position = 0;
-                                    result.Add((item, calculator(entryStream)));
+                                    using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
+                                    {
+                                        foreach (var item in group)
+                                        {
+                                            bool fileFinded = false;
+                                            foreach (var entry2 in archiveFile2.Entries)
+                                            {
+                                                if (entry2.IsFolder)
+                                                {
+                                                    continue;
+                                                }
+
+                                                if (Path.GetFileName(entry2.FileName) == item.Name)
+                                                {
+                                                    fileFinded = true;
+                                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+                                                    {
+                                                        entry2.Extract(entryStream2);
+
+                                                        entryStream2.Position = 0;
+                                                        result.Add((item, calculator(entryStream2)));
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                            Debug.Assert(fileFinded);
+                                        }
+                                    }
                                 }
                                 break;
                             }
                         }
-                    }                  
+                    }                      
+                    Debug.Assert(groupFinded);
                 }
+                //foreach (var target in data)
+                //{
+                //    if (target.ArchiveInArchive)
+                //    {
+                //        foreach (var entry in archiveFile.Entries)
+                //        {
+                //            if (entry.IsFolder)
+                //            {
+                //                continue;
+                //            }
+
+                //            if (Path.GetFileName(entry.FileName) == group.Key)
+                //            {
+                //                groupFinded = true;
+                //                using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                //                {
+                //                    entry.Extract(entryStream);
+
+                //                    entryStream.Position = 0;
+                //                    using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
+                //                    {
+                //                        foreach (var item in group)
+                //                        {
+                //                            bool fileFinded = false;
+                //                            foreach (var entry2 in archiveFile2.Entries)
+                //                            {
+                //                                if (entry2.IsFolder)
+                //                                {
+                //                                    continue;
+                //                                }
+
+                //                                if (Path.GetFileName(entry2.FileName) == item.Name)
+                //                                {
+                //                                    fileFinded = true;
+                //                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+                //                                    {
+                //                                        entry2.Extract(entryStream2);
+
+                //                                        entryStream2.Position = 0;
+                //                                        result.Add((item, calculator(entryStream2)));
+                //                                    }
+                //                                    break;
+                //                                }
+                //                            }
+                //                            Debug.Assert(fileFinded);
+                //                        }
+                //                    }
+                //                }
+                //                break;
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        foreach (var entry in archiveFile.Entries)
+                //        {
+                //            if (entry.IsFolder)
+                //            {
+                //                continue;
+                //            }
+
+                //            if (Path.GetFileName(entry.FileName) == target.Name)
+                //            {
+                //                using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                //                {
+                //                    entry.Extract(entryStream);
+
+                //                    entryStream.Position = 0;
+                //                    //result.Add((target, calculator(entryStream)));
+                //                }
+                //                break;
+                //            }
+                //        }
+                //    }
+                //}
             }
+
+            //var fileInfo = data.First();
+            //Debug.Assert(fileInfo.Container != null);
+            //if (fileInfo.ArchiveInArchive)
+            //{
+            //    using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Container.Container.Path))
+            //    {
+            //        var byContainer2 = data.GroupBy(d => d.Container.Name);
+            //        var c2 = byContainer.SelectMany(f => f);
+            //        foreach (var group in byContainer)
+            //        {
+            //            bool groupFinded = false;
+            //            if (group.Key == fileInfo.Container.Container.Name)
+            //            {
+            //                groupFinded = true;
+            //                foreach (var item in group)
+            //                {
+            //                    foreach (var entry in archiveFile.Entries)
+            //                    {
+            //                        if (entry.IsFolder)
+            //                        {
+            //                            continue;
+            //                        }
+
+            //                        if (Path.GetFileName(entry.FileName) == item.Name)
+            //                        {
+            //                            using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+            //                            {
+            //                                entry.Extract(entryStream2);
+
+            //                                entryStream2.Position = 0;
+            //                                result.Add((item, calculator(entryStream2)));
+            //                            }
+            //                            break;
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //            else
+            //            {
+            //                foreach (var entry in archiveFile.Entries)
+            //                {
+            //                    if (entry.IsFolder)
+            //                    {
+            //                        continue;
+            //                    }
+
+            //                    if (Path.GetFileName(entry.FileName) == group.Key)
+            //                    {
+            //                        groupFinded = true;
+            //                        using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+            //                        {
+            //                            entry.Extract(entryStream);
+
+            //                            entryStream.Position = 0;
+            //                            using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
+            //                            {
+            //                                foreach (var item in group)
+            //                                {
+            //                                    bool fileFinded = false;
+            //                                    foreach (var entry2 in archiveFile2.Entries)
+            //                                    {
+            //                                        if (entry2.IsFolder)
+            //                                        {
+            //                                            continue;
+            //                                        }
+
+            //                                        if (Path.GetFileName(entry2.FileName) == item.Name)
+            //                                        {
+            //                                            fileFinded = true;
+            //                                            using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+            //                                            {
+            //                                                entry2.Extract(entryStream2);
+
+            //                                                entryStream2.Position = 0;
+            //                                                result.Add((item, calculator(entryStream2)));
+            //                                            }
+            //                                            break;
+            //                                        }
+            //                                    }
+            //                                    Debug.Assert(fileFinded);
+            //                                }
+            //                            }
+            //                        }
+            //                        break;
+            //                    }
+            //                }
+            //            }
+            //            Debug.Assert(groupFinded);
+            //        }
+            //    }
+            //}
+            //else
+            //{
+            //    using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.ArchivePath))
+            //    {
+            //        foreach (var item in data)
+            //        {
+            //            foreach (var entry in archiveFile.Entries)
+            //            {
+            //                if (entry.IsFolder)
+            //                {
+            //                    continue;
+            //                }
+
+            //                if (Path.GetFileName(entry.FileName) == item.Name)
+            //                {
+            //                    using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+            //                    {
+            //                        entry.Extract(entryStream);
+
+            //                        entryStream.Position = 0;
+            //                        result.Add((item, calculator(entryStream)));
+            //                    }
+            //                    break;
+            //                }
+            //            }
+            //        }                  
+            //    }
+            //}
             Debug.Assert(result.Count == data.Length);
             return result.ToArray();
         }

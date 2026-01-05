@@ -18,7 +18,7 @@ namespace DupTerminator.BusinessLogic.Model
 
         public string CheckSum { get; set; }
 
-        public DateTime LastAccessTime { get; set; }
+        //public DateTime LastAccessTime { get; set; }
 
         public DateTime LastWriteTime { get; set; }
 
@@ -47,11 +47,11 @@ namespace DupTerminator.BusinessLogic.Model
                    Size == info.Size &&
                    Name == info.Name &&
                    Path == info.Path &&
-                   LastAccessTime == info.LastAccessTime &&
+                   //LastAccessTime == info.LastAccessTime &&
                    LastWriteTime == info.LastWriteTime &&
                    DirectoryName == info.DirectoryName &&
-                   Extension == info.Extension &&
-                   EqualityComparer<ExtendedFileInfo>.Default.Equals(Container, info.Container);
+                   Extension == info.Extension;
+                   //EqualityComparer<ExtendedFileInfo>.Default.Equals(Container, info.Container);
         }
 
         //public override bool Equals(object? obj)
@@ -80,7 +80,7 @@ namespace DupTerminator.BusinessLogic.Model
             hash.Add(Size);
             hash.Add(Name);
             hash.Add(Path);
-            hash.Add(LastAccessTime);
+            //hash.Add(LastAccessTime);
             hash.Add(LastWriteTime);
             hash.Add(DirectoryName);
             hash.Add(Extension);

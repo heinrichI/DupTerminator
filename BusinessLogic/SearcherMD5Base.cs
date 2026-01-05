@@ -109,7 +109,7 @@ namespace DupTerminator.BusinessLogic
                    {
                        PhisicalDrive = phisicalDrives[temp].Key,
                        State = "Search",
-                       Path = "Search ended"
+                       Path = $"{t.Result.Count} files found"
                    });
                    return t.Result; // Return the actual result
                }, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
@@ -335,6 +335,8 @@ namespace DupTerminator.BusinessLogic
                                 try
                                 {
                                     var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
+                                    if (checkSums.Length != data.Length)
+                                        throw new Exception("Длины не совпадают!");
                                     foreach (var checksum in checkSums)
                                     {
                                         Debug.Assert(!string.IsNullOrEmpty(checksum.Item2));
@@ -558,10 +560,10 @@ namespace DupTerminator.BusinessLogic
             BlockingCollection<ExtendedFileInfo[]> filesWithEqualSize,
             CancellationToken cancelToken)
         {
-            IEnumerable<IGrouping<ExtendedFileInfo, ExtendedFileInfo>>? groups = foundedFiles.GroupBy(fi => fi.Size)
+            var groups = foundedFiles.GroupBy(fi => fi.Size)
                 .Where(group => group.Count() > 1)
                 .SelectMany(g => g)
-                .GroupBy(gg => gg is ArchiveFileInfo agg && agg.ArchiveInArchive ? gg.Container.Container : gg.Container);
+                .GroupBy(gg => gg is ArchiveFileInfo agg && agg.ArchiveInArchive ? gg.Container.Container : gg.Container).ToArray();
             foreach (var group in groups)
             {
                 if (cancelToken.IsCancellationRequested)
@@ -632,7 +634,7 @@ namespace DupTerminator.BusinessLogic
                         Size = Convert.ToUInt64(fi.Length),
                         Name = fi.Name,
                         Path = fi.FullName,
-                        LastAccessTime = fi.LastAccessTime,
+                        //LastAccessTime = fi.LastAccessTime,
                         LastWriteTime = fi.LastWriteTime,
                         DirectoryName = fi.DirectoryName,
                         Extension = fi.Extension,
@@ -641,57 +643,11 @@ namespace DupTerminator.BusinessLogic
 
                     if (_archiveService.IsArchiveFile(file.Path))
                     {
-                        ArchiveFileInfo[] filesInArchive = null;
-                        if (_searchSetting.UseDB)
-                        {
-                            filesInArchive = _archiveInfoRepository.Get(file.Path, fi.LastWriteTime, efi.Size);
-                            if (filesInArchive == null)
-                            {
-                                filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
-                                if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
-                                {
-                                    _archiveInfoRepository.Add(efi.Container, filesInArchive);
-                                }
-                            }
-                            if (string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
-                                throw new Exception("_archiveInfoRepository return empty!");
-                        }
-                        else
-                        {
-                            filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
-                        }
-                        foreach (ExtendedFileInfo fileArch in filesInArchive)
-                        {
-                            files.Add(fileArch);
-                        }
+                        FillInfosFromArchive(efi, files, token);
                     }
                     else if (fi.Extension.ToLower() == ".pdf")
                     {
-                        IEnumerable<PdfFileInfo> infos;
-                        if (_searchSetting.UseDB)
-                        {
-                            infos = _pdfInfoRepository.Get(file.Path, fi.LastWriteTime, efi.Size);
-                            if (infos == null)
-                            {
-                                infos = _pdfService.GetInfos(efi, token);
-                                if (infos is not null && infos.Any() && !token.IsCancellationRequested)
-                                {
-                                    _pdfInfoRepository.Add(efi.Container, infos);
-                                }
-                                foreach (var stream in infos)
-                                {
-                                    files.Add(stream);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            infos = _pdfService.GetInfos(efi, token);
-                            foreach (var stream in infos)
-                            {
-                                files.Add(stream);
-                            }
-                        }
+                        FillInfosFromPdf(efi, files, token);
                     }
                     else
                     {
@@ -715,6 +671,33 @@ namespace DupTerminator.BusinessLogic
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
+        private void FillInfosFromArchive(ExtendedFileInfo efi, List<ExtendedFileInfo> files, CancellationToken token)
+        {
+            ArchiveFileInfo[] filesInArchive = null;
+            if (_searchSetting.UseDB)
+            {
+                filesInArchive = _archiveInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
+                if (filesInArchive == null)
+                {
+                    filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
+                    if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
+                    {
+                        _archiveInfoRepository.Add(efi, filesInArchive);
+                    }
+                }
+                if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
+                    throw new Exception("_archiveInfoRepository return empty!");
+            }
+            else
+            {
+                filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
+            }
+            foreach (ExtendedFileInfo fileArch in filesInArchive)
+            {
+                files.Add(fileArch);
+            }
+        }
+
         private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, IProgress<ProgressDto> progress, string phisicalDrive)
         {
             if (token.IsCancellationRequested)
@@ -731,7 +714,7 @@ namespace DupTerminator.BusinessLogic
                 Size = Convert.ToUInt64(fi.Length),
                 Name = fi.Name,
                 Path = fi.FullName,
-                LastAccessTime = fi.LastAccessTime,
+                //LastAccessTime = fi.LastAccessTime,
                 LastWriteTime = fi.LastWriteTime,
                 DirectoryName = fi.DirectoryName,
                 Extension = fi.Extension
@@ -741,54 +724,36 @@ namespace DupTerminator.BusinessLogic
 
             if (_archiveService.IsArchiveFile(efi.Path))
             {
-                ArchiveFileInfo[] filesInArchive = null;
-                if (_searchSetting.UseDB)
-                {
-                    filesInArchive = _archiveInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
-                    if (filesInArchive == null)
-                    {
-                        filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
-                        if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
-                        {
-                            _archiveInfoRepository.Add(efi, filesInArchive);
-                        }
-                    }
-
-                    if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
-                        throw new Exception("_archiveInfoRepository return empty!");
-                }
-                else
-                {
-                    filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
-                }
-                foreach (ExtendedFileInfo file2 in filesInArchive)
-                {
-                    files.Add(file2);
-                }
+                FillInfosFromArchive(efi, files, token);
             }
             else if (efi.Extension.ToLower() == ".pdf")
             {
-                IEnumerable<PdfFileInfo> filesInPdf;
-                if (_searchSetting.UseDB)
-                {
-                    filesInPdf = _pdfInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
-                    if (filesInPdf == null)
-                    {
-                        filesInPdf = _pdfService.GetInfos(efi, token);
-                        if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
-                        {
-                            _pdfInfoRepository.Add(efi, filesInPdf);
-                        }
-                    }
-                }
-                else
+                FillInfosFromPdf(efi, files, token);
+            }
+        }
+
+        private void FillInfosFromPdf(ExtendedFileInfo efi, List<ExtendedFileInfo> files, CancellationToken token)
+        {
+            IEnumerable<PdfFileInfo> filesInPdf;
+            if (_searchSetting.UseDB)
+            {
+                filesInPdf = _pdfInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
+                if (filesInPdf == null)
                 {
                     filesInPdf = _pdfService.GetInfos(efi, token);
+                    if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
+                    {
+                        _pdfInfoRepository.Add(efi, filesInPdf);
+                    }
                 }
-                foreach (var pdfInfo in filesInPdf)
-                {
-                    files.Add(pdfInfo);
-                }
+            }
+            else
+            {
+                filesInPdf = _pdfService.GetInfos(efi, token);
+            }
+            foreach (var pdfInfo in filesInPdf)
+            {
+                files.Add(pdfInfo);
             }
         }
 
@@ -852,7 +817,7 @@ namespace DupTerminator.BusinessLogic
                 Size = Convert.ToUInt64(f.Length),
                 Name = f.Name,
                 Path = f.FullName,
-                LastAccessTime = f.LastAccessTime,
+                //LastAccessTime = f.LastAccessTime,
                 LastWriteTime = f.LastWriteTime,
                 DirectoryName = f.DirectoryName,
                 Extension = f.Extension,
@@ -884,61 +849,11 @@ namespace DupTerminator.BusinessLogic
 
                 if (_archiveService.IsArchiveFile(item.Path))
                 {
-                    //var filesInArchive = _dbArchiveService.Get(_searchSetting.UseDB, item, token);
-                    ArchiveFileInfo[] filesInArchive = null;
-                    if (_searchSetting.UseDB)
-                    {
-                        filesInArchive = _archiveInfoRepository.Get(item.Path, item.LastWriteTime, item.Size);
-                        if (filesInArchive == null)
-                        {
-                            filesInArchive = _archiveService.GetInfoFromArchive(item, token);
-                            if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
-                            {
-                                _archiveInfoRepository.Add(item, filesInArchive);
-                            }
-                        }
-                        if (token.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
-                            throw new Exception("_archiveInfoRepository return empty!");
-                    }
-                    else
-                    {
-                        filesInArchive = _archiveService.GetInfoFromArchive(item, token);
-                    }
-                    //var filesInArchive = _archiveService.GetInfoFromArchive(item.Path, item, token);
-                    //var res = DeepComparer.DeepEquals(filesInArchive, filesInArchive2);
-                    foreach (ExtendedFileInfo file in filesInArchive)
-                    {
-                        files.Add(file);
-                    }
+                    FillInfosFromArchive(item, files, token);
                 }
                 else if (item.Extension.ToLower() == ".pdf")
                 {
-                    IEnumerable<PdfFileInfo> filesInPdf;
-                    if (_searchSetting.UseDB)
-                    {
-                        filesInPdf = _pdfInfoRepository.Get(item.Path, item.LastWriteTime, item.Size);
-                        if (filesInPdf == null)
-                        {
-                            filesInPdf = _pdfService.GetInfos(item, token);
-                            if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
-                            {
-                                _pdfInfoRepository.Add(item, filesInPdf);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        filesInPdf = _pdfService.GetInfos(item, token);
-                    }
-                    foreach (var pdfInfo in filesInPdf)
-                    {
-                        files.Add(pdfInfo);
-                    }
+                    FillInfosFromPdf(item, files, token);
                 }
             }
 

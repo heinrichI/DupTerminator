@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
@@ -162,6 +163,7 @@ namespace DupTerminator.DataBase
 
         public void Add(ExtendedFileInfo container, IEnumerable<ArchiveFileInfo> files)
         {
+            Debug.Assert(container is not null);
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
