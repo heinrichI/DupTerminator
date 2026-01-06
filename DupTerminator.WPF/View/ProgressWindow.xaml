@@ -4,11 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DupTerminator.WPF.View"
+        xmlns:converters="clr-namespace:DupTerminator.WPF.Converters"
         mc:Ignorable="d"
         Title="ProgressWindow" Height="450" Width="800"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -36,7 +41,54 @@
             </ListView.View>
         </ListView>
 
-        <Button Grid.Row="1" 
+        
+        <ScrollViewer Grid.Row="1"  VerticalScrollBarVisibility="Auto" Visibility="{Binding Logs.Count, Converter={StaticResource CountToVisibility}}">
+            <ListView ItemsSource="{Binding Logs}"
+                        Margin="10"
+                        VirtualizingPanel.IsVirtualizing="True"
+                        VirtualizingPanel.VirtualizationMode="Recycling"
+                  >
+
+            <!-- Optional: show columns -->
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Time" 
+                                    DisplayMemberBinding="{Binding Timestamp, StringFormat=HH:mm:ss.fff}"/>
+                    <GridViewColumn Header="Level"
+                                    DisplayMemberBinding="{Binding Level}"/>
+                    <GridViewColumn Header="Category" 
+                                    DisplayMemberBinding="{Binding Category}"/>
+                    <GridViewColumn Header="Message" 
+                                    DisplayMemberBinding="{Binding Message}"/>
+                </GridView>
+            </ListView.View>
+
+            <!-- Row style with DataTriggers -->
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="Background" Value="White"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Level}" Value="Debug">
+                            <Setter Property="Foreground" Value="Gray"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Information">
+                            <Setter Property="Foreground" Value="Black"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Warning">
+                            <Setter Property="Foreground" Value="Orange"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="Error">
+                            <Setter Property="Foreground" Value="Red"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+        </ScrollViewer>
+
+        <Button Grid.Row="2" 
                 Content="Cancel" 
                 Command="{Binding CancelCommand}"
                 HorizontalAlignment="Right" 

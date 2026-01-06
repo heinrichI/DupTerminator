@@ -14,6 +14,7 @@ using DupTerminator.BusinessLogic.Model;
 using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
 using static System.Net.WebRequestMethods;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
 {
@@ -32,7 +33,6 @@ namespace DupTerminator.BusinessLogic
         // New-style MRESlim that supports unified cancellation
         // in its Wait methods.
         protected ManualResetEventSlim _mres = new ManualResetEventSlim(true);
-
         private readonly ConcurrentDictionary<string, IList<ExtendedFileInfo>> _checksumDictionary = new ConcurrentDictionary<string, IList<ExtendedFileInfo>>();
 
         public SearcherMD5Base(
@@ -157,114 +157,13 @@ namespace DupTerminator.BusinessLogic
                      }), TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion);
             }
 
-            //var sr = await Task.WhenAll(tasksByDrivers).ContinueWith((tasks2) =>
             await Task.WhenAll(tasksByDrivers);
-            //{
-                foreach (var item in blockingCollectionByPhisDisks)
-                {
-                    item.BlockingCollection.Dispose();
-                }
-
-                //IEnumerable<DuplicateGroup>? duplicates = _checksumDictionary
-                //    .Where(pair => pair.Value.Count > 1)
-                //    .Select(pair => new DuplicateGroup(pair.Key, pair.Value));
-                ////.OrderByDescending(d => d.Files.Any(f => f.Container is null));
-
-                //var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);
-                //var d2 = duplicates.Where(d => d.Files.Any(f => withoutContainer.Any(c => f.Container is not null && c.Path == f.Container.Path)));
-                //if (d2 != null && d2.Any())
-                //{
-                //    _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
-                //}
-
-                //return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
-
-                //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
-
-                //var duplicatesDict = duplicates.ToDictionary(k => k.Checksum);
-
-                ////если все файлы из одного контейнера совпадают, то удаляем их и оставляем только контейнер
-                //var fileContainers = duplicates
-                //    .SelectMany(d => d.Files)
-                //    .GroupBy(f => f.Container)
-                //    .Select(g => new Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>(g.Key, g.ToList()))
-                //    .ToArray();
-                //foreach (Pair<ExtendedFileInfo, IList<ExtendedFileInfo>>? container in fileContainers)
-                //{
-                //    if (container.Key is null)
-                //        continue;
-
-                //    if (cancelToken.IsCancellationRequested)
-                //    {
-                //        System.Diagnostics.Debug.WriteLine("Container grouping was cancelled.");
-                //        break;
-                //    }
-
-                //    ExtendedFileInfo? firstFile = container.Value.FirstOrDefault();
-                //    if (firstFile != null)
-                //    {
-                //        DuplicateGroup group = duplicatesDict[firstFile.CheckSum];
-                //        //если файлы лежат не только в контейнере, проверить не совпадают ли все файлы из контейнера с файлами в директории,
-                //        //если совпадают - создать виртуальный контейнер
-                //        var duplCandidates = group.Files
-                //            .Where(f => f.Container?.CombinedPath != container?.Key?.CombinedPath)
-                //            .GroupBy(f => f.Container);
-                //        foreach (IGrouping<ExtendedFileInfo, ExtendedFileInfo> duplCandidate in duplCandidates)
-                //        {
-                //            if (duplCandidate.Key is null)
-                //            {
-                //                //этот файл лежит просто в директории
-                //                var filesInDirectory = duplicates.SelectMany(d => d.Files).Where(f => f.DirectoryName == duplCandidate.First().DirectoryName);
-                //                foreach (var file in container.Value)
-                //                {
-                //                    if (!filesInDirectory.Any(f => f.Size == file.Size && f.CheckSum == f.CheckSum))
-                //                        break;
-                //                }
-                //                //добавить виртуальный контейнер
-                //                DuplicateContainer container2 = new DuplicateContainer();
-                //            }
-                //            else
-                //            {
-                //                Pair<ExtendedFileInfo, IList<ExtendedFileInfo>> duplicateContainer = fileContainers
-                //                    .Single(c => c.Key != null && c.Key.CombinedPath == duplCandidate.Key?.CombinedPath);
-                //                if (duplicateContainer.Value.Count == container.Value.Count)
-                //                {
-                //                    bool sequenceEqual = duplicateContainer.Value.SequenceEqual(container.Value, new CheckSumComparer());
-                //                    if (sequenceEqual)
-                //                    {
-                //                        container.Value.Clear();
-                //                        duplicateContainer.Value.Clear();
-                //                        //foreach (var item in duplicates)
-                //                        //{
-                //                        //if (item.Files.First().Container.CombinedPath == can.Key.CombinedPath || item.Files.First().Container.CombinedPath == container.Key.CombinedPath)
-                //                        //{
-                //                        //    item.Files.RemoveAll(f => f.CombinedPath == can.Key.CombinedPath && can.Any(c => c.Name == f.Name));
-                //                        //    item.Files.RemoveAll(f => f.CombinedPath == container.Key.CombinedPath && container.Any(c => c.Name == f.Name));
-                //                        //}
-                //                        //}
-                //                    }
-                //                }
-                //                else
-                //                {
-                //                    _logger.LogDebug($"У кандитаного контненера {duplCandidate} не совпадает количество файлов");
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
-
-                //var duplicates2 = new ReadOnlyCollection<DuplicateGroup>(fileContainers
-                //    .SelectMany(c => c.Value)
-                //    .GroupBy(f => f.CheckSum)
-                //    .Select(f => new DuplicateGroup(f.Key, (IList<ExtendedFileInfo>)f))
-                //    .ToList());
-
-                //return duplicates2;
-            //});
+            foreach (var item in blockingCollectionByPhisDisks)
+            {
+                item.BlockingCollection.Dispose();
+            }
 
             return _checksumDictionary;
-
-            //return sr;
         }
 
 
@@ -278,12 +177,6 @@ namespace DupTerminator.BusinessLogic
             if (blockingCollection == null)
                 throw new ArgumentNullException(nameof(blockingCollection));
 
-            //var timeout = TimeSpan.FromMilliseconds(1000);
-            //int localSum = 0;
-            //while (bc.TryTake(out ExtendedFileInfo localItem, timeout))
-            //{
-            //    localSum++;
-            //}
 
             while (!blockingCollection.IsCompleted && !cancelToken.IsCancellationRequested)
             {
@@ -314,7 +207,6 @@ namespace DupTerminator.BusinessLogic
                         PhisicalDrive = drive,
                         RemainSize = StringHelper.FormatBytes(totalSize)
                     });
-
 
 
                     if (data.All(d => d is ArchiveFileInfo))
@@ -360,15 +252,10 @@ namespace DupTerminator.BusinessLogic
                                                 return list;
                                             });
                                     }
-                                    //for (int i = 0; i < data.Length; i++)
-                                    //{
-                                    //    var checkSum = checkSums[i];
-                                    //    var fileInfo2 = data[i];                                      
-                                    //}
                                 }
                                 catch (Exception ex)
                                 {
-                                    _logger.LogError($"{fileInfo.Path}: {ex.Message}");
+                                    _logger.LogError(ex, $"{fileInfo.Path}: {ex.Message}");
                                 }
                                 break;
                             }
@@ -471,86 +358,8 @@ namespace DupTerminator.BusinessLogic
                                 });
                         }
                     }
-
-
-                        //if (string.IsNullOrEmpty(md5))
-                        //{
-                        //    //System.Diagnostics.Debug.WriteLine(String.Format("md5 not found in DB for file {0}, lastwrite: {1}, length: {2}", _fi.FullName, _fi.LastWriteTime, _fi.Length));
-                        //    if (fileInfo is ArchiveFileInfo afi)
-                        //    {
-                        //        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
-                        //    }
-                        //    else if (fileInfo is PdfFileInfo pdfInfo)
-                        //    {
-                        //        fileInfo.CheckSum = _pdfService.CalculateHash(pdfInfo, HashHelper.CreateMD5Checksum);
-                        //    }
-                        //    else
-                        //    {
-                        //        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
-                        //    }
-                        //    Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
-                        //    _md5Repository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, fileInfo.CheckSum);
-                        //    //_md5Repository.Update(_fi.FullName, _fi.LastWriteTime, _fi.Length, _checkSum);
-                        //}
-                        //else
-                        //    fileInfo.CheckSum = md5;
-
-                        //else
-                        //{
-                        //    if (fileInfo is ArchiveFileInfo afi)
-                        //    {
-                        //        fileInfo.CheckSum = _archiveService.CalculateHashInArchive<string?>(afi, HashHelper.CreateMD5Checksum);
-                        //    }
-                        //    else
-                        //    {
-                        //        fileInfo.CheckSum = HashHelper.CreateMD5Checksum(fileInfo);
-                        //    }
-                        //}
-
-                        //Debug.Assert(!string.IsNullOrEmpty(fileInfo.CheckSum));
-                    //string checksum = fileInfo.CheckSum;
-                    //Debug.Assert(checksum is not null);
-                    //_checksumDictionary.AddOrUpdate(checksum,
-                    //    addValueFactory: (checksum) =>
-                    //    {
-                    //        var list = new List<ExtendedFileInfo>();
-                    //        list.Add(data);
-                    //        return list;
-                    //    },
-                    //    updateValueFactory: (checksum, list) =>
-                    //    {
-                    //        list.Add(data);
-                    //        return list;
-                    //    });
-
-                    //if (_archiveService.IsArchiveFile(data.Path))
-                    //{
-                    //    var files = _archiveService.GetHashesFromArchive(data);
-                    //    foreach (ExtendedFileInfo file in files)
-                    //    {
-                    //        _checksumDictionary.AddOrUpdate(file.CheckSum,
-                    //             addValueFactory: (checksum) =>
-                    //             {
-                    //                 var list = new List<ExtendedFileInfo>();
-                    //                 list.Add(file);
-                    //                 return list;
-                    //             },
-                    //             updateValueFactory: (checksum, list) =>
-                    //             {
-                    //                 list.Add(file);
-                    //                 return list;
-                    //             });
-                    //    }                      
-                    //}
                 }
             }
-
-            // GetConsumingEnumerable returns the enumerator for the underlying collection.
-            //var subtractions = 0;
-            //foreach (var item in bc.GetConsumingEnumerable())
-            //{
-            //    Console.WriteLine( $"Consuming tick value {item:D18}");
-            //}
         }
 
 
@@ -573,24 +382,8 @@ namespace DupTerminator.BusinessLogic
                 }
 
                 filesWithEqualSize.Add(group.ToArray());
-                //foreach (ExtendedFileInfo item in group)
-                //{
-                //    if (cancelToken.IsCancellationRequested)
-                //    {
-                //        System.Diagnostics.Debug.WriteLine("CompareBySize was canceled.");
-                //        break;
-                //    }
-
-                //    filesWithEqualSize.Add(item);
-                //}
             }
             filesWithEqualSize.CompleteAdding();
-            //var paths = filesWithEqualSize.Select(f => f.Path);
-            //foreach (var item in paths)
-            //{
-            //    if (filesWithEqualSize.Count(f => f.Path == item) > 1)
-            //        throw new Exception("Что-то не так");
-            //}
         }
 
         // из разных потоков
@@ -665,8 +458,6 @@ namespace DupTerminator.BusinessLogic
 
                 AddFile(file, ref files, token, progress, phisicalDrive);
             }
-
-            //progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Status = string.Empty, State = "Search ended" });
 
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
@@ -770,8 +561,6 @@ namespace DupTerminator.BusinessLogic
             IProgress<ProgressDto> progress,
             in string phisicalDrive)
         {
-            //try
-            //{
             //Add subdirectories
             if (isRecurse)
             {

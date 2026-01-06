@@ -115,7 +115,7 @@ namespace DupTerminator.Pdf
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError($"{fileInfo.Path}: {ex.Message}", ex);
+                        _logger.LogError(ex, $"{fileInfo.Path}: {ex.Message}");
                     }
                 }
             }

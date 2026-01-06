@@ -112,7 +112,7 @@ namespace DupTerminator.BusinessLogic
                                }
                                catch (Exception ex)
                                {
-                                   _logger.LogError(ex.Message, ex);
+                                   _logger.LogError(ex, $"{item.Item1.Path}: {ex.Message}");
                                }
                                return localList; // Return the updated local list for the next iteration
                            }

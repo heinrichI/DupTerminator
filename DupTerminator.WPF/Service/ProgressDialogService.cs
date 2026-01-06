@@ -10,20 +10,35 @@ using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.WPF.View;
 using DupTerminator.WPF.ViewModel;
+using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.WPF.Service
 {
     public sealed class ProgressDialogService : IProgressDialogService
     {
+        private readonly ProgressDialogViewModel _vm;
+
+        //private readonly ViewModelLoggerProvider _loggerProvider = new();
+        //private readonly ILoggerFactory _loggerFactory;
+
+        public ProgressDialogService(ProgressDialogViewModel progressDialogViewModel)
+        {
+            _vm = progressDialogViewModel;
+            //_loggerFactory = loggerFactory;
+            //loggerFactory.AddProvider(_loggerProvider);
+        }
+
         public async Task RunAsync(Func<IProgress<ProgressDto>, CancellationToken, Task> worker)
         {
-            var vm = new ProgressDialogViewModel();
+            _vm.Clear();
+            //var vm = new ProgressDialogViewModel();
+            //_loggerProvider.SetViewModel(vm);
 
 
             //// Create progress reporter with throttling
             var progress = new ProgressWithTimer<ProgressDto>(
                 TimeSpan.FromMilliseconds(250),
-                vm.Progress
+                _vm.Progress
             );
             //IProgress<ProgressDto> progress = new ThrottledProgress<ProgressDto>(
             //    TimeSpan.FromMilliseconds(200),
@@ -37,7 +52,7 @@ namespace DupTerminator.WPF.Service
 
             var dialog = new ProgressWindow{
                 Owner = Application.Current.MainWindow,
-                DataContext = vm
+                DataContext = _vm
             };
 
 
@@ -48,7 +63,7 @@ namespace DupTerminator.WPF.Service
             // Handle dialog closing
             dialog.Closed += (_, _) =>
             {
-                vm.Dispose(); // Cancel the token
+                _vm.Dispose(); // Cancel the token
                 progress?.Dispose();
                 //dialogClosedSource.TrySetResult(true);
             };
@@ -66,7 +81,7 @@ namespace DupTerminator.WPF.Service
             {
                 // Start the worker operation
                 //var workerTask = worker(progress, vm.Token);
-                var workerTask = Task.Run(() => worker(progress, vm.Token));
+                var workerTask = Task.Run(() => worker(progress, _vm.Token));
                 //workerTaskSource.SetResult(true);
                 _ = workerTask.ContinueWith(t =>
                 {
@@ -91,7 +106,7 @@ namespace DupTerminator.WPF.Service
                 {
                     dialog.Dispatcher.Invoke(dialog.Close);
                 }
-                vm.Dispose();
+                _vm.Dispose();
                 progress?.Dispose();
             }
 

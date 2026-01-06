@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Model;
 using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.WPF.ViewModel
@@ -19,18 +20,16 @@ namespace DupTerminator.WPF.ViewModel
                                                IProgressDialogVm,
                                                IDisposable
     {
-        private readonly CancellationTokenSource _cts = new();
+        private CancellationTokenSource _cts = new();
         public CancellationToken Token => _cts.Token;
 
-        public ObservableCollection<ProgressItemViewModel> ProgressItems { get; } = new();
 
-        //private readonly Dispatcher _dispatcher;
+        public ObservableCollection<ProgressItemViewModel> ProgressItems { get; } = new();
 
         public IProgress<ProgressDto> Progress { get; }
 
         public ProgressDialogViewModel()
         {
-            //_dispatcher = Dispatcher.CurrentDispatcher;
             Progress = new Progress<ProgressDto>(UpdateProgress);
         }
 
@@ -54,23 +53,6 @@ namespace DupTerminator.WPF.ViewModel
             //}, DispatcherPriority.Background);
         }
 
-        private void UpdateCore(ProgressDto dto)
-        {
-            System.Diagnostics.Debug.WriteLine($"{dto.PhisicalDrive} {dto.State} {dto.Path}");
-            var item = ProgressItems.SingleOrDefault(i => i.PhisicalDrive == dto.PhisicalDrive);
-            if (item != null)  // update
-            {
-                item.Path = dto.Path;
-                item.State = dto.State;
-                item.RemainSize = dto.RemainSize;
-            }
-            else   // insert
-            {
-                item = new ProgressItemViewModel(dto);
-                ProgressItems.Add(item);
-            }
-        }
-
         public void Dispose() => _cts.Cancel();   // automatic on close
 
         ICommand _cancelCommand;
@@ -89,6 +71,42 @@ namespace DupTerminator.WPF.ViewModel
                     _cts.Cancel();
                     }, arg => true));
             }
+        }
+
+        // Add a collection for logs
+        public ObservableCollection<LogEntry> Logs { get; } = new();
+
+
+        // Method to add log entries
+        public void AddLogEntry(LogEntry entry)
+        {
+            Dispatcher.CurrentDispatcher.BeginInvoke(() =>
+            {
+                Logs.Add(entry);
+            });
+        }
+
+        // Method to add log messages directly
+        public void AddLogMessage(string message, string level = "INFO")
+        {
+            AddLogEntry(new LogEntry(DateTime.Now, level, message, "Application"));
+        }
+
+        internal void Clear()
+        {
+            //Dispatcher.CurrentDispatcher.BeginInvoke(() =>
+            //{
+                ProgressItems.Clear();
+                Logs.Clear();
+            //});
+
+
+            // 1. Cancel and Dispose of the old source safely
+            _cts.Cancel();
+            _cts.Dispose();
+
+            // 2. Create a fresh instance
+            _cts = new CancellationTokenSource();
         }
     }
 }

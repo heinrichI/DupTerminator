@@ -170,7 +170,7 @@ namespace DupTerminator.WPF.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                _logger.LogError(ex, ex.Message);
                 return null;
             }
         }
@@ -199,7 +199,7 @@ namespace DupTerminator.WPF.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                _logger.LogError(ex, ex.Message);
                 return null;
             }
             finally
@@ -225,7 +225,7 @@ namespace DupTerminator.WPF.Service
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex.Message, ex);
+                _logger.LogError(ex, ex.Message);
                 return null;
             }
             finally

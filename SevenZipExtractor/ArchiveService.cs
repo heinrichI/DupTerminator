@@ -169,7 +169,7 @@ namespace SevenZipExtractor
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{archive.Path}: {ex.Message}", ex);
+                _logger.LogError(ex, $"{archive.Path}: {ex.Message}");
             }
             return containerInfos.ToArray();
         }

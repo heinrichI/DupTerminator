@@ -31,7 +31,6 @@ namespace DupTerminator.BusinessLogic
         // New-style MRESlim that supports unified cancellation
         // in its Wait methods.
         ManualResetEventSlim _mres = new ManualResetEventSlim(true);
-
         private readonly Stopwatch _stopwatch = new();
 
         public SearcherContainer(

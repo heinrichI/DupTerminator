@@ -87,9 +87,17 @@ namespace DupTerminator.WPF
             //    return window;
             //});
 
+            services.AddSingleton<WpfLoggerProvider>();
+            services.AddSingleton<ILoggerProvider>(provider =>
+                provider.GetService<WpfLoggerProvider>());
+            services.AddSingleton<ILoggerFactory>(provider =>
+            {
+                var factory = new LoggerFactory();
+                factory.AddProvider(provider.GetService<WpfLoggerProvider>());
+                return factory;
+            });
 
-
-            //services.AddTransient<ProgressDialogViewModel>();
+            services.AddSingleton<ProgressDialogViewModel>();
             services.AddSingleton<IProgressDialogService, ProgressDialogService>();
 
 
