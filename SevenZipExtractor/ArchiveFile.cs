@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -14,6 +15,13 @@ namespace SevenZipExtractor
         private IList<Entry> _entries;
 
         private string _libraryFilePath;
+
+        // A Meter is a logical grouping of metrics for a component.
+        private static readonly Meter _meter = new Meter("SevenZipExtractor", "1.0.0");
+
+        // A Counter that tracks how many ArchiveFile instances have been created.
+        private static readonly Counter<long> _instanceCounter =
+            _meter.CreateCounter<long>("archivefile.instances", description: "Number of ArchiveFile instances created");
 
         public ArchiveFile(string archiveFilePath, string libraryFilePath = null)
         {
@@ -44,6 +52,9 @@ namespace SevenZipExtractor
 
             this._archive = this._sevenZipHandle.CreateInArchive(Formats.FormatGuidMapping[format]);
             this._archiveStream = new InStreamWrapper(File.OpenRead(archiveFilePath));
+
+            // Increment the counter for every new instance.
+            _instanceCounter.Add(1);
         }
 
         public ArchiveFile(Stream archiveStream, SevenZipFormat? format = null, string libraryFilePath = null)
@@ -73,6 +84,9 @@ namespace SevenZipExtractor
 
             this._archive = this._sevenZipHandle.CreateInArchive(Formats.FormatGuidMapping[format.Value]);
             this._archiveStream = new InStreamWrapper(archiveStream);
+
+            // Increment the counter for every new instance.
+            _instanceCounter.Add(1);
         }
 
         public void Extract(string outputFolder, bool overwrite = false)
