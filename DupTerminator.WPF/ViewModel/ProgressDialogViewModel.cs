@@ -28,9 +28,12 @@ namespace DupTerminator.WPF.ViewModel
 
         public IProgress<ProgressDto> Progress { get; }
 
+        private readonly Dispatcher _currentDispatcher;
+
         public ProgressDialogViewModel()
         {
             Progress = new Progress<ProgressDto>(UpdateProgress);
+            _currentDispatcher = Dispatcher.CurrentDispatcher;
         }
 
         public void UpdateProgress(ProgressDto dto)
@@ -80,7 +83,7 @@ namespace DupTerminator.WPF.ViewModel
         // Method to add log entries
         public void AddLogEntry(LogEntry entry)
         {
-            Dispatcher.CurrentDispatcher.BeginInvoke(() =>
+            _currentDispatcher.BeginInvoke(() =>
             {
                 Logs.Add(entry);
             });

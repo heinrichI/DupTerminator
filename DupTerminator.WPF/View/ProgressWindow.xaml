@@ -3,8 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:DupTerminator.WPF.View"
         xmlns:converters="clr-namespace:DupTerminator.WPF.Converters"
+        xmlns:behavior="clr-namespace:DupTerminator.WPF.Behavior"
         mc:Ignorable="d"
         Title="ProgressWindow" Height="450" Width="800"
         WindowStartupLocation="CenterOwner">
@@ -46,10 +48,11 @@
             <ListView ItemsSource="{Binding Logs}"
                         Margin="10"
                         VirtualizingPanel.IsVirtualizing="True"
-                        VirtualizingPanel.VirtualizationMode="Recycling"
-                  >
-
-            <!-- Optional: show columns -->
+                        VirtualizingPanel.VirtualizationMode="Recycling">
+                <i:Interaction.Behaviors>
+                    <behavior:ScrollOnNewItemBehavior />
+                </i:Interaction.Behaviors>
+                <!-- Optional: show columns -->
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Time" 
@@ -58,9 +61,14 @@
                                     DisplayMemberBinding="{Binding Level}"/>
                     <GridViewColumn Header="Category" 
                                     DisplayMemberBinding="{Binding Category}"/>
-                    <GridViewColumn Header="Message" 
-                                    DisplayMemberBinding="{Binding Message}"/>
-                </GridView>
+                    <GridViewColumn Header="Message" Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    </GridView>
             </ListView.View>
 
             <!-- Row style with DataTriggers -->

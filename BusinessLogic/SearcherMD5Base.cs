@@ -223,7 +223,7 @@ namespace DupTerminator.BusinessLogic
 
                             if (string.IsNullOrEmpty(md5))
                             {
-                                _logger.LogInformation($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
+                                //_logger.LogInformation($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 try
                                 {
                                     var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
@@ -233,7 +233,7 @@ namespace DupTerminator.BusinessLogic
                                     {
                                         Debug.Assert(!string.IsNullOrEmpty(checksum.Item2));
                                         _md5Repository.Add(checksum.Item1.Path, lastWriteTime, checksum.Item1.Size, checksum.Item2);
-                                        _logger.LogInformation($"Save md5 by {checksum.Item1.Path}, {lastWriteTime}, {checksum.Item1.Size}");
+                                        //_logger.LogInformation($"Save md5 by {checksum.Item1.Path}, {lastWriteTime}, {checksum.Item1.Size}");
                                         //var md52 = _md5Repository.ReadMD5(fileInfo2.Path, lastWriteTime, fileInfo2.Size);
                                         if (checksum.Item1.Path == fileInfo.Path && checksum.Item1.Size != fileInfo.Size)
                                             throw new Exception("Почему то размеры не совпадают!");

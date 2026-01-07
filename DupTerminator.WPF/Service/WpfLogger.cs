@@ -33,10 +33,10 @@ namespace DupTerminator.WPF.Service
 
             _viewModel.AddLogEntry(new LogEntry(DateTime.Now, logLevelString, message, _category));
 
-            if (exception != null)
-            {
-                _viewModel.AddLogEntry(new LogEntry(DateTime.Now, "ERROR", exception.ToString(), _category));
-            }
+            //if (exception != null)
+            //{
+            //    _viewModel.AddLogEntry(new LogEntry(DateTime.Now, LogLevel.Error.ToString(), exception.ToString(), _category));
+            //}
         }
     }
 }

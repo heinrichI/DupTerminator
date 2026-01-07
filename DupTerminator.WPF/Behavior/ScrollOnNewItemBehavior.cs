@@ -6,11 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Xaml.Behaviors;
 
 namespace DupTerminator.WPF.Behavior
 {
-    public class ScrollOnNewItemBehavior : Behavior<DataGrid>
+    public class ScrollOnNewItemBehavior : Behavior<ItemsControl>
     {
         protected override void OnAttached()
         {
@@ -50,16 +51,48 @@ namespace DupTerminator.WPF.Behavior
 
                 var item = AssociatedObject.Items[count - 1];
 
-                if (AssociatedObject is DataGrid)
+                AssociatedObject.Dispatcher.BeginInvoke((Action)(() =>
                 {
-                    DataGrid grid = (DataGrid)AssociatedObject;
-                    grid.Dispatcher.BeginInvoke((Action)(() =>
+                    AssociatedObject.UpdateLayout();
+
+                    if (AssociatedObject is ListView listView)
                     {
-                        grid.UpdateLayout();
-                        grid.ScrollIntoView(item, null);
-                    }));
+                        listView.ScrollIntoView(item);
+                    }
+                    else if (AssociatedObject is DataGrid dataGrid)
+                    {
+                        dataGrid.ScrollIntoView(item, null);
+                    }
+                    else
+                    {
+                        // Generic ItemsControl behavior
+                        var scrollViewer = FindVisualChild<ScrollViewer>(AssociatedObject);
+                        if (scrollViewer != null)
+                        {
+                            scrollViewer.ScrollToEnd();
+                        }
+                    }
+                }));
+            }
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T result)
+                {
+                    return result;
+                }
+
+                var descendant = FindVisualChild<T>(child);
+                if (descendant != null)
+                {
+                    return descendant;
                 }
             }
+            return null;
         }
     }
 }
