@@ -29,7 +29,6 @@ namespace DupTerminator.BusinessLogic.Model
         public override bool Equals(object? obj)
         {
             return obj is ArchiveFileInfo info &&
-                   CheckSum == info.CheckSum &&
                    Size == info.Size &&
                    Name == info.Name &&
                    Path == info.Path &&
@@ -48,7 +47,6 @@ namespace DupTerminator.BusinessLogic.Model
         public override int GetHashCode()
         {
             HashCode hash = new HashCode();
-            hash.Add(CheckSum);
             hash.Add(Size);
             hash.Add(Name);
             hash.Add(Path);

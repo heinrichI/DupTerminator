@@ -13,10 +13,11 @@ namespace DupTerminator.WPF.ViewModel
         private bool _isSelected;
         private DuplicateGroupViewModel _group;
 
-        public ExtendedFileInfoViewModel(ExtendedFileInfo fileInfo, DuplicateGroupViewModel group)
+        public ExtendedFileInfoViewModel(ExtendedFileInfo fileInfo, DuplicateGroupViewModel group, string checksum)
         {
             _fileInfo = fileInfo;
             _group = group;
+            CheckSum = checksum;
         }
 
         public bool IsSelected
@@ -39,7 +40,7 @@ namespace DupTerminator.WPF.ViewModel
         public string Name => _fileInfo.Name;
 
         public string Path => _fileInfo.Path;
-        public string CheckSum => _fileInfo.CheckSum;
+        public string CheckSum { get; }
         public ulong Size => _fileInfo.Size;
         public string Extension => _fileInfo.Extension;
 

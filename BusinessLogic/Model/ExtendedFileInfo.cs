@@ -16,7 +16,6 @@ namespace DupTerminator.BusinessLogic.Model
     {
         //public byte[] Chunk;
 
-        public string CheckSum { get; set; }
 
         //public DateTime LastAccessTime { get; set; }
 
@@ -43,8 +42,7 @@ namespace DupTerminator.BusinessLogic.Model
 
         public bool Equals(ExtendedFileInfo info)
         {
-            return CheckSum == info.CheckSum &&
-                   Size == info.Size &&
+            return Size == info.Size &&
                    Name == info.Name &&
                    Path == info.Path &&
                    //LastAccessTime == info.LastAccessTime &&
@@ -76,7 +74,6 @@ namespace DupTerminator.BusinessLogic.Model
         public override int GetHashCode()
         {
             HashCode hash = new HashCode();
-            hash.Add(CheckSum);
             hash.Add(Size);
             hash.Add(Name);
             hash.Add(Path);
