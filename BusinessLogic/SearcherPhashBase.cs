@@ -397,7 +397,6 @@ namespace DupTerminator.BusinessLogic
             IEnumerable<SearchPath> locations,
             CancellationToken token)
         {
-            _logger.LogInformation($"SearchFileOnPhisicalDrive {phisicalDrive} start.");
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
             foreach (var directory in locations.Where(p => p.IsDirectory))
             {
