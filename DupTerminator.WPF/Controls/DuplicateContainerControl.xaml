@@ -10,6 +10,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <converters:FileSizeConverter x:Key="fileSizeConverter"/>
+        <converters:FileExtensionToIconConverter x:Key="IconConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -52,25 +53,34 @@
                             </Style>
                         </Grid.Style>
 
-                        <TextBox Grid.Row="0" Grid.Column="0"
+                        <StackPanel Grid.Row="0" Grid.Column="0" 
+                                    Orientation="Horizontal">
+                            <Image Height="16"
+                                       Source="{Binding FirstInfo, Converter={StaticResource IconConverter}}"
+                                       Stretch="Uniform"
+                                       SnapsToDevicePixels="True"/>
+                            <TextBox 
                                 Text="{Binding FirstInfo.Path, Mode=OneWay}" 
                                 IsReadOnly="True"
                                     TextWrapping="Wrap" >
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
-                                            <Setter Property="Background" Value="LightGreen"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                            <TextBox.InputBindings>
-                                <MouseBinding MouseAction="LeftDoubleClick"
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                                <Setter Property="Background" Value="LightGreen"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                                <TextBox.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick"
                                     Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding FirstInfo}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                        
+
                         <!--<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" >
                                 <Label Content="{Binding FirstEqualCount}" />
                                 <Label Content="/" />
@@ -141,24 +151,32 @@
                             </Grid>
                         </Expander>
 
-                        <TextBox  Grid.Row="0" Grid.Column="1"
+                        <StackPanel Grid.Row="0" Grid.Column="1"
+                                    Orientation="Horizontal">
+                            <Image Height="16"
+                                       Source="{Binding SecondInfo, Converter={StaticResource IconConverter}}"
+                                       Stretch="Uniform"
+                                       SnapsToDevicePixels="True"/>
+                            <TextBox 
                                 Text="{Binding SecondInfo.Path, Mode=OneWay}" 
                                 IsReadOnly="True" TextWrapping="Wrap" >
-                            <TextBox.Style>
-                                <Style TargetType="TextBox">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
-                                            <Setter Property="Background" Value="LightGreen"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBox.Style>
-                            <TextBox.InputBindings>
-                                <MouseBinding MouseAction="LeftDoubleClick"
-                                    Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding SecondInfo}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.TheyThemselvesAreEqual, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                                <Setter Property="Background" Value="LightGreen"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                                <TextBox.InputBindings>
+                                    <MouseBinding MouseAction="LeftDoubleClick"
+                                        Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding SecondInfo}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                        
                         <Expander Grid.Row="1" Grid.Column="1" 
                                   Header="{Binding SeconEqualCount}" 
                                   x:Name="SecondExpander" 

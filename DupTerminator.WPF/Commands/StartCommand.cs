@@ -40,7 +40,7 @@ namespace DupTerminator.WPF.Commands
         private readonly IPdfService _pdfService;
         private readonly IPHashService _pHashService;
         private readonly IMIHFactory _mihFactory;
-        private readonly ILogger<Searcher> _serachLogger;
+        private readonly ILogger<SearcherMD5> _serachLogger;
         private readonly IProgressDialogService _progressDlg;
         //private readonly Action<ReadOnlyCollection<ResultBase>?> _updateResults;
         private readonly Action<ResultBase?> _updateResults;
@@ -59,7 +59,7 @@ namespace DupTerminator.WPF.Commands
             IPdfService pdfService,
             IPHashService pHashService,
             IMIHFactory mihFactory,
-            ILogger<Searcher> serachLogger,
+            ILogger<SearcherMD5> serachLogger,
             IProgressDialogService progressDlg,
             //Action<ReadOnlyCollection<ResultBase>?> updateResults)
             Action<ResultBase?> updateResults)
@@ -100,7 +100,7 @@ namespace DupTerminator.WPF.Commands
 
             if (_settingViewModel.SelectedMode is MD5ModeSettings)
             {
-                var searcher = new Searcher(
+                var searcher = new SearcherMD5(
                    locations,
                    _settingViewModel.SearchSetting,
                     _md5Repository,
@@ -125,7 +125,7 @@ namespace DupTerminator.WPF.Commands
             }
             else if (_settingViewModel.SelectedMode is MD5ContainerSettings modeSettings)
             {
-                var searcher = new SearcherContainer(
+                var searcher = new SearcherMD5Container(
                    locations,
                    _settingViewModel.SearchSetting,
                    modeSettings,

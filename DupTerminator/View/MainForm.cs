@@ -43,7 +43,7 @@ namespace DupTerminator.View
         private readonly MainViewModel _model;
 
         private FileFunctions _fFunctions;
-        private Searcher _searcher;
+        private SearcherMD5 _searcher;
 
         //Properties.Settings mySettings = new Properties.Settings();
         private Settings _settings; //= new Settings(); //экземпляр класса с настройками 
@@ -1276,7 +1276,7 @@ namespace DupTerminator.View
                     new WindowsUtil(),
                     progress,
                     _archiveService,
-                    _serviceProvider.GetRequiredService<ILogger<Searcher>>());
+                    _serviceProvider.GetRequiredService<ILogger<SearcherMD5>>());
 
                 progressForm.Cancelled += (s, e) => _searcher.Cancell();
                 var progressFormTask = progressForm.ShowDialogAsync();
@@ -1302,7 +1302,7 @@ namespace DupTerminator.View
             }
         }
 
-        private void SearchEnded(Searcher searcher)
+        private void SearchEnded(SearcherMD5 searcher)
         {
             if (searcher.Duplicates == null || searcher.Duplicates != null && searcher.Duplicates.Count == 0)
             {

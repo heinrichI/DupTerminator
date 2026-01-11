@@ -28,12 +28,19 @@ namespace DupTerminator.WPF.Converters
             {
                 return IconCache.Instance.GetIcon(efi.Extension);
             }
+            else if (value is ContainerEqInfo qei)
+            {
+                if (qei.FileInfo is DirectoryFileInfo)
+                    return IconCache.Instance.GetDirectoryIcon();
+                else
+                    return IconCache.Instance.GetIcon(qei.FileInfo.Extension);
+            }
 
 
-            //if (value is ExtendedFileInfo fileInfo)
-            //    return IconCache.Instance.GetIcon(fileInfo.Extension);
+                //if (value is ExtendedFileInfo fileInfo)
+                //    return IconCache.Instance.GetIcon(fileInfo.Extension);
 
-            return IconCache.Instance.GetIcon(null);
+                return IconCache.Instance.GetIcon(null);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -33,7 +33,7 @@ namespace DupTerminator.WPF.ViewModel
         private readonly IPdfService _pdfService;
         private readonly IPHashService _pHashService;
         private readonly IMIHFactory _mihFactory;
-        private readonly ILogger<Searcher> _searchLogger;
+        private readonly ILogger<SearcherMD5> _searchLogger;
         private readonly IProgressDialogService _progressDialogService;
         public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
@@ -47,7 +47,7 @@ namespace DupTerminator.WPF.ViewModel
             IPdfService pdfService,
             IPHashService pHashService,
             IMIHFactory mihFactory,
-            ILogger<Searcher> searchLogger,
+            ILogger<SearcherMD5> searchLogger,
             IProgressDialogService progressDialogService)
         {
             _md5Repository = md5Repository;

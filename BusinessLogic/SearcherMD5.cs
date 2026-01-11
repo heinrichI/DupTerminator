@@ -20,12 +20,12 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
 {
-    public class Searcher : SearcherMD5Base, IDisposable
+    public class SearcherMD5 : SearcherMD5Base, IDisposable
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
 
         //private readonly DbArchiveService _dbArchiveService;
-        private readonly ILogger<Searcher> _logger;
+        private readonly ILogger<SearcherMD5> _logger;
         private readonly ContainerComparer _containerComparer;
 
         //public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
@@ -38,7 +38,7 @@ namespace DupTerminator.BusinessLogic
 
         //IProgress<Tuple<int, string>> _progressCalculateDuplicate = new Progress<Tuple<int, string>>();
 
-        public Searcher(
+        public SearcherMD5(
             ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
             IMd5Repository md5Repository,
@@ -50,7 +50,7 @@ namespace DupTerminator.BusinessLogic
             //Service.DbArchiveService dbArchiveService,
             IArchiveInfoRepository archiveInfoRepository,
             IPdfInfoRepository pdfInfoRepository,
-            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
+            ILogger<SearcherMD5> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
         {
             _locations = locations;
             //_progress = progress;

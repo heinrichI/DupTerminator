@@ -45,6 +45,27 @@ namespace DupTerminator.WindowsSpecific
             }
         }
 
+        /// <summary>
+        /// Returns a cached icon that represents a folder.
+        /// </summary>
+        public ImageSource GetDirectoryIcon()
+        {
+            const string dirKey = "DIRECTORY";
+
+            if (_cache.TryGetValue(dirKey, out var cachedIcon))
+                return cachedIcon;
+
+            lock (_lock)
+            {
+                if (_cache.TryGetValue(dirKey, out cachedIcon))
+                    return cachedIcon;
+
+                ImageSource icon = CreateDirectoryIcon();
+                _cache[dirKey] = icon;
+                return icon;
+            }
+        }
+
         private ImageSource CreateIcon(string extension)
         {
             Win32.SHFILEINFO shinfo = new();
@@ -98,6 +119,39 @@ namespace DupTerminator.WindowsSpecific
 
             _cache["DEFAULT"] = bmp;
             return bmp;
+        }
+
+        private ImageSource CreateDirectoryIcon()
+        {
+            Win32.SHFILEINFO shinfo = new();
+            // The file name is irrelevant – we only need the attribute flag.
+            string fileName = "dummy";
+            uint flags = Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON | Win32.SHGFI_USEFILEATTRIBUTES;
+
+            IntPtr hIcon = Win32.SHGetFileInfo(
+                fileName,
+                Win32.FILE_ATTRIBUTE_DIRECTORY,
+                ref shinfo,
+                (uint)Marshal.SizeOf(shinfo),
+                flags);
+
+            if (shinfo.hIcon == IntPtr.Zero)
+                return GetDefaultIcon();
+
+            try
+            {
+                BitmapSource bmp = Imaging.CreateBitmapSourceFromHIcon(
+                    shinfo.hIcon,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromEmptyOptions());
+
+                bmp.Freeze();
+                return bmp;
+            }
+            finally
+            {
+                Win32.DestroyIcon(shinfo.hIcon);
+            }
         }
     }
 }

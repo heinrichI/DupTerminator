@@ -14,6 +14,7 @@ namespace DupTerminator.WindowsSpecific
         public const uint SHGFI_LARGEICON = 0x000000000;
         public const uint SHGFI_USEFILEATTRIBUTES = 0x10;
         public const uint FILE_ATTRIBUTE_NORMAL = 0x80;
+        public const uint FILE_ATTRIBUTE_DIRECTORY = 0x10;
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct SHFILEINFO

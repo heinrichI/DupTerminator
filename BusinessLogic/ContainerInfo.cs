@@ -8,8 +8,6 @@ namespace DupTerminator.BusinessLogic
 {
     public struct ContainerInfo
     {
-        public string CheckSum { get; set; }
-
         public ulong Size { get; set; }
 
         public string Name { get; set; }

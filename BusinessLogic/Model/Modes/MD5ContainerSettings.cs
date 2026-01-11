@@ -20,5 +20,14 @@ namespace DupTerminator.BusinessLogic.Model.Modes
             get => _moreThanFileCount;
             set { _moreThanFileCount = value; RaisePropertyChangedEvent(); }
         }
+
+        private bool _showOnlyIfAllFilesInContainerEqual = false;
+
+        [DisplayName("Show only if all files in container equal")]
+        public bool ShowOnlyIfAllFilesInContainerEqual
+        {
+            get => _showOnlyIfAllFilesInContainerEqual;
+            set { _showOnlyIfAllFilesInContainerEqual = value; RaisePropertyChangedEvent(); }
+        }
     }
 }

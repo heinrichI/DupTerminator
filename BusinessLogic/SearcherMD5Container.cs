@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DupTerminator.BusinessLogic
 {
-    public class SearcherContainer : SearcherMD5Base
+    public class SearcherMD5Container : SearcherMD5Base
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
         private readonly SearchSetting _searchSetting;
@@ -25,7 +25,7 @@ namespace DupTerminator.BusinessLogic
 
         private readonly IWindowsUtil _windowsUtil;
         private readonly IArchiveService _archiveService;
-        private readonly ILogger<Searcher> _logger;
+        private readonly ILogger<SearcherMD5> _logger;
         //public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
         // New-style MRESlim that supports unified cancellation
@@ -33,7 +33,7 @@ namespace DupTerminator.BusinessLogic
         ManualResetEventSlim _mres = new ManualResetEventSlim(true);
         private readonly Stopwatch _stopwatch = new();
 
-        public SearcherContainer(
+        public SearcherMD5Container(
             ReadOnlyCollection<SearchPath> locations,
             SearchSetting searchSetting,
             MD5ContainerSettings modeSettings,
@@ -45,7 +45,7 @@ namespace DupTerminator.BusinessLogic
             //CancellationToken cancellationToken,
             IArchiveService archiveService,
             IPdfService pdfService,
-            ILogger<Searcher> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
+            ILogger<SearcherMD5> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
         {
             _locations = locations;
             _searchSetting = searchSetting;
@@ -183,9 +183,12 @@ namespace DupTerminator.BusinessLogic
 
             var cts = containers
                 .Where(c => c.Value.FirstFiles.Count > _modeSettings.MoreThanFileCount || c.Value.TheyThemselvesAreEqual)
-                .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual))
-                .OrderByDescending(d => d.SizeOfEqualFiles)
-                .ToList();
+                .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual));
+
+            if (_modeSettings.ShowOnlyIfAllFilesInContainerEqual)
+                cts = cts.Where(c => c.FirstEqualCount == c.FirstContainerFilesCount || c.SeconEqualCount == c.SecondContainerFilesCount);
+
+            cts = cts.OrderByDescending(d => d.SizeOfEqualFiles);
 
             foreach (var item in cts)
             {
@@ -204,7 +207,7 @@ namespace DupTerminator.BusinessLogic
                 }
             }
 
-            return new ReadOnlyCollection<DuplicateContainer>(cts);
+            return new ReadOnlyCollection<DuplicateContainer>(cts.ToList());
 
             //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
 

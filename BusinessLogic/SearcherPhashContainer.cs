@@ -37,7 +37,7 @@ namespace DupTerminator.BusinessLogic
             IPdfService pdfService,
             IPHashService pHashService,
             IMIHFactory mIHFactory,
-            ILogger<Searcher> logger) : base(searchSetting, pHashContainerSettings, mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
+            ILogger<SearcherMD5> logger) : base(searchSetting, pHashContainerSettings, mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
             _locations = locations;
             _pHashContainerSettings = pHashContainerSettings;

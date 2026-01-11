@@ -11,7 +11,7 @@ namespace DupTerminator.BusinessLogic.Model
     /// Extension of system.IO.FileInfo to contain the file checksum as well. 
     /// FileInfo can not be inherited since it is sealed.
     /// </summary>
-    [DebuggerDisplay("{CheckSum} {Name}")]
+    [DebuggerDisplay("{Name}")]
     public class ExtendedFileInfo : SimpleFileInfo
     {
         //public byte[] Chunk;

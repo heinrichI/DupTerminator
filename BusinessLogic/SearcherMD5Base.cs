@@ -223,7 +223,7 @@ namespace DupTerminator.BusinessLogic
 
                             if (string.IsNullOrEmpty(md5))
                             {
-                                //_logger.LogInformation($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
+                                _logger.LogDebug($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 try
                                 {
                                     var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
@@ -470,6 +470,7 @@ namespace DupTerminator.BusinessLogic
                 filesInArchive = _archiveInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
                 if (filesInArchive == null)
                 {
+                    _logger.LogDebug($"{efi.Path} не найден в _archiveInfoRepository");
                     filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
                     if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
                     {
@@ -531,6 +532,7 @@ namespace DupTerminator.BusinessLogic
                 filesInPdf = _pdfInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
                 if (filesInPdf == null)
                 {
+                    _logger.LogDebug($"{efi.Path} не найден в _pdfInfoRepository");
                     filesInPdf = _pdfService.GetInfos(efi, token);
                     if (filesInPdf is not null && filesInPdf.Any() && !token.IsCancellationRequested)
                     {
