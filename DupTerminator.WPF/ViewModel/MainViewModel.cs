@@ -127,7 +127,7 @@ namespace DupTerminator.WPF.ViewModel
                                 UseShellExecute = true
                             });
                         }
-                        else if(System.IO.File.Exists(info.FileInfo.Container.Path))
+                        else if(info.FileInfo is not null && info.FileInfo.Container is not null && System.IO.File.Exists(info.FileInfo.Container.Path))
                         {
                             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
                             {

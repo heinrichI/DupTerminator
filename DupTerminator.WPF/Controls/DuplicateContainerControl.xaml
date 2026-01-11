@@ -53,16 +53,20 @@
                             </Style>
                         </Grid.Style>
 
-                        <StackPanel Grid.Row="0" Grid.Column="0" 
-                                    Orientation="Horizontal">
-                            <Image Height="16"
-                                       Source="{Binding FirstInfo, Converter={StaticResource IconConverter}}"
-                                       Stretch="Uniform"
-                                       SnapsToDevicePixels="True"/>
-                            <TextBox 
+                       <Grid Grid.Row="0" Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Grid.Column="0" Height="16"
+                                   Source="{Binding FirstInfo, Converter={StaticResource IconConverter}}"
+                                   Stretch="Uniform"
+                                   SnapsToDevicePixels="True"
+                                   Margin="0,0,2,0"/>
+                                <TextBox Grid.Column="1"
                                 Text="{Binding FirstInfo.Path, Mode=OneWay}" 
                                 IsReadOnly="True"
-                                    TextWrapping="Wrap" >
+                                TextWrapping="Wrap" >
                                 <TextBox.Style>
                                     <Style TargetType="TextBox">
                                         <Style.Triggers>
@@ -78,8 +82,8 @@
                                     CommandParameter="{Binding FirstInfo}" />
                                 </TextBox.InputBindings>
                             </TextBox>
-                        </StackPanel>
-                        
+                        </Grid>
+
 
                         <!--<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" >
                                 <Label Content="{Binding FirstEqualCount}" />
@@ -151,15 +155,21 @@
                             </Grid>
                         </Expander>
 
-                        <StackPanel Grid.Row="0" Grid.Column="1"
-                                    Orientation="Horizontal">
-                            <Image Height="16"
-                                       Source="{Binding SecondInfo, Converter={StaticResource IconConverter}}"
-                                       Stretch="Uniform"
-                                       SnapsToDevicePixels="True"/>
-                            <TextBox 
+
+                            <Grid Grid.Row="0" Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                            <Image  Grid.Column="0" Height="16"
+                                   Source="{Binding SecondInfo, Converter={StaticResource IconConverter}}"
+                                   Stretch="Uniform"
+                                   SnapsToDevicePixels="True"
+                                   Margin="0,0,2,0"/>
+                            <TextBox Grid.Column="1"
                                 Text="{Binding SecondInfo.Path, Mode=OneWay}" 
-                                IsReadOnly="True" TextWrapping="Wrap" >
+                                IsReadOnly="True"
+                                TextWrapping="Wrap" >
                                 <TextBox.Style>
                                     <Style TargetType="TextBox">
                                         <Style.Triggers>
@@ -175,10 +185,10 @@
                                         CommandParameter="{Binding SecondInfo}" />
                                 </TextBox.InputBindings>
                             </TextBox>
-                        </StackPanel>
-                        
+                        </Grid>
+
                         <Expander Grid.Row="1" Grid.Column="1" 
-                                  Header="{Binding SeconEqualCount}" 
+                                  Header="{Binding SecondEqualCount}" 
                                   x:Name="SecondExpander" 
                                   MaxHeight="400">
                             <Expander.HeaderTemplate>
@@ -234,7 +244,7 @@
                             </Grid>
                         </Expander>
 
-                        <TextBox Grid.Row="0" Grid.Column="2"
+                        <TextBox Grid.Row="0" Grid.Column="2" 
                                      Text="{Binding SizeOfEqualFiles, Mode=OneWay, Converter={StaticResource fileSizeConverter}}" 
                                      IsReadOnly="True" />
                     </Grid>

@@ -43,7 +43,7 @@ namespace DupTerminator.BusinessLogic.Model
         public bool TheyThemselvesAreEqual { get; }
 
         public int FirstEqualCount => FirstEqualFiles.Count;
-        public int SeconEqualCount => SecondEqualFiles.Count;
+        public int SecondEqualCount => SecondEqualFiles.Count;
 
         public ContainerEqInfo FirstInfo { get; }
 

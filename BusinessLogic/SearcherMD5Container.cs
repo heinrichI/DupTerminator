@@ -186,7 +186,7 @@ namespace DupTerminator.BusinessLogic
                 .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual));
 
             if (_modeSettings.ShowOnlyIfAllFilesInContainerEqual)
-                cts = cts.Where(c => c.FirstEqualCount == c.FirstContainerFilesCount || c.SeconEqualCount == c.SecondContainerFilesCount);
+                cts = cts.Where(c => c.FirstEqualCount == c.FirstContainerFilesCount || c.SecondEqualCount == c.SecondContainerFilesCount);
 
             cts = cts.OrderByDescending(d => d.SizeOfEqualFiles);
 
