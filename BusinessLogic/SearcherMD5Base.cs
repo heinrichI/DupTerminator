@@ -238,19 +238,7 @@ namespace DupTerminator.BusinessLogic
                                         if (checksum.Item1.Path == fileInfo.Path && checksum.Item1.Size != fileInfo.Size)
                                             throw new Exception("Почему то размеры не совпадают!");
 
-
-                                        _checksumDictionary.AddOrUpdate(checksum.Item2,
-                                            addValueFactory: (checkSum) =>
-                                            {
-                                                var list = new List<ExtendedFileInfo>();
-                                                list.Add(checksum.Item1);
-                                                return list;
-                                            },
-                                            updateValueFactory: (checkSum, list) =>
-                                            {
-                                                list.Add(checksum.Item1);
-                                                return list;
-                                            });
+                                        AddMd5(checksum.Item1, checksum.Item2);
                                     }
                                 }
                                 catch (Exception ex)
@@ -261,18 +249,7 @@ namespace DupTerminator.BusinessLogic
                             }
                             else
                             {
-                                _checksumDictionary.AddOrUpdate(md5,
-                                        addValueFactory: (checkSum) =>
-                                        {
-                                            var list = new List<ExtendedFileInfo>();
-                                            list.Add(fileInfo);
-                                            return list;
-                                        },
-                                        updateValueFactory: (checkSum, list) =>
-                                        {
-                                            list.Add(fileInfo);
-                                            return list;
-                                        });
+                                AddMd5(fileInfo, md5);
                             }
                         }
                     }
@@ -298,35 +275,13 @@ namespace DupTerminator.BusinessLogic
 
                                     Debug.Assert(!string.IsNullOrEmpty(checkSum));
                                     _md5Repository.Add(fileInfo2.Path, lastWriteTime, fileInfo2.Size, checkSum);
-                                    _checksumDictionary.AddOrUpdate(checkSum,
-                                        addValueFactory: (checkSum) =>
-                                        {
-                                            var list = new List<ExtendedFileInfo>();
-                                            list.Add(fileInfo2);
-                                            return list;
-                                        },
-                                        updateValueFactory: (checkSum, list) =>
-                                        {
-                                            list.Add(fileInfo2);
-                                            return list;
-                                        });
+                                    AddMd5(fileInfo2, checkSum);
                                 }
                                 break;
                             }
                             else
                             {
-                                _checksumDictionary.AddOrUpdate(md5,
-                                        addValueFactory: (checkSum) =>
-                                        {
-                                            var list = new List<ExtendedFileInfo>();
-                                            list.Add(fileInfo);
-                                            return list;
-                                        },
-                                        updateValueFactory: (checkSum, list) =>
-                                        {
-                                            list.Add(fileInfo);
-                                            return list;
-                                        });
+                                AddMd5(fileInfo, md5);
                             }
                         }
                     }
@@ -344,25 +299,31 @@ namespace DupTerminator.BusinessLogic
                             {
                                 md5 = HashHelper.CreateMD5Checksum(fileInfo);
                             }
-                            _checksumDictionary.AddOrUpdate(md5,
-                                addValueFactory: (checksum) =>
-                                {
-                                    var list = new List<ExtendedFileInfo>();
-                                    list.Add(fileInfo);
-                                    return list;
-                                },
-                                updateValueFactory: (checksum, list) =>
-                                {
-                                    list.Add(fileInfo);
-                                    return list;
-                                });
+                            AddMd5(fileInfo, md5);
                         }
                     }
                 }
             }
         }
 
+        private void AddMd5(ExtendedFileInfo fileInfo, string md5)
+        {
+            Debug.Assert(fileInfo != null);
+            _checksumDictionary.AddOrUpdate(md5,
+                addValueFactory: (checksum) =>
+                {
+                    var list = new List<ExtendedFileInfo>();
+                    list.Add(fileInfo);
+                    return list;
+                },
+                updateValueFactory: (checksum, list) =>
+                {
+                    list.Add(fileInfo);
+                    return list;
+                });
 
+            Debug.Assert(!(_checksumDictionary[md5].Count > 1 && _checksumDictionary[md5].All(f => f.Name == _checksumDictionary[md5].First().Name && f.Path == _checksumDictionary[md5].First().Path)));
+        }
 
         protected static void CompareBySize(
             ReadOnlyCollection<ExtendedFileInfo> foundedFiles,
@@ -419,44 +380,7 @@ namespace DupTerminator.BusinessLogic
 
                 progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
 
-                var fi = new FileInfo(file.Path);
-                if (fi.Exists)
-                {
-                    var efi = new ExtendedFileInfo()
-                    {
-                        Size = Convert.ToUInt64(fi.Length),
-                        Name = fi.Name,
-                        Path = fi.FullName,
-                        //LastAccessTime = fi.LastAccessTime,
-                        LastWriteTime = fi.LastWriteTime,
-                        DirectoryName = fi.DirectoryName,
-                        Extension = fi.Extension,
-                        Container = new DirectoryFileInfo { Path = Path.GetDirectoryName(file.Path) }
-                    };
-
-                    if (_archiveService.IsArchiveFile(file.Path))
-                    {
-                        FillInfosFromArchive(efi, files, token);
-                    }
-                    else if (fi.Extension.ToLower() == ".pdf")
-                    {
-                        FillInfosFromPdf(efi, files, token);
-                    }
-                    else
-                    {
-                        var di = new DirectoryInfo(Path.GetDirectoryName(file.Path));
-                        var dFiles = di.GetFiles();
-
-                        efi.ContainerFilesCount = dFiles.Length;
-                        files.Add(efi);
-                    }                     
-                }
-            }
-            foreach (var file in locations.Where(p => !p.IsDirectory))
-            {
-                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
-
-                AddFile(file, ref files, token, progress, phisicalDrive);
+                AddFile(file, ref files, token, phisicalDrive);
             }
 
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
@@ -487,29 +411,22 @@ namespace DupTerminator.BusinessLogic
             foreach (ExtendedFileInfo fileArch in filesInArchive)
             {
                 files.Add(fileArch);
+                Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
         }
 
-        private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, IProgress<ProgressDto> progress, string phisicalDrive)
+        private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, string phisicalDrive)
         {
-            if (token.IsCancellationRequested)
-            {
-                _logger.LogInformation("AddFiles canceled.");
-                return;
-            }
-
-            progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
-
             var fi = new FileInfo(file.Path);
             var efi = new ExtendedFileInfo()
             {
                 Size = Convert.ToUInt64(fi.Length),
                 Name = fi.Name,
                 Path = fi.FullName,
-                //LastAccessTime = fi.LastAccessTime,
                 LastWriteTime = fi.LastWriteTime,
                 DirectoryName = fi.DirectoryName,
-                Extension = fi.Extension
+                Extension = fi.Extension,
+                Container = new DirectoryFileInfo { Path = Path.GetDirectoryName(file.Path) }
             };
 
             files.Add(efi);
@@ -521,6 +438,14 @@ namespace DupTerminator.BusinessLogic
             else if (efi.Extension.ToLower() == ".pdf")
             {
                 FillInfosFromPdf(efi, files, token);
+            }
+            else
+            {
+                var di = new DirectoryInfo(Path.GetDirectoryName(file.Path));
+                var dFiles = di.GetFiles();
+
+                efi.ContainerFilesCount = dFiles.Length;
+                files.Add(efi);
             }
         }
 

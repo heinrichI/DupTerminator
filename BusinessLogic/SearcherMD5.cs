@@ -100,6 +100,11 @@ namespace DupTerminator.BusinessLogic
             //    _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
             //}
 
+            foreach (var item in filtered)
+            {
+                Debug.Assert(!item.Files.All(f => f.Path == item.Files.First().Path));
+            }
+
             return new ReadOnlyCollection<DuplicateGroup>(filtered);
             //return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
 

@@ -26,7 +26,7 @@ namespace SevenZipExtractor
 
         public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container, bool archiveInArchive = false)
         {
-            List<ArchiveFileInfo> containerInfos = new List<ArchiveFileInfo>();
+            Dictionary<string, ArchiveFileInfo> containerInfos = new Dictionary<string, ArchiveFileInfo>();
             List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
 
             using (ArchiveFile archiveFile = new ArchiveFile(stream))
@@ -43,7 +43,10 @@ namespace SevenZipExtractor
                         entry.Extract(entryStream);
 
                         var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
-                        containerInfos.Add(fileInfo);
+                        if (!containerInfos.ContainsKey(fileInfo.Path))
+                            containerInfos[fileInfo.Path] = fileInfo;
+                        else
+                            _logger.LogInformation($"Дубликат {fileInfo.Path} в архиве Stream");
 
                         entryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryStream))
@@ -52,14 +55,21 @@ namespace SevenZipExtractor
                         }
                     }
                 }
-                var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c)).ToArray();
+                var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c.Value)).ToArray();
                 foreach (var fileInfo in containerInfos)
                 {
-                    fileInfo.ContainerFiles = freeze;
+                    fileInfo.Value.ContainerFiles = freeze;
                 }
             }
-            containerInfos.AddRange(archiveInArchiveInfos);
-            return containerInfos.ToArray();
+            foreach (var fileInfo in archiveInArchiveInfos)
+            {
+                //    Debug.Assert(archiveInArchiveInfos.Count(a => a.Path == item.Path) == 1);
+                if (!containerInfos.ContainsKey(fileInfo.Path))
+                    containerInfos[fileInfo.Path] = fileInfo;
+                else
+                    _logger.LogInformation($"Дубликат {fileInfo.Path} в архиве Stream");
+            }
+            return containerInfos.Values.ToArray();
         }
 
         private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo archive, int containerFilesCount, bool archiveInArchive)
@@ -126,7 +136,8 @@ namespace SevenZipExtractor
 
         public ArchiveFileInfo[] GetInfoFromArchive(ExtendedFileInfo archive, CancellationToken token, bool archiveInArchive = false)
         {
-            List<ArchiveFileInfo> containerInfos = new List<ArchiveFileInfo>();
+            //Entries могут выдавать дубликаты, но с разной HostOS
+            Dictionary<string, ArchiveFileInfo> containerInfos = new Dictionary<string, ArchiveFileInfo>();
             List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
 
             try
@@ -150,7 +161,10 @@ namespace SevenZipExtractor
                             entry.Extract(entryStream);
 
                             var fileInfo = Map(entry, archive, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
-                            containerInfos.Add(fileInfo);
+                            if (!containerInfos.ContainsKey(fileInfo.Path))
+                                containerInfos[fileInfo.Path] = fileInfo;
+                            else
+                                _logger.LogInformation($"Дубликат {fileInfo.Path} в архиве {archive.Path}");
 
                             entryStream.Position = 0;
                             if (ArchiveFile.IsArchiveByStream(entryStream))
@@ -159,19 +173,32 @@ namespace SevenZipExtractor
                             }
                         }
                     }
-                    var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c)).ToArray();
+                    var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c.Value)).ToArray();
                     foreach (var fileInfo in containerInfos)
                     {
-                        fileInfo.ContainerFiles = freeze;
+                        fileInfo.Value.ContainerFiles = freeze;
                     }
                 }
-                containerInfos.AddRange(archiveInArchiveInfos);
+                foreach (var fileInfo in archiveInArchiveInfos)
+                {
+                    Debug.Assert(archiveInArchiveInfos.Count(a => a.Path == fileInfo.Path) == 1);
+                    //if (containerInfos.Any(c => c.Path == fileInfo.Path))
+                    //    throw new Exception("Уже есть!");
+                    if (!containerInfos.ContainsKey(fileInfo.Path))
+                        containerInfos[fileInfo.Path] = fileInfo;
+                    else
+                        _logger.LogInformation($"Дубликат {fileInfo.Path} в архиве {archive.Path}");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"{archive.Path}: {ex.Message}");
             }
-            return containerInfos.ToArray();
+            foreach (var item in containerInfos)
+            {
+                Debug.Assert(containerInfos.Count(a => a.Value.Path == item.Value.Path) == 1);
+            }
+            return containerInfos.Values.ToArray();
         }
 
         public T CalculateHashInArchive<T>(ArchiveFileInfo fileInfo, Func<Stream, T> calculator)
