@@ -68,15 +68,16 @@
                     <controls:SizeInputControl SkipLessThan="{Binding SkipLessThan, Mode=TwoWay}"/>
                     <!--<controls:SkipLessThanControl SkipLessThan="{Binding SkipLessThan, Mode=TwoWay}" />-->
                     <controls:SettingsControl Modes="{Binding Modes}" SelectedMode="{Binding SelectedMode, Mode=TwoWay}"></controls:SettingsControl>
+                     <controls:FileExtensionsControl x:Name="fileExtensionsControl" Extensions="{Binding IncludePattern}"  Margin="10"/>
                 </StackPanel>
-                <Label Content="path" Grid.Row="1"/>
+                <Label Content="Paths:" Grid.Row="1"/>
                 <DataGrid MinHeight="100"
-                                Grid.Row="2"
-                                AutoGenerateColumns="False"
-                                CanUserAddRows="True"
-                                CanUserDeleteRows="True"
-                                ItemsSource="{Binding Locations, ValidatesOnNotifyDataErrors=True}"
-                                IsSynchronizedWithCurrentItem="True"
+                            Grid.Row="2"
+                            AutoGenerateColumns="False"
+                            CanUserAddRows="True"
+                            CanUserDeleteRows="True"
+                            ItemsSource="{Binding Locations, ValidatesOnNotifyDataErrors=True}"
+                            IsSynchronizedWithCurrentItem="True"
                                >
                     <i:Interaction.Behaviors>
                         <behavior:FrameworkElementDropBehavior/>

@@ -19,8 +19,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using DupTerminator.BusinessLogic.Model;
+using DupTerminator.WPF.Abstraction;
 using DupTerminator.WPF.Commands;
 using DupTerminator.WPF.Service;
+using DupTerminator.WPF.View;
 using DupTerminator.WPF.ViewModel;
 using static System.Net.Mime.MediaTypeNames;
 using static DupTerminator.WPF.ViewModel.SettingsViewModel;
@@ -50,6 +52,8 @@ namespace DupTerminator.WPF.Controls
         public ICommand DeselectAllCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand SelectAllInFolderCommand { get; }
+
+        public ICommand DoubleClickCommand { get; }
 
         // --------------------------------------------------------------------
         //  Selected count (for status bar)
@@ -85,9 +89,16 @@ namespace DupTerminator.WPF.Controls
             DeselectAllCommand = new RelayCommand(_ => DeselectAll());
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => SelectedItemsCount > 0);
             SelectAllInFolderCommand = new RelayCommand(SelectAllInThisFolder, _ => FilesListView.SelectedItem is ExtendedFileInfoViewModel);
+            DoubleClickCommand = new RelayCommand(ExecuteDoubleClick, CanExecuteDoubleClick);
 
             // Listen to collection changes so we can attach PropertyChanged handlers
             ExtendedFileInfos.CollectionChanged += ExtendedFileInfos_CollectionChanged;
+
+            // More reliable F5 handling
+            this.PreviewKeyDown += ListViewControl2_PreviewKeyDown;
+
+            // Attach handlers after control is loaded
+            this.Loaded += ListViewControl2_Loaded;
         }
 
         public static readonly DependencyProperty DuplicateGroupsProperty =
@@ -195,6 +206,26 @@ namespace DupTerminator.WPF.Controls
             //        new Binding { Source = CollectionViewSource.GetDefaultView(ExtendedFileInfos) }
             //    );
             //}
+        }
+
+        private void ListViewControl2_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Set focus to ListView when control loads
+            FilesListView.Focus();
+        }
+
+
+
+        private void ListViewControl2_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F5)
+            {
+                if (SelectAllInFolderCommand.CanExecute(null))
+                {
+                    SelectAllInFolderCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
         }
 
         private void GridViewColumnHeaderClickedHandler(object sender, RoutedEventArgs e)
@@ -336,6 +367,116 @@ namespace DupTerminator.WPF.Controls
                 string folder = System.IO.Path.GetDirectoryName(sel.Path) ?? string.Empty;
                 foreach (var f in ExtendedFileInfos)
                     f.IsSelected = System.IO.Path.GetDirectoryName(f.Path) == folder;
+            }
+        }
+
+        // --------------------------------------------------------------------
+        //  Double‑click command logic
+        // --------------------------------------------------------------------
+        private void ListViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            // Prevent event from bubbling up if we handle it
+            if (e.ChangedButton != MouseButton.Left)
+                return;
+
+            // Get the clicked item
+            if (sender is ListViewItem item && item.Content is ExtendedFileInfoViewModel efi)
+            {
+                if (DoubleClickCommand.CanExecute(efi))
+                {
+                    DoubleClickCommand.Execute(efi);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private bool CanExecuteDoubleClick(object? parameter)
+        {
+            // Only allow execution when a file is selected
+            return parameter is ExtendedFileInfoViewModel;
+        }
+
+        private void ExecuteDoubleClick(object? parameter)
+        {
+            if (parameter is ExtendedFileInfoViewModel efi)
+            {
+                // Example action: open the file with the default program
+                try
+                {
+                    if (System.IO.File.Exists(efi.Path))
+                    {
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                        {
+                            FileName = efi.Path,
+                            UseShellExecute = true
+                        });
+                    }
+                    else
+                    {
+                        string archivePath = GetArchiveFilePathByExtension(efi.Path);
+                        if (System.IO.File.Exists(archivePath))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = archivePath,
+                                UseShellExecute = true
+                            });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors (e.g., file not found, no default program)
+                    MessageBox.Show($"Could not open file:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        public static string GetArchiveFilePathByExtension(string fullPath)
+        {
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                return null;
+            }
+
+            string[] parts = fullPath.Split(new char[] { '\\', '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var archiveSegments = parts.Where(p => p.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                                                   p.EndsWith(".cbz", StringComparison.OrdinalIgnoreCase) ||
+                                                   p.EndsWith(".cbr", StringComparison.OrdinalIgnoreCase) ||
+                                                   p.EndsWith(".rar", StringComparison.OrdinalIgnoreCase) ||
+                                                   p.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase));
+
+            if (archiveSegments.Any())
+            {
+                string firstArchive = archiveSegments.First();
+
+                int index = Array.IndexOf(parts, firstArchive);
+                if (index >= 0)
+                {
+                    return string.Join("\\", parts.Take(index + 1));
+                }
+            }
+            return null; // No archive found
+        }
+
+
+        public static string CutPathToLastDoubleSlash(string path)
+        {
+            string separator = "//";
+            // Find the index of the last occurrence of the separator
+            int lastIndex = path.LastIndexOf(separator);
+
+            // Check if the separator was found
+            if (lastIndex != -1)
+            {
+                // Use Substring to get the part of the string from the start up to the index found
+                return path.Substring(0, lastIndex);
+            }
+            else
+            {
+                // If the separator is not found, return the original string or handle as needed
+                return path;
             }
         }
     }

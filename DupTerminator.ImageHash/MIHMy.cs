@@ -131,7 +131,7 @@ namespace DupTerminator.ImageHash
             if (!_trained)
                 throw new InvalidOperationException("Index not trained yet");
 
-            Debug.Assert(hash != 0);
+            //Debug.Assert(hash != 0);
 
             HashSet<int> candidates = new HashSet<int>();
             int slot = 0;

@@ -40,48 +40,57 @@
         </StatusBar>
 
         <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Filter Controls -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
-            <TextBlock Text="Filter Path:" VerticalAlignment="Center" Margin="5,0"/>
-            <TextBox x:Name="txtFirstFilter" Width="200" Margin="5,0"
-                     TextChanged="OnFilterTextChanged"/>
-        </StackPanel>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <ListView x:Name="FilesListView" 
+            <!-- Filter Controls -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                <TextBlock Text="Filter Path:" VerticalAlignment="Center" Margin="5,0"/>
+                <TextBox x:Name="txtFirstFilter" Width="200" Margin="5,0"
+                     TextChanged="OnFilterTextChanged"/>
+            </StackPanel>
+
+            <ListView x:Name="FilesListView" 
                   Grid.Row="1"
                   ItemsSource="{Binding Source={StaticResource GroupedFiles}}"
                   GridViewColumnHeader.Click="GridViewColumnHeaderClickedHandler"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   VirtualizingStackPanel.IsVirtualizingWhenGrouping="True"
-                  DataContext="{Binding ElementName=Root}" > 
-            <ListView.GroupStyle>
-                <GroupStyle AlternationCount="2">
-                    <GroupStyle.ContainerStyle>
-                        <Style TargetType="{x:Type GroupItem}">
-                            <Setter Property="Background" Value="White" />
-                            <Style.Triggers>
-                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
-                                    <Setter Property="Background" Value="White" />
-                                </Trigger>
-                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                    <Setter Property="Background" Value="#f0f0f0" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </GroupStyle.ContainerStyle>
-                </GroupStyle>
-            </ListView.GroupStyle>
+                  DataContext="{Binding ElementName=Root}" >
+                <ListView.GroupStyle>
+                    <GroupStyle AlternationCount="2">
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="{x:Type GroupItem}">
+                                <Setter Property="Background" Value="White" />
+                                <Style.Triggers>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                        <Setter Property="Background" Value="White" />
+                                    </Trigger>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                        <Setter Property="Background" Value="#f0f0f0" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+                </ListView.GroupStyle>
+
+                <!-- Handle double-click at ListViewItem level -->
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                        <!-- Ensure items can receive focus for keyboard commands -->
+                        <Setter Property="Focusable" Value="True"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
 
                 <ListView.InputBindings>
                     <KeyBinding Key="F5"  Command="{Binding SelectAllInFolderCommand}" />
                 </ListView.InputBindings>
-            
+
                 <!-- Context menu -->
                 <ListView.ContextMenu>
                     <ContextMenu DataContext="{Binding Path=PlacementTarget, RelativeSource={RelativeSource Self}}">
@@ -93,25 +102,25 @@
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>
-                <GridView>
-                    <!-- Column for the CheckBox -->
-                    <GridViewColumn Width="32">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <CheckBox IsChecked="{Binding IsSelected}" 
+                    <GridView>
+                        <!-- Column for the CheckBox -->
+                        <GridViewColumn Width="32">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <CheckBox IsChecked="{Binding IsSelected}" 
                                           IsEnabled="{Binding CanBeSelected}"
                                   HorizontalAlignment="Left" 
                                   VerticalAlignment="Center"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
 
-                    <GridViewColumn Header="Name" Width="Auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <!-- Icon + name -->
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Height="16"
+                        <GridViewColumn Header="Name" Width="Auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <!-- Icon + name -->
+                                    <StackPanel Orientation="Horizontal">
+                                        <Image Height="16"
                                        Source="{Binding Converter={StaticResource IconConverter}}"
                                        Stretch="Uniform"
                                        SnapsToDevicePixels="True"/>
@@ -135,28 +144,15 @@
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBox.Style>
-                                           </TextBox>
+                                        </TextBox>
                                     </StackPanel>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <!--<GridViewColumn Header="Icon" Width="24">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Image 
-                                        Height="16" 
-                                        Source="{Binding Converter={StaticResource IconConverter}}" 
-                                        Stretch="Uniform"
-                                        SnapsToDevicePixels="True"/>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name, Mode=OneWay}" Width="Auto"/>-->
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size, Mode=OneWay}" Width="Auto"/>
-                    <!--<GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path, Mode=OneWay}" Width="Auto"/>-->
-                    <GridViewColumn Header="Path" Width="Auto">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
+                        <GridViewColumn Header="Path" Width="Auto">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
                                     <TextBox Text="{Binding Path, Mode=OneWay}" 
                                      IsReadOnly="True" 
                                      Background="Transparent" 
@@ -178,13 +174,13 @@
                                         </TextBox.Style>
                                     </TextBox>
                                 </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
                         <GridViewColumn Header="Extension" DisplayMemberBinding="{Binding Extension, Mode=OneWay}" Width="Auto" />
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </Grid>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
 
     </DockPanel>
 </UserControl>

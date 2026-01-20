@@ -8,9 +8,12 @@ namespace DupTerminator.BusinessLogic.Model
 {
     public class PHashFileInfo
     {
-        public PHashFileInfo(ExtendedFileInfo fileInfo)
+        public PHashFileInfo(ExtendedFileInfo fileInfo, ulong hash, int width, int height)
         {
             FileInfo = fileInfo;
+            Hash = hash;
+            Width = width;
+            Height = height;
         }
 
         //public PHashFileInfo(ExtendedFileInfo data)
@@ -27,8 +30,9 @@ namespace DupTerminator.BusinessLogic.Model
         //    Size = data.Size;
         //}
 
-        public int Width { get; internal set; }
-        public int Height { get; internal set; }
+        public int Width { get; }
+        public int Height { get; }
         public ExtendedFileInfo FileInfo { get; }
+        public ulong Hash { get; }
     }
 }

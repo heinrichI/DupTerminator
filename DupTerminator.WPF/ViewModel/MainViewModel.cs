@@ -176,6 +176,7 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
+
         private int _selectedTabPageIndex;
         private readonly IImageProvider _imageProvider;
 

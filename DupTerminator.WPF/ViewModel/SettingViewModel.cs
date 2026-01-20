@@ -13,6 +13,7 @@ using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using DupTerminator.WindowsSpecific;
 using DupTerminator.WPF.Commands;
+using DupTerminator.WPF.Controls;
 using DupTerminator.WPF.Helper;
 using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
@@ -35,6 +36,8 @@ namespace DupTerminator.WPF.ViewModel
         private readonly IMIHFactory _mihFactory;
         private readonly ILogger<SearcherMD5> _searchLogger;
         private readonly IProgressDialogService _progressDialogService;
+        private readonly ImageListViewModel _imageListViewModel;
+
         public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
         public SettingViewModel(
@@ -48,7 +51,8 @@ namespace DupTerminator.WPF.ViewModel
             IPHashService pHashService,
             IMIHFactory mihFactory,
             ILogger<SearcherMD5> searchLogger,
-            IProgressDialogService progressDialogService)
+            IProgressDialogService progressDialogService,
+            ImageListViewModel imageListViewModel)
         {
             _md5Repository = md5Repository;
             _phashRepository = phashRepository;
@@ -61,7 +65,7 @@ namespace DupTerminator.WPF.ViewModel
             _mihFactory = mihFactory;
             _searchLogger = searchLogger;
             _progressDialogService = progressDialogService;
-
+            _imageListViewModel = imageListViewModel;
             LoadSettings();
         }
 
@@ -139,6 +143,16 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
+        public ObservableCollection<string> IncludePattern
+        {
+            get { return SearchSetting.IncludePattern; }
+            set
+            {
+                SearchSetting.IncludePattern = value;
+                this.RaisePropertyChangedEvent();
+            }
+        }
+
         #region IDropable Members
 
         void IDropable.Drop(object dropData)
@@ -198,6 +212,7 @@ namespace DupTerminator.WPF.ViewModel
                     //locations,
                     //searchSetting,
                     this,
+                    _imageListViewModel,
                     _md5Repository,
                     _phashRepository,
                     _archiveInfoRepository,

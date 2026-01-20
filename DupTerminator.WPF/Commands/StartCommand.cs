@@ -15,6 +15,7 @@ using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using DupTerminator.Pdf;
+using DupTerminator.WPF.Controls;
 using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using DupTerminator.WPF.View;
@@ -28,6 +29,8 @@ namespace DupTerminator.WPF.Commands
     internal class StartCommand : ICommand
     {
         private readonly SettingViewModel _settingViewModel;
+        private readonly ImageListViewModel _imageListViewModel;
+
 
         //private readonly ReadOnlyCollection<SearchPath> _locations;
         //private readonly SearchSetting _searchSetting;
@@ -48,6 +51,7 @@ namespace DupTerminator.WPF.Commands
         public StartCommand
             (
             SettingViewModel settingViewModel,
+            ImageListViewModel imageListViewModel,
             //ReadOnlyCollection<SearchPath> locations,
             //SearchSetting searchSetting,
             IMd5Repository md5Repository,
@@ -65,6 +69,8 @@ namespace DupTerminator.WPF.Commands
             Action<ResultBase?> updateResults)
         {
             _settingViewModel = settingViewModel;
+            _imageListViewModel = imageListViewModel;
+
             //_locations = locations;
             //_searchSetting = searchSetting;
             _md5Repository = md5Repository;
@@ -182,6 +188,8 @@ namespace DupTerminator.WPF.Commands
                    _pHashService,
                    _mihFactory,
                    _serachLogger);
+                _imageListViewModel.Searcher = searcher;
+                _imageListViewModel.UpdateResults = _updateResults;
 
                 await _progressDlg.RunAsync(async (progress, cancelToken) =>
                 {

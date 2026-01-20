@@ -352,17 +352,13 @@ namespace DupTerminator.BusinessLogic
                         addValueFactory: (checksum) =>
                         {
                             var list = new List<PHashFileInfo>();
-                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
-                            pHashFileInfo.Width = result.width;
-                            pHashFileInfo.Height = result.height;
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1, checksum, result.width, result.height);
                             list.Add(pHashFileInfo);
                             return list;
                         },
                         updateValueFactory: (checksum, list) =>
                         {
-                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1);
-                            pHashFileInfo.Width = result.width;
-                            pHashFileInfo.Height = result.height;
+                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.Item1, checksum, result.width, result.height);
                             list.Add(pHashFileInfo);
                             return list;
                         });
@@ -516,17 +512,13 @@ namespace DupTerminator.BusinessLogic
                                 addValueFactory: (checksum) =>
                                 {
                                     var list = new List<PHashFileInfo>();
-                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo);
-                                    pHashFileInfo.Width = result.Value.width;
-                                    pHashFileInfo.Height = result.Value.height;
+                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
                                     list.Add(pHashFileInfo);
                                     return list;
                                 },
                                 updateValueFactory: (checksum, list) =>
                                 {
-                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo);
-                                    pHashFileInfo.Width = result.Value.width;
-                                    pHashFileInfo.Height = result.Value.height;
+                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
                                     list.Add(pHashFileInfo);
                                     return list;
                                 });
@@ -637,7 +629,9 @@ namespace DupTerminator.BusinessLogic
                                {
                                    foreach (var item in finalLocalList)
                                    {
-                                       Debug.Assert(item.phash != 0);
+                                       //Debug.Assert(item.phash != 0);
+                                       Debug.Assert(item.width != 0);
+                                       Debug.Assert(item.height != 0);
                                        finalResultBag.Add(item);
                                    }
                                }
@@ -649,22 +643,20 @@ namespace DupTerminator.BusinessLogic
                             }
                             foreach (var item in finalResultBag)
                             {
-                                Debug.Assert(item.phash != 0);
+                                //Debug.Assert(item.phash != 0);
+                                Debug.Assert(item.width != 0);
+                                Debug.Assert(item.height != 0);
                                 checksumDictionary.AddOrUpdate(item.phash,
                                         addValueFactory: (checksum) =>
                                         {
                                             var list = new List<PHashFileInfo>();
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         },
                                         updateValueFactory: (checksum, list) =>
                                         {
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         });
@@ -682,22 +674,20 @@ namespace DupTerminator.BusinessLogic
                         {
                             foreach (var item in dbCollection)
                             {
-                                Debug.Assert(item.phash != 0);
+                                //Debug.Assert(item.phash != 0);
+                                Debug.Assert(item.width != 0);
+                                Debug.Assert(item.height != 0);
                                 checksumDictionary.AddOrUpdate(item.phash,
                                         addValueFactory: (checksum) =>
                                         {
                                             var list = new List<PHashFileInfo>();
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         },
                                         updateValueFactory: (checksum, list) =>
                                         {
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         });
@@ -760,17 +750,13 @@ namespace DupTerminator.BusinessLogic
                                         addValueFactory: (checksum) =>
                                         {
                                             var list = new List<PHashFileInfo>();
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         },
                                         updateValueFactory: (checksum, list) =>
                                         {
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         });
@@ -792,17 +778,13 @@ namespace DupTerminator.BusinessLogic
                                         addValueFactory: (checksum) =>
                                         {
                                             var list = new List<PHashFileInfo>();
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         },
                                         updateValueFactory: (checksum, list) =>
                                         {
-                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi);
-                                            pHashFileInfo.Width = item.width;
-                                            pHashFileInfo.Height = item.height;
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
                                             list.Add(pHashFileInfo);
                                             return list;
                                         });

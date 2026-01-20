@@ -72,7 +72,7 @@ namespace DupTerminator.ImageHash
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.Message);
+                _logger.LogError(ex, $"Error on LoadAndPreprocessImage: {ex.Message}, stream length: {stream.Length}");
                 width = 0;
                 height = 0;
                 return null;

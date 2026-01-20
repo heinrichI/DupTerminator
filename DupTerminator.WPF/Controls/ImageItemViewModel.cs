@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,14 +15,13 @@ namespace DupTerminator.WPF.Controls
 {
     public class ImageItemViewModel : PropertyChangedBase, IDisposable
     {
-        private readonly PHashFileInfoSearchItem _searchItem;
         private readonly IImageProvider _imageLoadingService;
         private BitmapImage? _thumbnail;
         private bool _isLoading;
 
         public ImageItemViewModel(PHashFileInfoSearchItem searchItem, IImageProvider imageLoadingService)
         {
-            _searchItem = searchItem;
+            SearchItem = searchItem;
             _imageLoadingService = imageLoadingService;
 
             RenameCommand = new RelayCommand((_) => OnRename(), (_) => CanRename());
@@ -30,27 +30,27 @@ namespace DupTerminator.WPF.Controls
             //LoadThumbnail();
         }
 
-        public ExtendedFileInfo FileInfo => _searchItem.FileItem.FileInfo;
-        public string FilePath => _searchItem.FileItem.FileInfo.Path;
-        public string FileName => Path.GetFileName(_searchItem.FileItem.FileInfo.Name);
+        public ExtendedFileInfo FileInfo => SearchItem.FileItem.FileInfo;
+        public string FilePath => SearchItem.FileItem.FileInfo.Path;
+        public string FileName => Path.GetFileName(SearchItem.FileItem.FileInfo.Name);
 
-        public int HammingDistance => _searchItem.HammingDistance;
+        public int HammingDistance => SearchItem.HammingDistance;
 
         public string Query
         {
             get
             {
-                if (_searchItem.Type == PHashFileInfoSearchItem.SearchType.Seed)
+                if (SearchItem.Type == PHashFileInfoSearchItem.SearchType.Seed)
                     return "seed";
-                else if (_searchItem.Type == PHashFileInfoSearchItem.SearchType.Query)
-                    return $"distance={_searchItem.HammingDistance.ToString()}";
+                else if (SearchItem.Type == PHashFileInfoSearchItem.SearchType.Query)
+                    return $"distance={SearchItem.HammingDistance.ToString()}";
                 return "unknown";
             }
         }
 
-        public string Dimensions => $"{_searchItem.FileItem.Width}x{_searchItem.FileItem.Height}";
+        public string Dimensions => $"{SearchItem.FileItem.Width}x{SearchItem.FileItem.Height}";
 
-        public ulong Size => _searchItem.FileItem.FileInfo.Size;
+        public ulong Size => SearchItem.FileItem.FileInfo.Size;
 
         public BitmapImage? Thumbnail
         {
@@ -61,6 +61,7 @@ namespace DupTerminator.WPF.Controls
                 else
                 {
                     IsLoading = true;
+                    Debug.WriteLine($"Loading {FilePath}");
                     try
                     {
                         if (FileInfo is ArchiveFileInfo archiveFileInfo)
@@ -96,6 +97,7 @@ namespace DupTerminator.WPF.Controls
 
         public ICommand RenameCommand { get; }
         public ICommand ViewFullSizeCommand { get; }
+        public PHashFileInfoSearchItem SearchItem { get; }
 
         //private async void LoadThumbnail()
         //{

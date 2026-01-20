@@ -211,6 +211,7 @@ namespace DupTerminator.BusinessLogic
 
                     if (data.All(d => d is ArchiveFileInfo))
                     {
+                        HashSet<string> added = new HashSet<string>();
                         foreach (var fileInfo in data)
                         {
                             string md5 = string.Empty;
@@ -238,7 +239,12 @@ namespace DupTerminator.BusinessLogic
                                         if (checksum.Item1.Path == fileInfo.Path && checksum.Item1.Size != fileInfo.Size)
                                             throw new Exception("Почему то размеры не совпадают!");
 
-                                        AddMd5(checksum.Item1, checksum.Item2);
+                                        //файлы уже могли быть добавлены, поэтому эта проверка
+                                        if (!added.Contains(checksum.Item1.Path))
+                                        {
+                                            AddMd5(checksum.Item1, checksum.Item2);
+                                            added.Add(checksum.Item1.Path);
+                                        }
                                     }
                                 }
                                 catch (Exception ex)
@@ -250,6 +256,7 @@ namespace DupTerminator.BusinessLogic
                             else
                             {
                                 AddMd5(fileInfo, md5);
+                                added.Add(fileInfo.Path);
                             }
                         }
                     }
@@ -322,7 +329,7 @@ namespace DupTerminator.BusinessLogic
                     return list;
                 });
 
-            Debug.Assert(!(_checksumDictionary[md5].Count > 1 && _checksumDictionary[md5].All(f => f.Name == _checksumDictionary[md5].First().Name && f.Path == _checksumDictionary[md5].First().Path)));
+            Debug.Assert(!(_checksumDictionary[md5].Count > 1 && _checksumDictionary[md5].All(f => f.Path == _checksumDictionary[md5].First().Path)));
         }
 
         protected static void CompareBySize(
@@ -410,7 +417,13 @@ namespace DupTerminator.BusinessLogic
             }
             foreach (ExtendedFileInfo fileArch in filesInArchive)
             {
-                files.Add(fileArch);
+                if (_searchSetting.IncludePattern.Any())
+                {
+                    if (_searchSetting.IncludePattern.Contains(fileArch.Extension))
+                        files.Add(fileArch);
+                }
+                else
+                    files.Add(fileArch);
                 Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
         }
@@ -437,7 +450,8 @@ namespace DupTerminator.BusinessLogic
             }
             else if (efi.Extension.ToLower() == ".pdf")
             {
-                FillInfosFromPdf(efi, files, token);
+                if (!_searchSetting.IncludePattern.Any())
+                    FillInfosFromPdf(efi, files, token);
             }
             else
             {
@@ -561,7 +575,13 @@ namespace DupTerminator.BusinessLogic
                 if (item.Container is null)
                     item.Container = new DirectoryFileInfo { Path = di.FullName };
 
-                files.Add(item);
+                if (_searchSetting.IncludePattern.Any())
+                {
+                    if (_searchSetting.IncludePattern.Contains(item.Extension))
+                        files.Add(item);
+                }
+                else
+                    files.Add(item);
 
                 if (_archiveService.IsArchiveFile(item.Path))
                 {
@@ -569,7 +589,8 @@ namespace DupTerminator.BusinessLogic
                 }
                 else if (item.Extension.ToLower() == ".pdf")
                 {
-                    FillInfosFromPdf(item, files, token);
+                    if (!_searchSetting.IncludePattern.Any())
+                        FillInfosFromPdf(item, files, token);
                 }
             }
 
