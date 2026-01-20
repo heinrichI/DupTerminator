@@ -99,6 +99,8 @@
                         <MenuItem Header="Select All in This Folder"
                                   Command="{Binding DataContext.SelectAllInFolderCommand}"
                                   CommandParameter="{Binding Path=SelectedItems}"/>
+                        <Separator/>
+                        <MenuItem Header="Hide group" Command="{Binding Path=DataContext.HideGroupCommand}" />
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>

@@ -224,7 +224,7 @@ namespace DupTerminator.BusinessLogic
 
                             if (string.IsNullOrEmpty(md5))
                             {
-                                _logger.LogDebug($"Not found md5 by {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
+                                _logger.LogDebug($"Not found md5 for {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 try
                                 {
                                     var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);

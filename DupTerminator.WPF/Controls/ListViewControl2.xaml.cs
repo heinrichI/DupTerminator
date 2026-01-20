@@ -52,6 +52,7 @@ namespace DupTerminator.WPF.Controls
         public ICommand DeselectAllCommand { get; }
         public ICommand DeleteSelectedCommand { get; }
         public ICommand SelectAllInFolderCommand { get; }
+        public ICommand HideGroupCommand { get; }
 
         public ICommand DoubleClickCommand { get; }
 
@@ -89,6 +90,7 @@ namespace DupTerminator.WPF.Controls
             DeselectAllCommand = new RelayCommand(_ => DeselectAll());
             DeleteSelectedCommand = new RelayCommand(_ => DeleteSelected(), _ => SelectedItemsCount > 0);
             SelectAllInFolderCommand = new RelayCommand(SelectAllInThisFolder, _ => FilesListView.SelectedItem is ExtendedFileInfoViewModel);
+            HideGroupCommand = new RelayCommand(HideGroup, _ => FilesListView.SelectedItem is ExtendedFileInfoViewModel);
             DoubleClickCommand = new RelayCommand(ExecuteDoubleClick, CanExecuteDoubleClick);
 
             // Listen to collection changes so we can attach PropertyChanged handlers
@@ -367,6 +369,18 @@ namespace DupTerminator.WPF.Controls
                 string folder = System.IO.Path.GetDirectoryName(sel.Path) ?? string.Empty;
                 foreach (var f in ExtendedFileInfos)
                     f.IsSelected = System.IO.Path.GetDirectoryName(f.Path) == folder;
+            }
+        }
+
+        private void HideGroup(object parameter)
+        {
+            if (FilesListView.SelectedItem is ExtendedFileInfoViewModel sel)
+            {
+                var toDelete = ExtendedFileInfos.Where(f => f.CheckSum == sel.CheckSum).ToList();
+                foreach (var toDeleteItem in toDelete)
+                {
+                    ExtendedFileInfos.Remove(toDeleteItem);
+                }
             }
         }
 
