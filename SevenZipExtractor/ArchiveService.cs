@@ -428,14 +428,23 @@ namespace SevenZipExtractor
         public IList<(ArchiveFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, Func<string, bool> isSupportedExtension, CancellationToken cancelToken)
         {
             var streams = new List<(ArchiveFileInfo, Stream)>();
-            using var archiveFile = new ArchiveFile(fileInfo.Path);
 
-            CollectImageStreams(archiveFile, fileInfo, isNested: false, streams, isSupportedExtension, cancelToken);
-
-            foreach (var item in streams)
+            try
             {
-                item.Item1.ContainerFilesCount = streams.Count;
+                using var archiveFile = new ArchiveFile(fileInfo.Path);
+
+                CollectImageStreams(archiveFile, fileInfo, isNested: false, streams, isSupportedExtension, cancelToken);
+
+                foreach (var item in streams)
+                {
+                    item.Item1.ContainerFilesCount = streams.Count;
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"{fileInfo.Path}: {ex.Message}");
+            }
+
             return streams;
         }
 
