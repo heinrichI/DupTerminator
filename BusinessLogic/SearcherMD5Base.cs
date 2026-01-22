@@ -255,13 +255,17 @@ namespace DupTerminator.BusinessLogic
                             }
                             else
                             {
-                                AddMd5(fileInfo, md5);
-                                added.Add(fileInfo.Path);
+                                if (!added.Contains(fileInfo.Path))
+                                {
+                                    AddMd5(fileInfo, md5);
+                                    added.Add(fileInfo.Path);
+                                }
                             }
                         }
                     }
                     else if (data.All(d => d is PdfFileInfo))
                     {
+                        HashSet<string> added = new HashSet<string>();
                         foreach (var fileInfo in data)
                         {
                             string md5 = string.Empty;
@@ -275,20 +279,28 @@ namespace DupTerminator.BusinessLogic
                             if (string.IsNullOrEmpty(md5))
                             {
                                 var checkSums = _pdfService.CalculateHashes(data.Cast<PdfFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
-                                for (int i = 0; i < data.Length; i++)
+                                if (checkSums.Length != data.Length)
+                                    throw new Exception("Длины не совпадают!");
+                                foreach (var checksum in checkSums)
                                 {
-                                    var checkSum = checkSums[i];
-                                    var fileInfo2 = data[i];
-
-                                    Debug.Assert(!string.IsNullOrEmpty(checkSum));
-                                    _md5Repository.Add(fileInfo2.Path, lastWriteTime, fileInfo2.Size, checkSum);
-                                    AddMd5(fileInfo2, checkSum);
+                                    Debug.Assert(!string.IsNullOrEmpty(checksum.Item2));
+                                    _md5Repository.Add(checksum.Item1.Path, lastWriteTime, checksum.Item1.Size, checksum.Item2);
+                                    //файлы уже могли быть добавлены, поэтому эта проверка
+                                    if (!added.Contains(checksum.Item1.Path))
+                                    {
+                                        AddMd5(checksum.Item1, checksum.Item2);
+                                        added.Add(checksum.Item1.Path);
+                                    }
                                 }
                                 break;
                             }
                             else
                             {
-                                AddMd5(fileInfo, md5);
+                                if (!added.Contains(fileInfo.Path))
+                                {
+                                    AddMd5(fileInfo, md5);
+                                    added.Add(fileInfo.Path);
+                                }
                             }
                         }
                     }

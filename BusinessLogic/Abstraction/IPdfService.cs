@@ -10,7 +10,7 @@ namespace DupTerminator.BusinessLogic.Abstraction
     public interface IPdfService
     {
         string? CalculateHash(PdfFileInfo pdfInfo, Func<Stream, string?> calculator);
-        T[] CalculateHashes<T>(PdfFileInfo[] pdfFileInfos, Func<Stream, T> calculator);
+        (PdfFileInfo, T)[] CalculateHashes<T>(PdfFileInfo[] pdfFileInfos, Func<Stream, T> calculator);
         IEnumerable<PdfFileInfo> GetInfos(ExtendedFileInfo item, CancellationToken cancelToken);
         Stream GetStream(PdfFileInfo pdfInfo);
         IList<(PdfFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, CancellationToken cancelToken);

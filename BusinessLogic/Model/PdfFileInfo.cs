@@ -9,5 +9,6 @@ namespace DupTerminator.BusinessLogic.Model
     public class PdfFileInfo : ExtendedFileInfo
     {
         public int? ImageIndex { get; set; }
+        public int PageNumber { get; set; }
     }
 }

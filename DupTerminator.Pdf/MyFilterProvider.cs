@@ -30,8 +30,8 @@ namespace DupTerminator.Pdf
         {
             // New filters
             var dct = new JpegLibraryDctDecodeFilter();
-            //var jbig2 = new PdfboxJbig2DecodeFilter();
-            //var jpx = new OpenJpegJpxDecodeFilter();
+            var jbig2 = new PdfboxJbig2DecodeFilter();
+            var jpx = new OpenJpegJpxDecodeFilter();
 
             // Standard PdfPig filters
             var ascii85 = new Ascii85Filter();
@@ -54,8 +54,8 @@ namespace DupTerminator.Pdf
                    { NameToken.DctDecodeAbbreviation.Data, dct },
                    { NameToken.FlateDecode.Data, flate },
                    { NameToken.FlateDecodeAbbreviation.Data, flate },
-                   //{ NameToken.Jbig2Decode.Data, jbig2 },
-                   //{ NameToken.JpxDecode.Data, jpx },
+                   { NameToken.Jbig2Decode.Data, jbig2 },
+                   { NameToken.JpxDecode.Data, jpx },
                    { NameToken.RunLengthDecode.Data, runLength },
                    { NameToken.RunLengthDecodeAbbreviation.Data, runLength },
                    { NameToken.LzwDecode.Data, lzw },

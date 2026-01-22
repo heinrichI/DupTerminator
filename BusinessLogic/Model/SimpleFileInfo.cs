@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,9 +25,19 @@ namespace DupTerminator.BusinessLogic.Model
 
         public ulong Size { get; set; }
 
-        public string Name { get; set; }
+        private string? _name;
+        public string? Name
+        {
+            get => _name;
+            set => _name = value is null ? null : string.Intern(value);
+        }
 
-        public string Path { get; set; }
+        private string _path;
+        public string Path
+        {
+            get => _path;
+            set => _path = string.Intern(value);
+        }
 
         public override bool Equals(object? obj)
         {

@@ -12,11 +12,27 @@ namespace DupTerminator.BusinessLogic.Model
     {
         public uint ArchiveCRC { get; set; }
 
-        public string ArchivePath { get; set; }
+        private string _archivePath;
+        public string ArchivePath
+        {
+            get => _archivePath;
+            set => _archivePath = string.Intern(value);
+        }
 
-        public string ArchiveExtension { get; set; }
+        private string _archiveExtension;
+        public string ArchiveExtension
+        {
+            get => _archiveExtension;
+            set => _archiveExtension = string.Intern(value);
+        }
 
-        public string ArchiveFileName { get; set; }
+        private string _archiveFileName;
+        public string ArchiveFileName
+        {
+            get => _archiveFileName;
+            set => _archiveFileName = string.Intern(value);
+        }
+
         public bool ArchiveInArchive { get; set; }
         public ArchiveSimpleFileInfo[] ContainerFiles { get; set; }
 

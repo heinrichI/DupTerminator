@@ -21,8 +21,19 @@ namespace DupTerminator.BusinessLogic.Model
 
         public DateTime LastWriteTime { get; set; }
 
-        public string? DirectoryName { get; set; }
-        public string Extension { get; set; }
+        private string? _directoryName;
+        public string? DirectoryName
+        {
+            get => _directoryName;
+            set => _directoryName = value is null ? null : string.Intern(value);
+        }
+
+        private string? _extension;
+        public string? Extension
+        {
+            get => _extension;
+            set => _extension = value is null ? null : string.Intern(value);
+        }
 
         //public bool InArchive { get; set; }
 

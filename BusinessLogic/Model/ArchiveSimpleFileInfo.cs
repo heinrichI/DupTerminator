@@ -18,6 +18,11 @@ namespace DupTerminator.BusinessLogic.Model
             ArchivePath = c.ArchivePath;
         }
 
-        public string ArchivePath { get; set; }
+        private string _archivePath;
+        public string ArchivePath
+        {
+            get => _archivePath;
+            set => _archivePath = string.Intern(value);
+        }
     }
 }
