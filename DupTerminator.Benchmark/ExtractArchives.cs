@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.Windows.Configs;
+using Microsoft.Extensions.Logging.Abstractions;
 using SevenZipExtractor;
 
 namespace DupTerminator.Benchmark
@@ -18,7 +19,7 @@ namespace DupTerminator.Benchmark
         [Benchmark]
         public void ExtractArchives2()
         {
-            ArchiveService archiveService = new ArchiveService();
+            ArchiveService archiveService = new ArchiveService(NullLogger<ArchiveService>.Instance);
             var streams = archiveService.GetStreams(new BusinessLogic.Model.ExtendedFileInfo
             {
                 //Path = "i:\\Iron Man\\Invincible Iron Man\\Invincible Iron Man (001-033+500-527&Annuals)(2008-2012) GetComics.INFO.zip"

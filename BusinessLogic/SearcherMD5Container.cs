@@ -65,6 +65,7 @@ namespace DupTerminator.BusinessLogic
 
             _stopwatch.Stop();
             _logger.LogInformation($"ElapsedTime: {_stopwatch.Elapsed}");
+            Debug.WriteLine($"ElapsedTime: {_stopwatch.Elapsed}");
 
             //var paths = checksumDictionary.SelectMany(f => f.Value.Select(h => h.Path)).ToArray();
             //foreach (var path in paths)

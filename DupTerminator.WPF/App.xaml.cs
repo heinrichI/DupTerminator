@@ -102,6 +102,7 @@ namespace DupTerminator.WPF
 
 
             services.AddTransient<StartCommand>();
+            services.AddTransient<ClearDbCommand>();
 
 
             //services.AddSingleton<UndoRedoEngine>();

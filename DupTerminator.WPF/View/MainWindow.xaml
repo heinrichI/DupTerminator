@@ -39,7 +39,11 @@
     </Window.Resources>
 
     <DockPanel>
-
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Clear db"  Command="{Binding ClearDbCommand}">
+            </MenuItem>
+        </Menu>
+        
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem DockPanel.Dock="Left" >
                 <TextBlock Text="{Binding SettingViewModel.TotalInfo, Mode=OneWay}" />

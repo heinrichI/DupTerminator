@@ -418,6 +418,36 @@ namespace DupTerminator.BusinessLogic
                     if (filesInArchive is not null && filesInArchive.Any() && !token.IsCancellationRequested)
                     {
                         _archiveInfoRepository.Add(efi, filesInArchive);
+//#if DEBUG
+//                        var fromDb = _archiveInfoRepository.Get(efi.Path, efi.LastWriteTime, efi.Size);
+//                        Debug.Assert(fromDb.Length == filesInArchive.Length);
+//                        for (int i = 0; i < fromDb.Length; i++)
+//                        {
+//                            Debug.Assert(fromDb[i].Name == filesInArchive[i].Name);
+//                            Debug.Assert(fromDb[i].Path == filesInArchive[i].Path);
+//                            Debug.Assert(fromDb[i].Size == filesInArchive[i].Size);
+//                            Debug.Assert(fromDb[i].LastWriteTime == filesInArchive[i].LastWriteTime);
+//                            Debug.Assert(fromDb[i].Extension == filesInArchive[i].Extension);
+//                            Debug.Assert(fromDb[i].ArchiveCRC == filesInArchive[i].ArchiveCRC);
+//                            Debug.Assert(fromDb[i].ArchiveExtension == filesInArchive[i].ArchiveExtension);
+//                            Debug.Assert(fromDb[i].ArchiveFileName == filesInArchive[i].ArchiveFileName);
+//                            Debug.Assert(fromDb[i].ArchiveInArchive == filesInArchive[i].ArchiveInArchive);
+//                            Debug.Assert(fromDb[i].ArchivePath == filesInArchive[i].ArchivePath);
+//                            Debug.Assert(fromDb[i].Container.Path == filesInArchive[i].Container.Path);
+//                            Debug.Assert(fromDb[i].Container.Name == filesInArchive[i].Container.Name);
+//                            Debug.Assert(fromDb[i].Container.Size == filesInArchive[i].Container.Size);
+//                            Debug.Assert(fromDb[i].Container.LastWriteTime == filesInArchive[i].Container.LastWriteTime);
+//                            Debug.Assert(fromDb[i].ContainerFilesCount == filesInArchive[i].ContainerFilesCount);
+//                            Debug.Assert(fromDb[i].DirectoryName == filesInArchive[i].DirectoryName);
+//                            if (filesInArchive[i].ArchiveInArchive)
+//                            {
+//                                Debug.Assert(fromDb[i].Container.Container.Path == filesInArchive[i].Container.Container.Path);
+//                                Debug.Assert(fromDb[i].Container.Container.Name == filesInArchive[i].Container.Container.Name);
+//                                Debug.Assert(fromDb[i].Container.Container.Size == filesInArchive[i].Container.Container.Size);
+//                                Debug.Assert(fromDb[i].Container.Container.LastWriteTime == filesInArchive[i].Container.Container.LastWriteTime);
+//                            }
+//                        }
+//#endif
                     }
                 }
                 if (filesInArchive.Any() && string.IsNullOrEmpty(filesInArchive.FirstOrDefault().Name))
@@ -456,7 +486,8 @@ namespace DupTerminator.BusinessLogic
 
             files.Add(efi);
 
-            if (_archiveService.IsArchiveFile(efi.Path))
+            //IsArchiveFile is slow
+            if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(efi.Path, efi.LastWriteTime, efi.Size)) || _archiveService.IsArchiveFile(efi.Path))
             {
                 FillInfosFromArchive(efi, files, token);
             }
@@ -595,7 +626,7 @@ namespace DupTerminator.BusinessLogic
                 else
                     files.Add(item);
 
-                if (_archiveService.IsArchiveFile(item.Path))
+                if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(item.Path, item.LastWriteTime, item.Size)) || _archiveService.IsArchiveFile(item.Path))
                 {
                     FillInfosFromArchive(item, files, token);
                 }

@@ -30,17 +30,20 @@ namespace DupTerminator.WPF.ViewModel
 
         public ImageGroupsViewModel ImageGroupsViewModel { get; }
         public ImageListViewModel ImageListViewModel { get; }
+        public ClearDbCommand ClearDbCommand { get; }
 
         public MainViewModel(
             SettingViewModel settingViewModel,
             ImageGroupsViewModel imageGroupsViewModel,
             ImageListViewModel imageListViewModel,
-            IImageProvider imageProvider)
+            IImageProvider imageProvider,
+            ClearDbCommand clearDbCommand)
         {
             SettingViewModel = settingViewModel;
             ImageGroupsViewModel = imageGroupsViewModel;
             ImageListViewModel = imageListViewModel;
             _imageProvider = imageProvider;
+            ClearDbCommand = clearDbCommand;
             SettingViewModel.SearchCompleted += OnSearchCompleted;
         }
 
@@ -175,6 +178,8 @@ namespace DupTerminator.WPF.ViewModel
                 }, arg => arg != null));
             }
         }
+
+
 
 
         private int _selectedTabPageIndex;
