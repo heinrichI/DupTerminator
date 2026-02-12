@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using DupTerminator.DataBase;
 
@@ -35,7 +36,9 @@ namespace DupTerminator.WPF.Commands
             var disks = new HashSet<string>(GetExistDisks(), StringComparer.OrdinalIgnoreCase);
 
             bool needVacum = false;
-            foreach (string path in _archiveInfoRepository.EnumerateAllPath())
+            int deleteCount = 0;
+            var allPaths = _archiveInfoRepository.EnumerateAllPath().ToArray();
+            foreach (string path in allPaths)
             {
                 // Получаем корень пути (например, "C:\\")
                 string? root = Path.GetPathRoot(path);
@@ -45,10 +48,14 @@ namespace DupTerminator.WPF.Commands
                 {
                     _archiveInfoRepository.DeleteByPath(path);
                     needVacum = true;
+                    deleteCount++;
                 }
             }
             if (needVacum)
+            {
                 _archiveInfoRepository.VacuumDatabase();
+                MessageBox.Show($"Удалено {deleteCount} записей");
+            }
         }
 
         // Пример реализации GetExistDisks

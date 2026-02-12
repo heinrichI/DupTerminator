@@ -462,12 +462,22 @@ namespace DupTerminator.BusinessLogic
                 if (_searchSetting.IncludePattern.Any())
                 {
                     if (_searchSetting.IncludePattern.Contains(fileArch.Extension))
-                        files.Add(fileArch);
+                        AddFileToList(files, fileArch);
                 }
                 else
-                    files.Add(fileArch);
+                    AddFileToList(files, fileArch);
                 Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
+        }
+
+        private void AddFileToList(List<ExtendedFileInfo> files, ExtendedFileInfo file)
+        {
+            if (file.Name == "Thumbs.db" && file.Extension == ".db")
+            {
+                _logger.LogWarning($"Thumbs.db in {file.Path}");
+                Debug.WriteLine($"Thumbs.db in {file.Path}");
+            }
+            files.Add(file);
         }
 
         private void AddFile(SearchPath file, ref List<ExtendedFileInfo> files, CancellationToken token, string phisicalDrive)
@@ -621,10 +631,10 @@ namespace DupTerminator.BusinessLogic
                 if (_searchSetting.IncludePattern.Any())
                 {
                     if (_searchSetting.IncludePattern.Contains(item.Extension))
-                        files.Add(item);
+                        AddFileToList(files, item);
                 }
                 else
-                    files.Add(item);
+                    AddFileToList(files, item);
 
                 if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(item.Path, item.LastWriteTime, item.Size)) || _archiveService.IsArchiveFile(item.Path))
                 {
