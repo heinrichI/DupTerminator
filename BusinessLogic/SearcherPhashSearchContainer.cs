@@ -96,6 +96,10 @@ namespace DupTerminator.BusinessLogic
                                                                                                     // body
                        (item, loopState, localList) => // body: The loop body logic
                        {
+                           using (_logger.BeginScope(new Dictionary<string, object>
+                           {
+                               ["Path"] = item.Item1.Path
+                           }))
                            using (item.Item2)
                            {
                                try

@@ -321,6 +321,11 @@ namespace DupTerminator.BusinessLogic
         {
             foreach (var item in blockingCollection.GetConsumingEnumerable())
             {
+                using (_logger.BeginScope(new Dictionary<string, object>
+                {
+                    ["Path"] = item.Item1.Path
+                }))
+
                 if (cancelToken.IsCancellationRequested)
                 {
                     _logger.LogInformation("MIH quering was canceled.");
@@ -611,6 +616,10 @@ namespace DupTerminator.BusinessLogic
                                                                                               // body
                                (item, loopState, localList) => // body: The loop body logic
                                {
+                                   using (_logger.BeginScope(new Dictionary<string, object>
+                                   {
+                                       ["Path"] = item.Item1.Path
+                                   }))
                                    using (item.Item2)
                                    {
                                        (ulong? phash, int width, int height) result = _pHashService.CalculatePHash(item.Item2);
@@ -724,13 +733,17 @@ namespace DupTerminator.BusinessLogic
                                                                                               // body
                                (item, loopState, localList) => // body: The loop body logic
                                {
-                                   using (item.Item2)
-                                   {
-                                       var result = _pHashService.CalculatePHash(item.Item2);
-                                       if (result.phash.HasValue)
+                                    using (_logger.BeginScope(new Dictionary<string, object>
+                                    {
+                                        ["Path"] = item.Item1.Path
+                                    }))
+                                    using (item.Item2)
+                                    {
+                                        var result = _pHashService.CalculatePHash(item.Item2);
+                                        if (result.phash.HasValue)
                                             localList.Add((item.Item1, result.phash.Value, result.width, result.height));
-                                       return localList; // Return the updated local list for the next iteration
-                                   }
+                                        return localList; // Return the updated local list for the next iteration
+                                    }
                                },
                                (finalLocalList) => // localFinally: Action to combine results
                                {

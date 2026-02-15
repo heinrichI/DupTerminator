@@ -68,6 +68,8 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                        <GridViewColumn Header="Path" 
+                                DisplayMemberBinding="{Binding Path}"/>
                     </GridView>
             </ListView.View>
 

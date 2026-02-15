@@ -6,6 +6,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
@@ -14,17 +17,15 @@ using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DupTerminator.BusinessLogic
 {
     public class SearcherMD5Container : SearcherMD5Base
     {
         private readonly ReadOnlyCollection<SearchPath> _locations;
-        private readonly SearchSetting _searchSetting;
         private readonly MD5ContainerSettings _modeSettings;
 
-        private readonly IWindowsUtil _windowsUtil;
-        private readonly IArchiveService _archiveService;
         private readonly ILogger<SearcherMD5> _logger;
         //public ReadOnlyCollection<DuplicateGroup> Duplicates { get; private set; }
 
@@ -48,12 +49,7 @@ namespace DupTerminator.BusinessLogic
             ILogger<SearcherMD5> logger) : base(searchSetting, windowsUtil, md5Repository, archiveService, pdfService, archiveInfoRepository, pdfInfoRepository, logger)
         {
             _locations = locations;
-            _searchSetting = searchSetting;
             _modeSettings = modeSettings;
-
-            _windowsUtil = windowsUtil;
-            //_progress = progress;
-            _archiveService = archiveService;
             _logger = logger;
         }
 
@@ -73,7 +69,12 @@ namespace DupTerminator.BusinessLogic
             //    if (paths.Count(f => f == path) > 1)
             //        throw new Exception("Что-то не так");
             //}
-
+            //var s = JsonSerializer.Serialize(checksumDictionary, new JsonSerializerOptions
+            //{
+            //    // This allows all Unicode characters to remain unescaped
+            //    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            //    WriteIndented = true
+            //});
 
             Dictionary<(ContainerEqInfo, ContainerEqInfo), ContainerInfo> containers = new Dictionary<(ContainerEqInfo, ContainerEqInfo), ContainerInfo>();
             foreach (KeyValuePair<string, IList<ExtendedFileInfo>> pair in checksumDictionary)
@@ -143,28 +144,35 @@ namespace DupTerminator.BusinessLogic
                 }
             }
 
-            var content = containers.Values.SelectMany(v =>
-            {
-                List<(ContainerEqInfo, ContainerEqInfo)> list = new List<(ContainerEqInfo, ContainerEqInfo)>();
-                for (int i = 0; i < v.FirstFiles.Count; i++)
-                {
-                    var first = v.FirstFiles[i];
-                    var second = v.SecondFiles[i];
+            //var forRemove = containers.Values.SelectMany(v =>
+            //{
+            //    List<(ContainerEqInfo, ContainerEqInfo)> list = new List<(ContainerEqInfo, ContainerEqInfo)>();
+            //    if (!v.TheyThemselvesAreEqual)
+            //    {
+            //        list.Add((new ContainerEqInfo(v.FirstFiles.First()), new ContainerEqInfo(v.SecondFiles.First())));
+            //    }
+            //    else
+            //    {
+            //        for (int i = 0; i < v.FirstFiles.Count; i++)
+            //        {
+            //            var first = v.FirstFiles[i];
+            //            var second = v.SecondFiles[i];
 
-                    if (string.Compare(first.Path, second.Path, StringComparison.Ordinal) > 0)
-                    {
-                        // Swap if first.Path > second.Path
-                        (first, second) = (second, first);
-                    }
+            //            if (string.Compare(first.Path, second.Path, StringComparison.Ordinal) > 0)
+            //            {
+            //                // Swap if first.Path > second.Path
+            //                (first, second) = (second, first);
+            //            }
 
-                    list.Add((new ContainerEqInfo(first), new ContainerEqInfo(second)));
-                }
-                return list;
-            }).ToArray();
-            foreach (var item in content)
-            {
-                containers.Remove(item);
-            }
+            //            list.Add((new ContainerEqInfo(first), new ContainerEqInfo(second)));
+            //        }
+            //    }
+            //    return list;
+            //}).ToArray();
+            //foreach (var item in forRemove)
+            //{
+            //    containers.Remove(item);
+            //}
 
 
 

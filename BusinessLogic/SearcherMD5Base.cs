@@ -82,7 +82,7 @@ namespace DupTerminator.BusinessLogic
             return dict.ToArray();
         }
 
-        protected async Task<ConcurrentDictionary<string, IList<ExtendedFileInfo>>> GetChecksumDictionaryAsync(ReadOnlyCollection<SearchPath> locations, IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        protected virtual async Task<ConcurrentDictionary<string, IList<ExtendedFileInfo>>> GetChecksumDictionaryAsync(ReadOnlyCollection<SearchPath> locations, IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(locations);
 
