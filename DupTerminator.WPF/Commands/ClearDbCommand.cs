@@ -13,10 +13,12 @@ namespace DupTerminator.WPF.Commands
     internal class ClearDbCommand : ICommand
     {
         private readonly IArchiveInfoRepository _archiveInfoRepository;
+        private readonly IPhashRepository _phashRepository;
 
-        public ClearDbCommand(IArchiveInfoRepository archiveInfoRepository)
+        public ClearDbCommand(IArchiveInfoRepository archiveInfoRepository, IPhashRepository phashRepository)
         {
             _archiveInfoRepository = archiveInfoRepository;
+            _phashRepository = phashRepository;
         }
 
         public event EventHandler CanExecuteChanged
@@ -47,6 +49,21 @@ namespace DupTerminator.WPF.Commands
                 if (root != null && disks.Contains(root) && !File.Exists(path))
                 {
                     _archiveInfoRepository.DeleteByPath(path);
+                    needVacum = true;
+                    deleteCount++;
+                }
+            }
+
+            allPaths = _phashRepository.GetAllContainerPath();
+            foreach (string path in allPaths)
+            {
+                // Получаем корень пути (например, "C:\\")
+                string? root = Path.GetPathRoot(path);
+
+                //если диск из пути есть в существующих в системе дисках то проверить что путь сущестует
+                if (root != null && disks.Contains(root) && !File.Exists(path))
+                {
+                    _phashRepository.DeleteByPath(path);
                     needVacum = true;
                     deleteCount++;
                 }

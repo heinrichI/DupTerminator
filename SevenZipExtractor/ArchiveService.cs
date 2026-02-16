@@ -192,7 +192,10 @@ namespace SevenZipExtractor
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"{archive.Path}: {ex.Message}");
+                if (ex.Message == "Unable to open archive")
+                    _logger.LogError(ex, $"{archive.Path}: {ex.Message}. Possible wrong extension.");
+                else
+                    _logger.LogError(ex, $"{archive.Path}: {ex.Message}");
             }
             foreach (var item in containerInfos)
             {

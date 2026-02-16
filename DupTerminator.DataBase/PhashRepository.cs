@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -130,7 +132,7 @@ namespace DupTerminator.DataBase
             }
         }
 
-        public (ArchiveFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo)
+        public (ExtendedFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
@@ -148,19 +150,28 @@ namespace DupTerminator.DataBase
 
             if (reader.Read() && !reader.IsDBNull(0))
             {
-                var data = (string)reader.GetValue(0);
-                return JsonSerializer.Deserialize<(ArchiveFileInfo efi, ulong phash, int width, int height)[]>(data, _jsonOptions);
+                //var data = (string)reader.GetValue(0);
+                //return JsonSerializer.Deserialize<(ExtendedFileInfo efi, ulong phash, int width, int height)[]>(data, _jsonOptions);
+
+                using var blobStream = reader.GetStream(0);
+
+                // 2️⃣ Decompress on‑the‑fly
+                using var gzipStream = new GZipStream(blobStream, CompressionMode.Decompress);
+
+                // 3️⃣ Deserialize straight from the decompressed stream
+                return JsonSerializer.Deserialize<(ExtendedFileInfo efi, ulong phash, int width, int height)[]>(gzipStream, _jsonOptions);
             }
 
             return null;
         }
 
-        public void AddContainerStreams(ExtendedFileInfo fileInfo, (ArchiveFileInfo efi, ulong phash, int width, int height)[] collection)
+        public void AddContainerStreams(ExtendedFileInfo fileInfo, (ExtendedFileInfo efi, ulong phash, int width, int height)[] collection)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            var jsonData = JsonSerializer.Serialize(collection, _jsonOptions);
+            //var jsonData = JsonSerializer.Serialize(collection, _jsonOptions);
+            var jsonData = JsonHelper.CompressJsonData(collection, _jsonOptions);
 
             using var cmd = connection.CreateCommand();
             cmd.CommandText = @"
@@ -175,6 +186,83 @@ namespace DupTerminator.DataBase
             cmd.Parameters.AddWithValue("$serialized", jsonData);
 
             cmd.ExecuteNonQuery();
+        }
+
+        public string[] GetAllContainerPath()
+        {
+            var paths = new List<string>();
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT Path FROM PHashContainerTable;";
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                paths.Add(reader.GetString(0));
+            }
+
+            return paths.ToArray();
+        }
+
+        /// <summary>
+        /// When data is deleted from an SQLite database, the space is marked as available for reuse, but the physical file size on disk usually doesn't shrink immediately.
+        /// To reclaim this unused space and reduce the file size, you must run the VACUUM command. 
+        /// </summary>
+        /// <param name="connectionString"></param>
+        public void VacuumDatabase()
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                connection.Open();
+
+                var command = connection.CreateCommand();
+                command.CommandText = "VACUUM";
+                command.ExecuteNonQuery();
+
+                Debug.WriteLine("Database file size optimized with VACUUM.");
+            }
+        }
+
+        public int DeleteByPath(string path)
+        {
+            // Валидация входного параметра
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentException("Path cannot be null or empty", nameof(path));
+            }
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+            using var command = connection.CreateCommand();
+
+            command.CommandText = @"
+                DELETE FROM PHashContainerTable
+                WHERE Path = @path";
+
+            // Добавляем параметр с правильным типом данных
+            command.Parameters.Add(new SqliteParameter("@path", SqliteType.Text)
+            {
+                Value = path
+            });
+
+            command.Transaction = transaction;
+
+            try
+            {
+                int affectedRows = command.ExecuteNonQuery();
+                transaction.Commit();
+                return affectedRows;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                throw new InvalidOperationException(
+                    $"Error deleting records for path {path}", ex);
+            }
         }
     }
 }

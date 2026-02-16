@@ -52,6 +52,9 @@ namespace DupTerminator.BusinessLogic
             _stopwatch.Stop();
             _logger.LogInformation($"ElapsedTime: {_stopwatch.Elapsed}");
 
+            if (duplicateGroups is null)
+                return null;
+
             Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)> containers = new Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)>();
             foreach (var group in duplicateGroups)
             {

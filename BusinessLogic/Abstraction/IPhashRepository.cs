@@ -4,10 +4,18 @@ namespace DupTerminator.DataBase
 {
     public interface IPhashRepository
     {
-        public (ulong phash, int width, int height)? Get(string path, DateTime lastWriteTime, ulong size);
+        (ulong phash, int width, int height)? Get(string path, DateTime lastWriteTime, ulong size);
 
-        public void Add(string path, DateTime lastWriteTime, ulong size, ulong phash, int width, int height);
-        public (ArchiveFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo);
-        void AddContainerStreams(ExtendedFileInfo fileInfo, (ArchiveFileInfo efi, ulong phash, int width, int height)[] collection);
+        void Add(string path, DateTime lastWriteTime, ulong size, ulong phash, int width, int height);
+
+        (ExtendedFileInfo efi, ulong phash, int width, int height)[] GetContainerHashes(ExtendedFileInfo fileInfo);
+
+        void AddContainerStreams(ExtendedFileInfo fileInfo, (ExtendedFileInfo efi, ulong phash, int width, int height)[] collection);
+
+        void VacuumDatabase();
+
+        string[] GetAllContainerPath();
+
+        int DeleteByPath(string path);
     }
 }

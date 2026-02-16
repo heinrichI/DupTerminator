@@ -69,6 +69,8 @@ namespace DupTerminator.BusinessLogic
             foreach (var group in groupByLetter)
             {
                 var model = _windowsUtil.GetModelFromDrive(group.Key);
+                if (model is null)
+                    continue;
                 if (!dict.ContainsKey(model))
                 {
                     dict.Add(model, new List<SearchPath>(group));

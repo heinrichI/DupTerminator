@@ -172,49 +172,56 @@ namespace DupTerminator.Pdf
         public IList<(PdfFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, CancellationToken cancelToken)
         {
             List<(PdfFileInfo, Stream)> streams = new List<(PdfFileInfo, Stream)>();
-            using (var doc = PdfDocument.Open(fileInfo.Path, _parsingOption))
+            try
             {
-                foreach (var page in doc.GetPages())
+                using (var doc = PdfDocument.Open(fileInfo.Path, _parsingOption))
                 {
-                    if (cancelToken.IsCancellationRequested)
+                    foreach (var page in doc.GetPages())
                     {
-                        System.Diagnostics.Debug.WriteLine("CollectImageStreams was canceled.");
-                        break;
-                    }
-
-                    //foreach (var pdfImage in page.GetImages())
-                    //{
-                    //    bool result = pdfImage.TryGetPng(out var bytes);
-
-                    //    File.WriteAllBytes($"image_{i++}.jpeg", bytes);
-                    //}
-                    int imageIndex = 0;
-                    foreach (var pdfImage in page.GetImages())
-                    {
-                        //File.WriteAllBytes($"{fileInfo.Name}_FromPDF.jpeg", pdfImage.RawBytes.ToArray());
-                        PdfFileInfo efi = new PdfFileInfo()
+                        if (cancelToken.IsCancellationRequested)
                         {
-                            PageNumber = page.Number,
-                            ImageIndex = imageIndex,
-                            Name = $"{page.Number}.{imageIndex}",
-                            Size = (ulong)pdfImage.RawBytes.Length,
-                            Path = $"{fileInfo.Path}\\{page.Number}.{imageIndex}",
-                            Container = fileInfo,
-                        };
-                        imageIndex++;
+                            System.Diagnostics.Debug.WriteLine("CollectImageStreams was canceled.");
+                            break;
+                        }
 
-                        var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
-                        entryStream.Write(pdfImage.RawBytes);
-                        entryStream.Position = 0;
+                        //foreach (var pdfImage in page.GetImages())
+                        //{
+                        //    bool result = pdfImage.TryGetPng(out var bytes);
 
-                        streams.Add((efi, entryStream));
+                        //    File.WriteAllBytes($"image_{i++}.jpeg", bytes);
+                        //}
+                        int imageIndex = 0;
+                        foreach (var pdfImage in page.GetImages())
+                        {
+                            //File.WriteAllBytes($"{fileInfo.Name}_FromPDF.jpeg", pdfImage.RawBytes.ToArray());
+                            PdfFileInfo efi = new PdfFileInfo()
+                            {
+                                PageNumber = page.Number,
+                                ImageIndex = imageIndex,
+                                Name = $"{page.Number}.{imageIndex}",
+                                Size = (ulong)pdfImage.RawBytes.Length,
+                                Path = $"{fileInfo.Path}\\{page.Number}.{imageIndex}",
+                                Container = fileInfo,
+                            };
+                            imageIndex++;
+
+                            var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
+                            entryStream.Write(pdfImage.RawBytes);
+                            entryStream.Position = 0;
+
+                            streams.Add((efi, entryStream));
+                        }
                     }
                 }
+                foreach (var item in streams)
+                {
+                    item.Item1.ContainerFilesCount = streams.Count;
+                }
             }
-            foreach (var item in streams)
+            catch (Exception ex)
             {
-                item.Item1.ContainerFilesCount = streams.Count;
-            }
+                _logger.LogError(ex, string.Intern($"{fileInfo.Path}: {ex.Message}"));
+            }           
 
             return streams;
         }
