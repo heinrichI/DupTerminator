@@ -11,7 +11,6 @@ using MemoryPack;
 using MemoryPack.Compression;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using static DupTerminator.DataBase.Dto.ArchiveInfoMapper;
 
 namespace DupTerminator.DataBase
 {
@@ -26,7 +25,8 @@ namespace DupTerminator.DataBase
 
             //MemoryPackFormatterProvider.Register<ArchiveFileInfo[]>(new ArchiveFileInfoMPFormatter());
             MemoryPackFormatterProvider.Register<ArchiveFileInfo>(new ArchiveFileInfoMPFormatter2());
-            MemoryPackFormatterProvider.Register<ArchiveSimpleFileInfo>(new ArchiveSimpleFileInfoFormatter());
+            //MemoryPackFormatterProvider.Register<ArchiveSimpleFileInfo>(new ArchiveSimpleFileInfoFormatter());
+            //MemoryPackFormatterProvider.Register<SimpleFileInfo>(new SimpleFileInfoFormatter());
             //MemoryPackFormatterProvider.Register<ExtendedFileInfo>(new ExtendedFileInfoFormatter());
         }
 

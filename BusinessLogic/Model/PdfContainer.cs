@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    public class ArchiveContainer :  ContainerInfo
+    public class PdfContainer : ContainerInfo
     {
-        public ArchiveContainer()
-        {            
-        }
+        public PdfContainer() { }
 
-        public ArchiveContainer(ExtendedFileInfo efi)
+        public PdfContainer(ExtendedFileInfo efi)
         {
             Path = efi.Path;
             Name = efi.Name;
             Size = efi.Size;
             Extension = efi.Extension;
             LastWriteTime = efi.LastWriteTime;
-            Container = efi.Container;
-            Debug.Assert(!string.IsNullOrEmpty(Path));
         }
     }
 }

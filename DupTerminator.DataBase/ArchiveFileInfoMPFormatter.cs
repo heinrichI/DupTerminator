@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -14,48 +15,90 @@ using MemoryPack;
 
 namespace DupTerminator.DataBase
 {
-    public class ArchiveSimpleFileInfoFormatter : MemoryPackFormatter<ArchiveSimpleFileInfo>
-    {
+    //public class SimpleFileInfoFormatter : MemoryPackFormatter<SimpleFileInfo>
+    //{
         //Without an object header, Deserialize relies on PeekIsNull(). If the first byte of a valid property(e.g., a string with length 255)
         //the NullObject code(0xFF), PeekIsNull returns true, causing the reader to incorrectly return null and leaving unread data that corrupts subsequent reads.
         //TryReadObjectHeader handles this safely.
-        public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ArchiveSimpleFileInfo? value)
-        {
-            if (value == null)
-            {
-                writer.WriteNullObjectHeader();
-                return;
-            }
+    //    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref SimpleFileInfo? value)
+    //    {
+    //        if (value == null)
+    //        {
+    //            writer.WriteNullObjectHeader();
+    //            return;
+    //        }
 
 
-            Debug.Assert(value.Name is not null);
-            Debug.Assert(value.Path is not null);
-            Debug.Assert(value.ArchivePath is not null);
+    //        Debug.Assert(value.Name is not null);
+    //        Debug.Assert(value.Path is not null);
 
-            // Write object header with member count (3 fields) to enable safe null checking on read
-            writer.WriteObjectHeader(3);
-            writer.WriteString(value.Path);
-            writer.WriteString(value.Name);
-            writer.WriteVarInt(value.Size);
-        }
+    //        // Write object header with member count (3 fields) to enable safe null checking on read
+    //        writer.WriteObjectHeader(3);
+    //        writer.WriteString(value.Path);
+    //        writer.WriteString(value.Name);
+    //        writer.WriteVarInt(value.Size);
+    //    }
 
-        public override void Deserialize(ref MemoryPackReader reader, scoped ref ArchiveSimpleFileInfo? value)
-        {
-            // Use TryReadObjectHeader to safely detects nulls or start reading members
-            if (!reader.TryReadObjectHeader(out var memberCount))
-            {
-                value = null;
-                return;
-            }
+    //    public override void Deserialize(ref MemoryPackReader reader, scoped ref SimpleFileInfo? value)
+    //    {
+    //        // Use TryReadObjectHeader to safely detects nulls or start reading members
+    //        if (!reader.TryReadObjectHeader(out var memberCount))
+    //        {
+    //            value = null;
+    //            return;
+    //        }
 
-            value = new ArchiveSimpleFileInfo
-            {
-                Path = reader.ReadString(),
-                Name = reader.ReadString(),
-                Size = reader.ReadVarIntUInt64(),
-            };
-        }
-    }
+    //        value = new SimpleFileInfo
+    //        {
+    //            Path = reader.ReadString(),
+    //            Name = reader.ReadString(),
+    //            Size = reader.ReadVarIntUInt64(),
+    //        };
+    //    }
+    //}
+
+    //public class ArchiveSimpleFileInfoFormatter : MemoryPackFormatter<ArchiveSimpleFileInfo>
+    //{
+    //    //Without an object header, Deserialize relies on PeekIsNull(). If the first byte of a valid property(e.g., a string with length 255)
+    //    //the NullObject code(0xFF), PeekIsNull returns true, causing the reader to incorrectly return null and leaving unread data that corrupts subsequent reads.
+    //    //TryReadObjectHeader handles this safely.
+    //    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ArchiveSimpleFileInfo? value)
+    //    {
+    //        if (value == null)
+    //        {
+    //            writer.WriteNullObjectHeader();
+    //            return;
+    //        }
+
+
+    //        Debug.Assert(value.Name is not null);
+    //        Debug.Assert(value.Path is not null);
+    //        Debug.Assert(value.ArchivePath is not null);
+
+    //        // Write object header with member count (3 fields) to enable safe null checking on read
+    //        writer.WriteObjectHeader(3);
+    //        writer.WriteString(value.Path);
+    //        writer.WriteString(value.Name);
+    //        writer.WriteVarInt(value.Size);
+    //    }
+
+    //    public override void Deserialize(ref MemoryPackReader reader, scoped ref ArchiveSimpleFileInfo? value)
+    //    {
+    //        // Use TryReadObjectHeader to safely detects nulls or start reading members
+    //        if (!reader.TryReadObjectHeader(out var memberCount))
+    //        {
+    //            value = null;
+    //            return;
+    //        }
+
+    //        value = new ArchiveSimpleFileInfo
+    //        {
+    //            Path = reader.ReadString(),
+    //            Name = reader.ReadString(),
+    //            Size = reader.ReadVarIntUInt64(),
+    //        };
+    //    }
+    //}
     //public class ExtendedFileInfoFormatter : MemoryPackFormatter<ExtendedFileInfo>
     //{
     //    public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref ExtendedFileInfo? value)
@@ -109,8 +152,8 @@ namespace DupTerminator.DataBase
 
             // Define member count (Total logical groups/fields being written)
             // 1.Path 2.Name 3.Size 4.LastWriteTime 5.DirectoryName 6.Extension 7.ContainerFilesCount
-            // 8.Container 9.ArchiveCRC 10.ArchivePath 11.ArchiveExtension 12.ArchiveFileName 13.ArchiveInArchive 14.ContainerFiles
-            writer.WriteObjectHeader(14);
+            // 8.Container 9.ArchiveCRC 10.ArchivePath 11.ArchiveExtension 12.ArchiveFileName 13.ArchiveInArchive 
+            writer.WriteObjectHeader(13);
 
             writer.WriteString(value.Path);
             writer.WriteString(value.Name);
@@ -118,7 +161,7 @@ namespace DupTerminator.DataBase
             writer.WriteVarInt(value.LastWriteTime.Ticks);
             writer.WriteString(value.DirectoryName);
             writer.WriteString(value.Extension);
-            writer.WriteVarInt(value.ContainerFilesCount);  //7
+            //writer.WriteVarInt(value.ContainerFilesCount);  //7
 
             //Serialize Container
             if (value.Container == null)
@@ -128,14 +171,38 @@ namespace DupTerminator.DataBase
             else
             {
                 // Wrap manually serialized object in a header (6 fields)
-                writer.WriteObjectHeader(7);
+                writer.WriteObjectHeader(6);
 
+                Debug.Assert(value.Container.Path != null);
                 writer.WriteString(value.Container.Path);
                 writer.WriteString(value.Container.Name);
                 writer.WriteVarInt(value.Container.Size);
                 writer.WriteVarInt(value.Container.LastWriteTime.Ticks);
                 writer.WriteString(value.Container.DirectoryName);
                 writer.WriteString(value.Container.Extension);
+                //writer.WriteVarInt(value.Container.FilesCount);
+
+
+                //Container files array
+                //WriteContainerFiles(writer, value.Container.Files);
+                if (value.Container.Files == null)
+                {
+                    writer.WriteNullCollectionHeader();
+                }
+                else
+                {
+                    //var formatter = MemoryPackFormatterProvider.GetFormatter<SimpleFileInfo>();
+                    //writer.WriteArray(value.Container.Files);
+                    writer.WriteCollectionHeader(value.Container.Files.Length);
+                    foreach (SimpleFileInfo item in value.Container.Files)
+                    {
+                        //writer.WriteObjectHeader(3);
+                        writer.WriteString(item.Path);
+                        writer.WriteString(item.Name);
+                        writer.WriteVarInt(item.Size);
+                    }
+                }
+
 
                 if (value.Container.Container == null)
                 {
@@ -152,6 +219,28 @@ namespace DupTerminator.DataBase
                     writer.WriteVarInt(value.Container.Container.LastWriteTime.Ticks);
                     writer.WriteString(value.Container.Container.DirectoryName);
                     writer.WriteString(value.Container.Container.Extension);
+                    //writer.WriteVarInt(value.Container.Container.FilesCount);
+
+                    if (value.Container.Container.Files == null)
+                    {
+                        writer.WriteNullCollectionHeader();
+                    }
+                    //else
+                    //{
+                    //    writer.WriteArray(value.Container.Container.Files);
+                    //}
+                    else
+                    {
+                        writer.WriteCollectionHeader(value.Container.Container.Files.Length);
+                        foreach (var item in value.Container.Container.Files)
+                        {
+                            //writer.WriteObjectHeader(3);
+                            writer.WriteString(item.Path);
+                            writer.WriteString(item.Name);
+                            writer.WriteVarInt(item.Size);
+                        }
+                    }
+
                 }
             }
 
@@ -161,16 +250,6 @@ namespace DupTerminator.DataBase
             writer.WriteString(value.ArchiveExtension);
             writer.WriteString(value.ArchiveFileName);
             writer.WriteValue<bool>(value.ArchiveInArchive);
-
-            //Container files array
-            if (value.ContainerFiles == null)
-            {
-                writer.WriteNullCollectionHeader();
-            }
-            else
-            {
-                writer.WriteArray(value.ContainerFiles);
-            }
         }
 
         public override void Deserialize(ref MemoryPackReader reader, scoped ref ArchiveFileInfo? value)
@@ -181,7 +260,7 @@ namespace DupTerminator.DataBase
                 return;
             }
 
-            Debug.Assert(memberCount == 14);
+            Debug.Assert(memberCount == 13);
             value = new ArchiveFileInfo
             {
                 Path = reader.ReadString(),
@@ -190,7 +269,7 @@ namespace DupTerminator.DataBase
                 LastWriteTime = new DateTime(reader.ReadVarIntInt64()),
                 DirectoryName = reader.ReadString(),
                 Extension = reader.ReadString(),
-                ContainerFilesCount = reader.ReadVarIntInt32(),
+                //ContainerFilesCount = reader.ReadVarIntInt32(),
             };
 
             // Deserialize Container
@@ -200,16 +279,35 @@ namespace DupTerminator.DataBase
             }
             else
             {
-                Debug.Assert(containerCount == 7);
-                value.Container = new ExtendedFileInfo
+                Debug.Assert(containerCount == 6);
+                value.Container = new ArchiveContainer
                 {
                     Path = reader.ReadString(),
                     Name = reader.ReadString(),
                     Size = reader.ReadVarIntUInt64(),
                     LastWriteTime = new DateTime(reader.ReadVarIntInt64()),
                     DirectoryName = reader.ReadString(),
-                    Extension = reader.ReadString()
+                    Extension = reader.ReadString(),
+                    //FilesCount = reader.ReadVarIntInt32()
                 };
+
+                //value.Container.Files = reader.ReadArray<ArchiveSimpleFileInfo>();
+                if (reader.TryReadCollectionHeader(out var length))
+                {
+                    var list = new List<SimpleFileInfo>(length);
+                    for (var i = 0; i < length; i++)
+                    {
+                        list.Add(new SimpleFileInfo
+                        {
+                            Path = reader.ReadString(),
+                            Name = reader.ReadString(),
+                            Size = reader.ReadVarIntUInt64(),
+                        });
+                    }
+
+                    value.Container.Files = list.ToArray();
+                }
+
 
                 if (!reader.TryReadObjectHeader(out var container2Count))
                 {
@@ -218,15 +316,32 @@ namespace DupTerminator.DataBase
                 else
                 {
                     Debug.Assert(container2Count == 6);
-                    value.Container.Container = new ExtendedFileInfo
+                    value.Container.Container = new ArchiveContainer
                     {
                         Path = reader.ReadString(),
                         Name = reader.ReadString(),
                         Size = reader.ReadVarIntUInt64(),
                         LastWriteTime = new DateTime(reader.ReadVarIntInt64()),
                         DirectoryName = reader.ReadString(),
-                        Extension = reader.ReadString()
+                        Extension = reader.ReadString(),
+                        //FilesCount = reader.ReadVarIntInt32()
                     };
+
+                    if (reader.TryReadCollectionHeader(out var length2))
+                    {
+                        var list = new List<SimpleFileInfo>(length2);
+                        for (var i = 0; i < length2; i++)
+                        {
+                            list.Add(new SimpleFileInfo
+                            {
+                                Path = reader.ReadString(),
+                                Name = reader.ReadString(),
+                                Size = reader.ReadVarIntUInt64(),
+                            });
+                        }
+
+                        value.Container.Container.Files = list.ToArray();
+                    }
                 }
             }
 
@@ -237,7 +352,6 @@ namespace DupTerminator.DataBase
             value.ArchiveFileName = reader.ReadString();
             value.ArchiveInArchive = reader.ReadValue<bool>();
 
-            value.ContainerFiles = reader.ReadArray<ArchiveSimpleFileInfo>();
         }
     }
     //public class ArchiveFileInfoMPFormatter : MemoryPackFormatter<ArchiveFileInfo[]>

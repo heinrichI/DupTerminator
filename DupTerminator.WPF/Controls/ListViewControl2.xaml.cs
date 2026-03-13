@@ -359,7 +359,11 @@ namespace DupTerminator.WPF.Controls
             // Remove from the collection – the UI will update automatically
             var toDelete = ExtendedFileInfos.Where(f => f.IsSelected).ToList();
             foreach (var f in toDelete)
-                FileUtils.MoveToRecycleBin(f.Path);
+            {
+                bool result = FileUtils.MoveToRecycleBin(f.Path);
+                if (result)
+                    ExtendedFileInfos.Remove(f);
+            }
         }
 
         private void SelectAllInThisFolder(object parameter)

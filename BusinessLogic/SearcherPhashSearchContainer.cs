@@ -54,6 +54,10 @@ namespace DupTerminator.BusinessLogic
             {
                 DirectoryInfo di = new System.IO.DirectoryInfo(_pHashSearchContainerSettings.Target);
                 var dFiles = di.GetFiles();
+                var container = new DirectoryContainer
+                {
+                    Path = di.FullName,
+                };
                 var files3 = dFiles.Select(f => new ExtendedFileInfo()
                 {
                     Size = Convert.ToUInt64(f.Length),
@@ -63,11 +67,10 @@ namespace DupTerminator.BusinessLogic
                     LastWriteTime = f.LastWriteTime,
                     DirectoryName = f.DirectoryName,
                     Extension = f.Extension,
-                    ContainerFilesCount = dFiles.Length
+                    Container = container
                 });
-                foreach (var item in files3)
-                {
-                }
+                container.Files = files3.Select(f => new SimpleFileInfo(f)).ToArray();
+                //container.FilesCount = container.Files.Length;
             }
             else if (_archiveService.IsArchiveFile(_pHashSearchContainerSettings.Target))
             {
@@ -86,7 +89,7 @@ namespace DupTerminator.BusinessLogic
                     };
 
                     var streamPairs = _archiveService.GetStreams(targetEfi, _pHashService.IsSupportedExtension, cancelToken);
-                    targetEfi.ContainerFilesCount = streamPairs.Count;
+                    targetEfi.Container = new ArchiveContainer() { Files = streamPairs.Select(s => new SimpleFileInfo(s.Item1)).ToArray() };
 
                     Parallel.ForEach(
                        streamPairs,
@@ -173,7 +176,7 @@ namespace DupTerminator.BusinessLogic
                                     if (!containers.ContainsKey(fileItem.FileInfo.Container.Path))
                                     {
                                         container = new ContainerInfo(fileItem.FileInfo.Container);
-                                        container.Info.ContainerFilesCount = fileItem.FileInfo.ContainerFilesCount;
+                                        //container.Info.Container.FilesCount = fileItem.FileInfo.Container.FilesCount;
                                         containers.Add(fileItem.FileInfo.Container.Path, container);
                                     }
                                     else
@@ -215,9 +218,9 @@ namespace DupTerminator.BusinessLogic
 
         class ContainerInfo()
         {
-            public List<ExtendedFileInfo> FirstFiles { get; } = new List<ExtendedFileInfo>();
+            public SortedSet<ExtendedFileInfo> FirstFiles { get; } = new SortedSet<ExtendedFileInfo>();
 
-            public List<ExtendedFileInfo> SecondFiles { get; } = new List<ExtendedFileInfo>();
+            public SortedSet<ExtendedFileInfo> SecondFiles { get; } = new SortedSet<ExtendedFileInfo>();
 
             public ContainerInfo(ExtendedFileInfo container) : this()
             {

@@ -34,7 +34,8 @@ namespace DupTerminator.BusinessLogic.Model
         }
 
         public bool ArchiveInArchive { get; set; }
-        public ArchiveSimpleFileInfo[] ContainerFiles { get; set; }
+
+
 
         //[JsonIgnore]
         //public override string CombinedPath => $"{ArchivePath}\\{ArchiveFileName}";
@@ -55,7 +56,7 @@ namespace DupTerminator.BusinessLogic.Model
                    //InArchive == info.InArchive &&
                    ArchiveCRC == info.ArchiveCRC &&
                    ArchivePath == info.ArchivePath &&
-                   EqualityComparer<ExtendedFileInfo>.Default.Equals(Container, info.Container) &&
+                   //EqualityComparer<ExtendedFileInfo>.Default.Equals(Container, info.Container) &&
                    ArchiveExtension == info.ArchiveExtension &&
                    ArchiveFileName == info.ArchiveFileName;
         }

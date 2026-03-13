@@ -62,8 +62,8 @@ namespace DupTerminator.WPF.Controls
             if (string.IsNullOrEmpty(filter))
                 return true;
 
-            var firstMatch = container.FirstInfo.Path?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false;
-            var secondMatch = container.SecondInfo.Path?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false;
+            var firstMatch = container.First.Path?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false;
+            var secondMatch = container.Second.Path?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false;
 
             return firstMatch || secondMatch;
         }

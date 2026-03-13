@@ -97,6 +97,7 @@ namespace DupTerminator.Pdf
         public IEnumerable<PdfFileInfo> GetInfos(ExtendedFileInfo fileInfo, CancellationToken cancelToken)
         {
             List<PdfFileInfo> infos = new List<PdfFileInfo>();
+            var container = new PdfContainer(fileInfo);
             try
             {
                 using (var doc = PdfDocument.Open(fileInfo.Path, _parsingOption))
@@ -121,7 +122,7 @@ namespace DupTerminator.Pdf
                                     Name = $"{page.Number}.{imageIndex}",
                                     Size = (ulong)pdfImage.RawBytes.Length,
                                     Path = $"{fileInfo.Path}\\{page.Number}.{imageIndex}",
-                                    Container = fileInfo,
+                                    Container = container,
                                 };
                                 imageIndex++;
 
@@ -143,11 +144,8 @@ namespace DupTerminator.Pdf
             {
                 _logger.LogError(ex, string.Intern($"{fileInfo.Path}: {ex.Message}"));
             }
-            
-            foreach (var item in infos)
-            {
-                item.ContainerFilesCount = infos.Count;
-            }
+
+            container.Files = infos.Select(i => new SimpleFileInfo(i)).ToArray();
 
             return infos;
         }
@@ -157,7 +155,7 @@ namespace DupTerminator.Pdf
             Debug.Assert(pdfInfo != null);
             using (var doc = PdfDocument.Open(pdfInfo.Container.Path, _parsingOption))
             {
-                var page = doc.GetPage(int.Parse(pdfInfo.Name));
+                var page = doc.GetPage(pdfInfo.PageNumber);
 
                 var images = page.GetImages();
                 Debug.Assert(images.Count() == 1);
@@ -172,6 +170,7 @@ namespace DupTerminator.Pdf
         public IList<(PdfFileInfo, Stream)> GetStreams(ExtendedFileInfo fileInfo, CancellationToken cancelToken)
         {
             List<(PdfFileInfo, Stream)> streams = new List<(PdfFileInfo, Stream)>();
+            var container = new PdfContainer(fileInfo);
             try
             {
                 using (var doc = PdfDocument.Open(fileInfo.Path, _parsingOption))
@@ -201,7 +200,7 @@ namespace DupTerminator.Pdf
                                 Name = $"{page.Number}.{imageIndex}",
                                 Size = (ulong)pdfImage.RawBytes.Length,
                                 Path = $"{fileInfo.Path}\\{page.Number}.{imageIndex}",
-                                Container = fileInfo,
+                                Container = container,
                             };
                             imageIndex++;
 
@@ -213,10 +212,8 @@ namespace DupTerminator.Pdf
                         }
                     }
                 }
-                foreach (var item in streams)
-                {
-                    item.Item1.ContainerFilesCount = streams.Count;
-                }
+
+                container.Files = streams.Select(i => new SimpleFileInfo(i.Item1)).ToArray();
             }
             catch (Exception ex)
             {

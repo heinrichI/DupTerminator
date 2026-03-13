@@ -14,6 +14,7 @@ using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
+using static System.Net.WebRequestMethods;
 
 namespace DupTerminator.BusinessLogic
 {
@@ -1049,6 +1050,10 @@ namespace DupTerminator.BusinessLogic
             }
 
             var dFiles = di.GetFiles();
+            var container = new DirectoryContainer
+            {
+                Path = di.FullName,
+            };
             var files3 = dFiles.Select(f => new ExtendedFileInfo()
             {
                 Size = Convert.ToUInt64(f.Length),
@@ -1058,8 +1063,10 @@ namespace DupTerminator.BusinessLogic
                 LastWriteTime = f.LastWriteTime,
                 DirectoryName = f.DirectoryName,
                 Extension = f.Extension,
-                ContainerFilesCount = dFiles.Length
+                Container = container
             });
+            container.Files = files3.Select(f => new SimpleFileInfo(f)).ToArray();
+            //container.FilesCount = container.Files.Length;
             foreach (var item in files3)
             {
                 if (token.IsCancellationRequested)
@@ -1069,10 +1076,6 @@ namespace DupTerminator.BusinessLogic
                 }
 
                 progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = item.Path, State = "Search" });
-
-
-                if (item.Container is null)
-                    item.Container = new DirectoryFileInfo { Path = di.FullName };
 
                 files.Add(item);
 

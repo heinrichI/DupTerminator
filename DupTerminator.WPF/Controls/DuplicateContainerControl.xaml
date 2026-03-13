@@ -59,12 +59,12 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Image Grid.Column="0" Height="16"
-                                   Source="{Binding FirstInfo, Converter={StaticResource IconConverter}}"
+                                   Source="{Binding First, Converter={StaticResource IconConverter}}"
                                    Stretch="Uniform"
                                    SnapsToDevicePixels="True"
                                    Margin="0,0,2,0"/>
                                 <TextBox Grid.Column="1"
-                                Text="{Binding FirstInfo.Path, Mode=OneWay}" 
+                                Text="{Binding First.Path, Mode=OneWay}" 
                                 IsReadOnly="True"
                                 TextWrapping="Wrap" >
                                 <TextBox.Style>
@@ -79,7 +79,7 @@
                                 <TextBox.InputBindings>
                                     <MouseBinding MouseAction="LeftDoubleClick"
                                     Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding FirstInfo}" />
+                                    CommandParameter="{Binding First}" />
                                 </TextBox.InputBindings>
                             </TextBox>
                         </Grid>
@@ -162,12 +162,12 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                             <Image  Grid.Column="0" Height="16"
-                                   Source="{Binding SecondInfo, Converter={StaticResource IconConverter}}"
+                                   Source="{Binding Second, Converter={StaticResource IconConverter}}"
                                    Stretch="Uniform"
                                    SnapsToDevicePixels="True"
                                    Margin="0,0,2,0"/>
                             <TextBox Grid.Column="1"
-                                Text="{Binding SecondInfo.Path, Mode=OneWay}" 
+                                Text="{Binding Second.Path, Mode=OneWay}" 
                                 IsReadOnly="True"
                                 TextWrapping="Wrap" >
                                 <TextBox.Style>
@@ -182,7 +182,7 @@
                                 <TextBox.InputBindings>
                                     <MouseBinding MouseAction="LeftDoubleClick"
                                         Command="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding SecondInfo}" />
+                                        CommandParameter="{Binding Second}" />
                                 </TextBox.InputBindings>
                             </TextBox>
                         </Grid>

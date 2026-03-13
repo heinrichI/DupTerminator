@@ -12,6 +12,7 @@ using DupTerminator.BusinessLogic.Abstraction;
 using DupTerminator.BusinessLogic.Helper;
 using DupTerminator.BusinessLogic.Model;
 using Microsoft.Extensions.Logging;
+using static System.Net.WebRequestMethods;
 
 namespace SevenZipExtractor
 {
@@ -24,10 +25,13 @@ namespace SevenZipExtractor
             _logger = logger;
         }
 
-        public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ExtendedFileInfo container, bool archiveInArchive = false)
+        public IEnumerable<ArchiveFileInfo> GetInfoFromArchive(Stream stream, ArchiveFileInfo parentFileInfo, bool archiveInArchive = false)
         {
+            Debug.Assert(!archiveInArchive || parentFileInfo.Container is not null);
+
             Dictionary<string, ArchiveFileInfo> containerInfos = new Dictionary<string, ArchiveFileInfo>();
             List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
+            ArchiveContainer archiveContainer = new DupTerminator.BusinessLogic.Model.ArchiveContainer(parentFileInfo);
 
             using (ArchiveFile archiveFile = new ArchiveFile(stream))
             {
@@ -42,7 +46,8 @@ namespace SevenZipExtractor
                     {
                         entry.Extract(entryStream);
 
-                        var fileInfo = Map(entry, container, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
+                        var fileInfo = Map(entry, parentFileInfo, archiveInArchive);
+                        fileInfo.Container = archiveContainer;
                         if (!containerInfos.ContainsKey(fileInfo.Path))
                             containerInfos[fileInfo.Path] = fileInfo;
                         else
@@ -51,14 +56,20 @@ namespace SevenZipExtractor
                         entryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
+                            Debug.Assert(archiveInArchive == false, "Тройная вложенность не поддерживается");
                             archiveInArchiveInfos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }
                 }
                 var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c.Value)).ToArray();
+
+                //ArchiveContainer archiveContainer = new DupTerminator.BusinessLogic.Model.ArchiveContainer(container);
+                //archiveContainer.Files = freeze;
+                //archiveContainer.FilesCount = freeze.Length;
                 foreach (var fileInfo in containerInfos)
                 {
-                    fileInfo.Value.ContainerFiles = freeze;
+                    //    fileInfo.Value.Container = archiveContainer;
+                    fileInfo.Value.Container.Files = freeze;
                 }
             }
             foreach (var fileInfo in archiveInArchiveInfos)
@@ -72,7 +83,7 @@ namespace SevenZipExtractor
             return containerInfos.Values.ToArray();
         }
 
-        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo archive, int containerFilesCount, bool archiveInArchive)
+        private static ArchiveFileInfo Map(Entry entry, ExtendedFileInfo archive, bool archiveInArchive)
         {
             ArchiveFileInfo efi = new ArchiveFileInfo()
             {
@@ -87,8 +98,6 @@ namespace SevenZipExtractor
                 Extension = Path.GetExtension(entry.FileName),
                 Size = entry.Size,
                 Path = $"{archive.Path}\\{entry.FileName}",
-                Container = archive,
-                ContainerFilesCount = containerFilesCount,
                 ArchiveInArchive = archiveInArchive
             };
             Debug.Assert(!string.IsNullOrEmpty(efi.ArchiveExtension));
@@ -139,7 +148,7 @@ namespace SevenZipExtractor
             //Entries могут выдавать дубликаты, но с разной HostOS
             Dictionary<string, ArchiveFileInfo> containerInfos = new Dictionary<string, ArchiveFileInfo>();
             List<ArchiveFileInfo> archiveInArchiveInfos = new List<ArchiveFileInfo>();
-
+            ArchiveContainer archiveContainer = new DupTerminator.BusinessLogic.Model.ArchiveContainer(archive);
             try
             {
                 using (ArchiveFile archiveFile = new ArchiveFile(archive.Path))
@@ -160,7 +169,9 @@ namespace SevenZipExtractor
                         {
                             entry.Extract(entryStream);
 
-                            var fileInfo = Map(entry, archive, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
+                            //var fileInfo = Map(entry, archive, archiveFile.Entries.Count(e => !e.IsFolder), archiveInArchive);
+                            var fileInfo = Map(entry, archive, archiveInArchive);
+                            fileInfo.Container = archiveContainer;
                             if (!containerInfos.ContainsKey(fileInfo.Path))
                                 containerInfos[fileInfo.Path] = fileInfo;
                             else
@@ -174,10 +185,13 @@ namespace SevenZipExtractor
                         }
                     }
                     var freeze = containerInfos.Select(c => new ArchiveSimpleFileInfo(c.Value)).ToArray();
-                    foreach (var fileInfo in containerInfos)
-                    {
-                        fileInfo.Value.ContainerFiles = freeze;
-                    }
+
+                    archiveContainer.Files = freeze;
+                    //archiveContainer.FilesCount = freeze.Length;
+                    //foreach (var fileInfo in containerInfos)
+                    //{
+                    //    fileInfo.Value.Container = archiveContainer;
+                    //}
                 }
                 foreach (var fileInfo in archiveInArchiveInfos)
                 {
@@ -200,6 +214,7 @@ namespace SevenZipExtractor
             foreach (var item in containerInfos)
             {
                 Debug.Assert(containerInfos.Count(a => a.Value.Path == item.Value.Path) == 1);
+                //Debug.Assert(item.Value.ContainerFilesCount == item.Value.Container.ContainerFilesCount);
             }
             return containerInfos.Values.ToArray();
         }
@@ -438,10 +453,10 @@ namespace SevenZipExtractor
 
                 CollectImageStreams(archiveFile, fileInfo, isNested: false, streams, isSupportedExtension, cancelToken);
 
-                foreach (var item in streams)
-                {
-                    item.Item1.ContainerFilesCount = streams.Count;
-                }
+                //foreach (var item in streams)
+                //{
+                //    item.Item1.ContainerFilesCount = streams.Count;
+                //}
             }
             catch (Exception ex)
             {
@@ -473,7 +488,16 @@ namespace SevenZipExtractor
 
                 if (isSupportedExtension(Path.GetExtension(entry.FileName)))
                 {
-                    var archInfo = Map(entry, container, archive.Entries.Count(e => !e.IsFolder), isNested);
+                    var archInfo = Map(entry, container, isNested);
+                    archInfo.Container = new ArchiveContainer(container)
+                    {
+                        Files = archive.Entries.Where(e => !e.IsFolder).Select(f => new SimpleFileInfo()
+                        {
+                            Size = f.Size,
+                            Name = Path.GetFileName(f.FileName),
+                            Path = $"{container.Path}\\{f.FileName}",
+                        }).ToArray()
+                    };
                     streams.Add((archInfo, entryStream));  // Transfer ownership
                     //entryStream = null;  // Skip dispose
                 }
@@ -484,7 +508,17 @@ namespace SevenZipExtractor
                         // Critical: Reset position after IsArchiveByStream (it may advance it)
                         entryStream.Position = 0;
                         using var nestedArchive = new ArchiveFile(entryStream);
-                        var nestedContainer = Map(entry, container, archive.Entries.Count(e => !e.IsFolder), true);
+                        var nestedContainer = Map(entry, container, true);
+                        nestedContainer.Container = new ArchiveContainer(container)
+                        {
+                            Files = nestedArchive.Entries.Where(e => !e.IsFolder).Select(f => new SimpleFileInfo()
+                            {
+                                Size = f.Size,
+                                Name = Path.GetFileName(f.FileName),
+                                Path = $"{nestedContainer.Path}\\{f.FileName}",
+                            }).ToArray()
+                            //FilesCount = nestedArchive.Entries.Count(e => !e.IsFolder)
+                        };
                         CollectImageStreams(nestedArchive, nestedContainer, true, streams, isSupportedExtension, cancelToken);
                         // Intermediate stream auto-disposes here → buffer returned
                     }

@@ -234,7 +234,6 @@ namespace DupTerminator.WPF.Service
             }
         }
 
-
         //private async Task<Stream> GetArchiveStreamAsync(string archivePath, string innerFile)
         //{
         //    // 1️⃣ unwrap the protocol from your ArcService

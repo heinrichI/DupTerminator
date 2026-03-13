@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -18,6 +19,7 @@ using DupTerminator.BusinessLogic.Service;
 using DupTerminator.DataBase;
 using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace DupTerminator.BusinessLogic
 {
@@ -76,7 +78,22 @@ namespace DupTerminator.BusinessLogic
             //    WriteIndented = true
             //});
 
-            Dictionary<(ContainerEqInfo, ContainerEqInfo), ContainerInfo> containers = new Dictionary<(ContainerEqInfo, ContainerEqInfo), ContainerInfo>();
+
+            //var t = Resolve(checksumDictionary);
+
+            //var firtstLevelContainer = checksumDictionary.SelectMany(c => c.Value).Select(m => m.Container).Distinct();
+            //var secondLevelContainer = firtstLevelContainer.Select(m => m.Container).Distinct();
+            //var sorted = checksumDictionary
+            //    .OrderBy(c => firtstLevelContainer.Contains(c.Value.First()))
+            //    .ThenBy(c => secondLevelContainer.Contains(c.Value.First()));
+
+            // 1. Сортируем группы дубликатов по глубине вложенности (сначала самые верхние)
+            //var sorted = checksumDictionary
+            //    .OrderBy(kvp => GetMaxDepth(kvp))
+            //    .ToList();
+
+
+            Dictionary<ContainerPairKey, ContainerInfo> containers = new Dictionary<ContainerPairKey, ContainerInfo>();
             foreach (KeyValuePair<string, IList<ExtendedFileInfo>> pair in checksumDictionary)
             {
                 if (pair.Value.Count > 1)
@@ -95,15 +112,8 @@ namespace DupTerminator.BusinessLogic
                             if (first.Container.Equals(second.Container))
                                 continue;
 
-                            // Ensure the pair is ordered by path (to avoid duplicates)
-                            if (string.Compare(first.Container.Path, second.Container.Path, StringComparison.Ordinal) > 0)
-                            {
-                                // Swap if first.Path > second.Path
-                                (first, second) = (second, first);
-                            }
-
                             //если это сами контейнеры
-                            var key = (new ContainerEqInfo(first), new ContainerEqInfo(second));
+                            ContainerPairKey key = new ContainerPairKey(first, second);
                             if (containers.ContainsKey(key))
                             {
                                 containers[key].TheyThemselvesAreEqual = true;
@@ -111,9 +121,7 @@ namespace DupTerminator.BusinessLogic
                                 containers[key].SecondFiles.Clear();
                             }
 
-
-                            var containersKey = (new ContainerEqInfo(first.Container, first.ContainerFilesCount, first), new ContainerEqInfo(second.Container, second.ContainerFilesCount, second));
-
+                            ContainerPairKey containersKey = new ContainerPairKey(first.Container, second.Container, first, second);
                             // Initialize the list if the key doesn't exist
                             if (!containers.TryGetValue(containersKey, out ContainerInfo value))
                             {
@@ -123,14 +131,6 @@ namespace DupTerminator.BusinessLogic
 
                             if (value.TheyThemselvesAreEqual)
                                 continue;
-
-                            // Add the current checksum's file list (or just the checksum? Clarify your intent)
-                            // Since the value is List<ExtendedFileInfo>, you might want to add all files from the current checksum group?
-                            // Alternatively, if you want to aggregate which checksum groups contribute to this container pair,
-                            // you might add the entire list (pair.Value) or just the current file pair?
-                            // Based on your structure, it seems you want to collect all ExtendedFileInfo from checksum groups that have this container pair.
-                            // But note: this might add duplicates if the same file appears in multiple checksum groups?
-                            // Clarification needed: What exactly should be in the List<ExtendedFileInfo> value?
 
                             // Assuming you want to add all files from the current checksum group (pair.Value)
                             //value.AddRange([first, second]);
@@ -144,75 +144,50 @@ namespace DupTerminator.BusinessLogic
                 }
             }
 
-            //var forRemove = containers.Values.SelectMany(v =>
-            //{
-            //    List<(ContainerEqInfo, ContainerEqInfo)> list = new List<(ContainerEqInfo, ContainerEqInfo)>();
-            //    if (!v.TheyThemselvesAreEqual)
-            //    {
-            //        list.Add((new ContainerEqInfo(v.FirstFiles.First()), new ContainerEqInfo(v.SecondFiles.First())));
-            //    }
-            //    else
-            //    {
-            //        for (int i = 0; i < v.FirstFiles.Count; i++)
-            //        {
-            //            var first = v.FirstFiles[i];
-            //            var second = v.SecondFiles[i];
+            HashSet<ContainerPairKey> forRemove = new ();
+            foreach (var container in containers)
+            {
+                if (container.Key.First is not null && container.Key.Second is not null && container.Key.First.Container is not null && container.Key.Second.Container is not null)
+                {
+                    ContainerPairKey containersKey = new ContainerPairKey(container.Key.First.Container, container.Key.Second.Container);
+                    if (containers.ContainsKey(containersKey) && !forRemove.Contains(containersKey))
+                    {
+                        forRemove.Add(container.Key);
+                    }
+                }
+            }
+            foreach (var item in forRemove)
+            {
+                containers.Remove(item);
+            }
 
-            //            if (string.Compare(first.Path, second.Path, StringComparison.Ordinal) > 0)
-            //            {
-            //                // Swap if first.Path > second.Path
-            //                (first, second) = (second, first);
-            //            }
-
-            //            list.Add((new ContainerEqInfo(first), new ContainerEqInfo(second)));
-            //        }
-            //    }
-            //    return list;
-            //}).ToArray();
-            //foreach (var item in forRemove)
-            //{
-            //    containers.Remove(item);
-            //}
-
-
-
-            //IEnumerable<DuplicateGroup>? duplicates = _checksumDictionary
-            //    .Where(pair => pair.Value.Count > 1)
-            //    .Select(pair => new DuplicateGroup(pair.Key, pair.Value));
-
-
-            //var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);
-            //var d2 = duplicates.Where(d => d.Files.Any(f => withoutContainer.Any(c => f.Container is not null && c.Path == f.Container.Path)));
-            //if (d2 != null && d2.Any())
-            //{
-            //    _logger.LogInformation($"Контейнеров с дублями: {d2.Count()}");
-            //}
-
-            //return new ReadOnlyCollection<DuplicateGroup>(duplicates.Except(d2).ToList());
 
             var cts = containers
                 .Where(c => c.Value.FirstFiles.Count > _modeSettings.MoreThanFileCount || c.Value.TheyThemselvesAreEqual)
                 .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual));
 
             if (_modeSettings.ShowOnlyIfAllFilesInContainerEqual)
-                cts = cts.Where(c => c.FirstEqualCount == c.FirstContainerFilesCount || c.SecondEqualCount == c.SecondContainerFilesCount);
+                cts = cts.Where(c => c.FirstEqualCount == c.Key.FirstContainerFiles.Length || c.SecondEqualCount == c.Key.SecondContainerFiles.Length);
 
             cts = cts.OrderByDescending(d => d.SizeOfEqualFiles);
 
-            foreach (var item in cts)
+            foreach (DuplicateContainer item in cts)
             {
                 // Sort by Name
-                item.FirstEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
-                item.SecondEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
-                if (item.FirstInfo.ContainerFiles is not null)
+                //item.FirstEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
+                //item.SecondEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
+                //item.FirstEqualFiles = item.FirstEqualFiles.OrderBy(f => f.Name).ToHashSet();
+                //item.SecondEqualFiles = item.SecondEqualFiles.OrderBy(f => f.Name).ToHashSet();
+
+                if (item.Key.FirstContainerFiles is not null)
                 {
                     var fiEquals = item.FirstEqualFiles.Select(f => new SimpleFileInfo(f));
-                    item.FirstDiffrentFiles = item.FirstInfo.ContainerFiles.Except(fiEquals).ToArray();
+                    item.FirstDiffrentFiles = item.Key.FirstContainerFiles.Except(fiEquals).ToArray();
                 }
-                if (item.SecondInfo.ContainerFiles is not null)
+                if (item.Key.SecondContainerFiles is not null)
                 {
                     var fiEquals = item.SecondEqualFiles.Select(f => new SimpleFileInfo(f));
-                    item.SecondDiffrentFiles = item.SecondInfo.ContainerFiles.Except(fiEquals).ToArray();
+                    item.SecondDiffrentFiles = item.Key.SecondContainerFiles.Except(fiEquals).ToArray();
                 }
             }
 
@@ -300,8 +275,18 @@ namespace DupTerminator.BusinessLogic
 
             //return duplicates2;
         }
+        
 
-   
+        private ExtendedFileInfo GetRootContainer(ExtendedFileInfo file)
+        {
+            var current = file;
+            while (current.Container != null)
+            {
+                current = current.Container;
+            }
+            return current;
+        }
+
         public void Dispose()
         {
             //_cts?.Dispose();
@@ -325,9 +310,9 @@ namespace DupTerminator.BusinessLogic
 
         class ContainerInfo()
         {
-            public List<ExtendedFileInfo> FirstFiles = new List<ExtendedFileInfo>();
+            public SortedSet<ExtendedFileInfo> FirstFiles = new SortedSet<ExtendedFileInfo>();
 
-            public List<ExtendedFileInfo> SecondFiles = new List<ExtendedFileInfo>();
+            public SortedSet<ExtendedFileInfo> SecondFiles = new SortedSet<ExtendedFileInfo>();
             public bool TheyThemselvesAreEqual { get; internal set; }
         }
     }

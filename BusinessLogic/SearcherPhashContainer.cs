@@ -55,7 +55,8 @@ namespace DupTerminator.BusinessLogic
             if (duplicateGroups is null)
                 return null;
 
-            Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)> containers = new Dictionary<(ContainerEqInfo, ContainerEqInfo), (List<ExtendedFileInfo>, List<ExtendedFileInfo>)>();
+            Dictionary<ContainerPairKey, (SortedSet<ExtendedFileInfo>, SortedSet<ExtendedFileInfo>)> containers =
+                new Dictionary<ContainerPairKey, (SortedSet<ExtendedFileInfo>, SortedSet<ExtendedFileInfo>)>();
             foreach (var group in duplicateGroups)
             {
                 if (group.Count > 1)
@@ -81,13 +82,12 @@ namespace DupTerminator.BusinessLogic
                             }
 
 
-                            var key = (new ContainerEqInfo(first.FileItem.FileInfo.Container, first.FileItem.FileInfo.ContainerFilesCount, first.FileItem.FileInfo),
-                                new ContainerEqInfo(second.FileItem.FileInfo.Container, second.FileItem.FileInfo.ContainerFilesCount, second.FileItem.FileInfo));
+                            var key = new ContainerPairKey(first.FileItem.FileInfo.Container, second.FileItem.FileInfo.Container, first.FileItem.FileInfo, second.FileItem.FileInfo);
 
                             // Initialize the list if the key doesn't exist
-                            if (!containers.TryGetValue(key, out (List<ExtendedFileInfo>, List<ExtendedFileInfo>) value))
+                            if (!containers.TryGetValue(key, out (SortedSet<ExtendedFileInfo>, SortedSet<ExtendedFileInfo>) value))
                             {
-                                value = (new List<ExtendedFileInfo>(), new List<ExtendedFileInfo>());
+                                value = (new SortedSet<ExtendedFileInfo>(), new SortedSet<ExtendedFileInfo>());
                                 containers[key] = value;
                             }
 

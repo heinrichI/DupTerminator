@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    public class DirectoryFileInfo : ExtendedFileInfo
+    public class DirectoryContainer : ContainerInfo
     {
     }
 }

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.DirectoryServices;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -120,34 +121,7 @@ namespace DupTerminator.WPF.ViewModel
             {
                 return _openFileCommand ?? (_openFileCommand = new RelayCommand(arg =>
                 {
-                    if (arg is ContainerEqInfo info)
-                    {
-                        if (System.IO.File.Exists(info.Path))
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-                            {
-                                FileName = info.Path,
-                                UseShellExecute = true
-                            });
-                        }
-                        else if(info.FileInfo is not null && info.FileInfo.Container is not null && System.IO.File.Exists(info.FileInfo.Container.Path))
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-                            {
-                                FileName = info.FileInfo.Container.Path,
-                                UseShellExecute = true
-                            });
-                        }
-                        else if (System.IO.Directory.Exists(info.Path))
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-                            {
-                                FileName = info.Path,
-                                UseShellExecute = true
-                            });
-                        }
-                    }
-                    else if (arg is ArchiveSimpleFileInfo asfi)
+                    if (arg is ArchiveSimpleFileInfo asfi)
                     {
                         var image = _imageProvider.GetFullSizeFromArchive(asfi);
                         if (image is not null)
@@ -173,6 +147,45 @@ namespace DupTerminator.WPF.ViewModel
 
                             // Show dialog and wait for either worker completion or dialog close
                             dialog.Show();
+                        }
+                    }
+                    else if (arg is ExtendedFileInfo efi)
+                    {
+                        if (System.IO.File.Exists(efi.Path))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = efi.Path,
+                                UseShellExecute = true
+                            });
+                        }
+                        else if (efi.Container is not null && System.IO.File.Exists(efi.Container.Path))
+                        {
+                            ArchiveFileInfo afi2 = new ArchiveFileInfo
+                            {
+                                ArchivePath = efi.Container.Path,
+                                Path = efi.Path,
+                                Name = efi.Name
+                            };
+                            var image = _imageProvider.GetFullSizeFromArchive(afi2);
+                            if (image is not null)
+                            {
+                                var dialog = new ImageWindow(image, afi2.Size)
+                                {
+                                    Owner = System.Windows.Application.Current.MainWindow,
+                                };
+
+                                // Show dialog and wait for either worker completion or dialog close
+                                dialog.Show();
+                            }
+                        }
+                        else if (System.IO.Directory.Exists(efi.Container.Path))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = efi.Container.Path,
+                                UseShellExecute = true
+                            });
                         }
                     }
                 }, arg => arg != null));

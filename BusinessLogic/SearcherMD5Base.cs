@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -120,6 +121,7 @@ namespace DupTerminator.BusinessLogic
             //IEnumerable<ReadOnlyCollection<ExtendedFileInfo>> results = await Task.WhenAll(tasks);
             ReadOnlyCollection<ExtendedFileInfo>[]? result = await Task.WhenAll(tasksSearch);
 
+
             //получаем список файлов
             //отсеиваем только с одинаковыми размерами
             //считаем для них хещ
@@ -211,14 +213,20 @@ namespace DupTerminator.BusinessLogic
                     });
 
 
-                    if (data.All(d => d is ArchiveFileInfo))
+                    if (data.All(d => d is ArchiveFileInfo || d is ArchiveContainer))
                     {
                         HashSet<string> added = new HashSet<string>();
                         foreach (var fileInfo in data)
                         {
                             string md5 = string.Empty;
                             //DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                            DateTime lastWriteTime = fileInfo is ArchiveFileInfo afi && afi.ArchiveInArchive ? afi.Container.Container.LastWriteTime : fileInfo.Container.LastWriteTime;
+                            DateTime lastWriteTime;
+                            if (fileInfo is ArchiveContainer)
+                                lastWriteTime = fileInfo.LastWriteTime;
+                            else if (fileInfo is ArchiveFileInfo afi && afi.ArchiveInArchive)
+                                lastWriteTime = afi.Container.Container.LastWriteTime;
+                            else
+                                lastWriteTime = fileInfo.Container.LastWriteTime;
                             if (_searchSetting.UseDB)
                             {
                                 md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
@@ -407,7 +415,7 @@ namespace DupTerminator.BusinessLogic
             return new ReadOnlyCollection<ExtendedFileInfo>(files);
         }
 
-        private void FillInfosFromArchive(ExtendedFileInfo efi, List<ExtendedFileInfo> files, CancellationToken token)
+        private ArchiveContainer FillInfosFromArchive(ExtendedFileInfo efi, List<ExtendedFileInfo> files, CancellationToken token)
         {
             ArchiveFileInfo[] filesInArchive = null;
             if (_searchSetting.UseDB)
@@ -470,6 +478,11 @@ namespace DupTerminator.BusinessLogic
                     AddFileToList(files, fileArch);
                 Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
+            return new ArchiveContainer(efi)
+            {
+                Files = filesInArchive.Select(c => new ArchiveSimpleFileInfo(c)).ToArray(),
+                //FilesCount = filesInArchive.Length
+            };
         }
 
         private void AddFileToList(List<ExtendedFileInfo> files, ExtendedFileInfo file)
@@ -493,15 +506,13 @@ namespace DupTerminator.BusinessLogic
                 LastWriteTime = fi.LastWriteTime,
                 DirectoryName = fi.DirectoryName,
                 Extension = fi.Extension,
-                Container = new DirectoryFileInfo { Path = Path.GetDirectoryName(file.Path) }
             };
-
-            files.Add(efi);
 
             //IsArchiveFile is slow
             if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(efi.Path, efi.LastWriteTime, efi.Size)) || _archiveService.IsArchiveFile(efi.Path))
             {
-                FillInfosFromArchive(efi, files, token);
+                ArchiveContainer afi = FillInfosFromArchive(efi, files, token);
+                files.Add(afi);
             }
             else if (efi.Extension.ToLower() == ".pdf")
             {
@@ -513,7 +524,17 @@ namespace DupTerminator.BusinessLogic
                 var di = new DirectoryInfo(Path.GetDirectoryName(file.Path));
                 var dFiles = di.GetFiles();
 
-                efi.ContainerFilesCount = dFiles.Length;
+                efi.Container = new DirectoryContainer
+                {
+                    Path = di.FullName,
+                    //FilesCount = dFiles.Length
+                    Files = dFiles.Select(f => new SimpleFileInfo
+                    {
+                        Name = f.Name,
+                        Path = f.FullName,
+                        Size = Convert.ToUInt64(f.Length),
+                    }).ToArray()
+                };                
                 files.Add(efi);
             }
         }
@@ -597,6 +618,10 @@ namespace DupTerminator.BusinessLogic
             }
 
             var dFiles = di.GetFiles();
+            var container = new DirectoryContainer
+            {
+                Path = di.FullName,
+            };
             var files3 = dFiles.Select(f => new ExtendedFileInfo()
             {
                 Size = Convert.ToUInt64(f.Length),
@@ -606,8 +631,11 @@ namespace DupTerminator.BusinessLogic
                 LastWriteTime = f.LastWriteTime,
                 DirectoryName = f.DirectoryName,
                 Extension = f.Extension,
-                ContainerFilesCount = dFiles.Length
+                Container = container
             });
+            container.Files = files3.Select(f => new SimpleFileInfo(f)).ToArray();
+            //container.FilesCount = container.Files.Length;
+
             decimal totalSize = files3.Sum(b => (decimal)b.Size);
             decimal remainSize = totalSize;
             foreach (var item in files3)
@@ -627,9 +655,6 @@ namespace DupTerminator.BusinessLogic
                 });
                 remainSize -= item.Size;
 
-                if (item.Container is null)
-                    item.Container = new DirectoryFileInfo { Path = di.FullName };
-
                 if (_searchSetting.IncludePattern.Any())
                 {
                     if (_searchSetting.IncludePattern.Contains(item.Extension))
@@ -640,7 +665,7 @@ namespace DupTerminator.BusinessLogic
 
                 if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(item.Path, item.LastWriteTime, item.Size)) || _archiveService.IsArchiveFile(item.Path))
                 {
-                    FillInfosFromArchive(item, files, token);
+                    _ = FillInfosFromArchive(item, files, token);
                 }
                 else if (item.Extension.ToLower() == ".pdf")
                 {
