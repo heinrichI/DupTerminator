@@ -72,6 +72,8 @@ namespace DupTerminator.BusinessLogic
             //        throw new Exception("Что-то не так");
             //}
 
+            if (cancelToken.IsCancellationRequested)
+                return null;
 
             if (checksumDictionary.Any())
             {
