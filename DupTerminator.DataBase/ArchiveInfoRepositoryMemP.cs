@@ -181,19 +181,13 @@ namespace DupTerminator.DataBase
 
         private static byte[] CompressJsonData<T>(T data, JsonSerializerOptions options)
         {
-            // 1. Serialize the object to a UTF-8 byte array
-            byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(data, options);
-
-            // 2. Compress the byte array using GZipStream
-            using (var outputStream = new MemoryStream())
+            using var outputStream = new MemoryStream();
+            using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
             {
-                using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
-                {
-                    gzipStream.Write(jsonBytes, 0, jsonBytes.Length);
-                }
-                // The compressed data is now in the outputStream
-                return outputStream.ToArray();
+                // Serialize directly into the GZip stream — no intermediate byte[]
+                JsonSerializer.Serialize(gzipStream, data, options);
             }
+            return outputStream.ToArray();
         }
 
 

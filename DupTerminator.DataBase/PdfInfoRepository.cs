@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using DupTerminator.BusinessLogic.Model;
 using Microsoft.Data.Sqlite;
 
@@ -12,7 +13,11 @@ namespace DupTerminator.DataBase
     public class PdfInfoRepository : IPdfInfoRepository
     {
         private readonly string _connectionString;
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = false };
+        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            ReferenceHandler = ReferenceHandler.Preserve,
+        };
 
         public PdfInfoRepository(string connectionString = "Data Source=pdfInfo.db;")
         {
@@ -78,7 +83,18 @@ namespace DupTerminator.DataBase
                 using var gzipStream = new GZipStream(blobStream, CompressionMode.Decompress);
 
                 // 3️⃣ Deserialize straight from the decompressed stream
-                return JsonSerializer.Deserialize<PdfFileInfo[]>(gzipStream, _jsonOptions);
+                //return JsonSerializer.Deserialize<PdfFileInfo[]>(gzipStream, _jsonOptions);
+
+                //ReferenceHandler.Preserve заставляет System.Text.Json добавлять в JSON служебные свойства
+                //$id – идентификатор объекта
+                //$ref – ссылка на уже‑сериализованный объект
+                //$type – дискриминатор полиморфного типа(у вас он уже нужен)
+                //Эти свойства помещаются в каждый объект, а не в массив.
+                //Когда корневой элемент — массив(PdfFileInfo[]), сериализатор пытается записать в него $id /$type.При десериализации он видит массив и сразу бросает
+                var list = JsonSerializer.Deserialize<List<PdfFileInfo>>(gzipStream, _jsonOptions);
+                // Если нужен массив – просто конвертируем
+                PdfFileInfo[] array = list?.ToArray() ?? Array.Empty<PdfFileInfo>();
+                return array;
 
                 //return JsonSerializer.Deserialize<ArchiveFileInfo[]>(data, _jsonOptions);
                 //return DecompressJsonData<ArchiveFileInfo[]>(data, _jsonOptions);
@@ -88,19 +104,13 @@ namespace DupTerminator.DataBase
         }
         private static byte[] CompressJsonData<T>(T data, JsonSerializerOptions options)
         {
-            // 1. Serialize the object to a UTF-8 byte array
-            byte[] jsonBytes = JsonSerializer.SerializeToUtf8Bytes(data, options);
-
-            // 2. Compress the byte array using GZipStream
-            using (var outputStream = new MemoryStream())
+            using var outputStream = new MemoryStream();
+            using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
             {
-                using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
-                {
-                    gzipStream.Write(jsonBytes, 0, jsonBytes.Length);
-                }
-                // The compressed data is now in the outputStream
-                return outputStream.ToArray();
+                // Serialize directly into the GZip stream — no intermediate byte[]
+                JsonSerializer.Serialize(gzipStream, data, options);
             }
+            return outputStream.ToArray();
         }
 
         public void Add(ExtendedFileInfo container, IEnumerable<PdfFileInfo> files)

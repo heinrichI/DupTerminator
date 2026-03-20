@@ -59,6 +59,5 @@ namespace DupTerminator.BusinessLogic.Model
             hash.Add(Path);
             return hash.ToHashCode();
         }
-
     }
 }

@@ -16,11 +16,4 @@ namespace DupTerminator.BusinessLogic.Model
         public SimpleFileInfo[] Files { get; set; }
         public int FilesCount => Files.Length;
     }
-
-    //public class ContainerInfo<T> : ContainerInfo
-    //{
-    //    public T[] Files { get; set; }
-
-    //    public int FilesCount { get; set; }
-    //}
 }
