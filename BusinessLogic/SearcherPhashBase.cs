@@ -84,7 +84,7 @@ namespace DupTerminator.BusinessLogic
                 {
                     progress?.Report(new ProgressDto
                     {
-                        State = "Start train MIH",
+                        State = $"Start train MIH for {checksumDictionary.Count} hashes",
                         RemainSize = string.Empty,
                     });
 
