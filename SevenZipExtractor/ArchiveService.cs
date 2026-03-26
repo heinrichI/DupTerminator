@@ -56,7 +56,7 @@ namespace SevenZipExtractor
                         entryStream.Position = 0;
                         if (ArchiveFile.IsArchiveByStream(entryStream))
                         {
-                            Debug.Assert(archiveInArchive == false, "Тройная вложенность не поддерживается");
+                            Debug.Assert(archiveInArchive == false, $"Тройная вложенность не поддерживается, path={parentFileInfo.Path}\\{entry.FileName}");
                             archiveInArchiveInfos.AddRange(GetInfoFromArchive(entryStream, fileInfo, archiveInArchive: true));
                         }
                     }

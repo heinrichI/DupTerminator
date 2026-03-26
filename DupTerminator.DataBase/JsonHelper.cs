@@ -55,5 +55,21 @@ namespace DupTerminator.DataBase
             }
             return outputStream.ToArray();
         }
+
+
+        internal static T DecompressJsonData<T>(byte[] compressedData, JsonSerializerOptions jsonOptions)
+        {
+            using (var inputStream = new MemoryStream(compressedData))
+            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+            using (var outputStream = new MemoryStream())
+            {
+                // Copy the decompressed data to a new stream
+                gzipStream.CopyTo(outputStream);
+                outputStream.Position = 0; // Reset position for reading
+
+                // Deserialize directly from the stream
+                return JsonSerializer.Deserialize<T>(outputStream, jsonOptions);
+            }
+        }
     }
 }

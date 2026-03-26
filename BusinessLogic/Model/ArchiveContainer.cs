@@ -16,6 +16,7 @@ namespace DupTerminator.BusinessLogic.Model
         public ArchiveContainer(ExtendedFileInfo efi)
         {
             Path = efi.Path;
+            DirectoryName = efi.DirectoryName;
             Name = efi.Name;
             Size = efi.Size;
             Extension = efi.Extension;

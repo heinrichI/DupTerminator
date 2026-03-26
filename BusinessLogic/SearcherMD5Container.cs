@@ -147,7 +147,9 @@ namespace DupTerminator.BusinessLogic
             HashSet<ContainerPairKey> forRemove = new ();
             foreach (var container in containers)
             {
-                if (container.Key.First is not null && container.Key.Second is not null && container.Key.First.Container is not null && container.Key.Second.Container is not null)
+                if (container.Key.First is not null && container.Key.Second is not null
+                    && container.Key.First.Container is not null && container.Key.Second.Container is not null
+                    && container.Key.First.Container is not DirectoryContainer && container.Key.Second.Container is not DirectoryContainer)
                 {
                     ContainerPairKey containersKey = new ContainerPairKey(container.Key.First.Container, container.Key.Second.Container);
                     if (containers.ContainsKey(containersKey) && !forRemove.Contains(containersKey))

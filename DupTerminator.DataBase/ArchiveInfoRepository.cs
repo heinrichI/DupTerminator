@@ -136,7 +136,7 @@
 //            connection.Open();
 
 //            //var jsonData = JsonSerializer.Serialize(files, _jsonOptions);
-//            var jsonData = CompressJsonData(files, _jsonOptions);
+//            var jsonData = JsonHelper.CompressJsonData(files, _jsonOptions);
 //            //var jsonStream = CompressJsonData(files, _jsonOptions);
 
 

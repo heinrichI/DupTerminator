@@ -44,21 +44,6 @@ namespace DupTerminator.DataBase
             createTable.ExecuteNonQuery();
         }
 
-        public static T DecompressJsonData<T>(byte[] compressedData, JsonSerializerOptions jsonOptions)
-        {
-            using (var inputStream = new MemoryStream(compressedData))
-            using (var gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
-            using (var outputStream = new MemoryStream())
-            {
-                // Copy the decompressed data to a new stream
-                gzipStream.CopyTo(outputStream);
-                outputStream.Position = 0; // Reset position for reading
-
-                // Deserialize directly from the stream
-                return JsonSerializer.Deserialize<T>(outputStream, jsonOptions);
-            }
-        }
-
         public PdfFileInfo[] Get(string path, DateTime lastWriteTime, ulong size)
         {
             using var connection = new SqliteConnection(_connectionString);
@@ -102,16 +87,6 @@ namespace DupTerminator.DataBase
 
             return null;
         }
-        private static byte[] CompressJsonData<T>(T data, JsonSerializerOptions options)
-        {
-            using var outputStream = new MemoryStream();
-            using (var gzipStream = new GZipStream(outputStream, CompressionLevel.Optimal))
-            {
-                // Serialize directly into the GZip stream — no intermediate byte[]
-                JsonSerializer.Serialize(gzipStream, data, options);
-            }
-            return outputStream.ToArray();
-        }
 
         public void Add(ExtendedFileInfo container, IEnumerable<PdfFileInfo> files)
         {
@@ -119,7 +94,7 @@ namespace DupTerminator.DataBase
             connection.Open();
 
             //var jsonData = JsonSerializer.Serialize(files, _jsonOptions);
-            var jsonData = CompressJsonData(files, _jsonOptions);
+            var jsonData = JsonHelper.CompressJsonData(files, _jsonOptions);
 
 
             using var cmd = connection.CreateCommand();
