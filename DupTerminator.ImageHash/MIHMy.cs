@@ -19,9 +19,12 @@ namespace DupTerminator.ImageHash
         private bool _trained = false;
         private List<PHashFileInfo> _fileInfos = new List<PHashFileInfo>();
         private Dictionary<ulong, List<int>>? _items;
-        private List<(ulong Hash, List<int> FileInfoIndices)>? _index;
+        // Вместо:
+        // private List<(ulong Hash, List<int> FileInfoIndices)>? _index;
+        // Используем параллельные массивы:
+        private ulong[]? _hashes;
+        private List<int>[]? _fileInfoIndices;
         private List<Dictionary<ulong, HashSet<int>>>? _words;
-        private int _floor;
         private int _wordLength;
         private int _threshold;
 
@@ -38,6 +41,7 @@ namespace DupTerminator.ImageHash
             _vectorSize = Vector<byte>.Count;
         }
 
+
         public void Update(IDictionary<ulong, IList<PHashFileInfo>> newHashes)
         {
             ThrowIfDisposed();
@@ -46,6 +50,7 @@ namespace DupTerminator.ImageHash
                 throw new InvalidOperationException("Cannot update after training");
 
             _items ??= new Dictionary<ulong, List<int>>();
+            Dictionary<PHashFileInfo, int> _fileInfoIndexMap = new();
 
             foreach (var kvp in newHashes)
             {
@@ -54,11 +59,17 @@ namespace DupTerminator.ImageHash
 
                 foreach (var fileInfo in fileInfos)
                 {
-                    int fileInfoIndex = _fileInfos.IndexOf(fileInfo);
-                    if (fileInfoIndex == -1)
+                    //int fileInfoIndex = _fileInfos.IndexOf(fileInfo);
+                    //if (fileInfoIndex == -1)
+                    //{
+                    //    _fileInfos.Add(fileInfo);
+                    //    fileInfoIndex = _fileInfos.Count - 1;
+                    //}
+                    if (!_fileInfoIndexMap.TryGetValue(fileInfo, out int fileInfoIndex))
                     {
+                        fileInfoIndex = _fileInfos.Count;
                         _fileInfos.Add(fileInfo);
-                        fileInfoIndex = _fileInfos.Count - 1;
+                        _fileInfoIndexMap[fileInfo] = fileInfoIndex;
                     }
 
                     if (!_items.TryGetValue(hash, out var indices))
@@ -76,37 +87,43 @@ namespace DupTerminator.ImageHash
         public void Train(int wordLength = 16, int threshold = 7)
         {
             ThrowIfDisposed();
+            if (_trained) throw new InvalidOperationException("Index already trained");
+            if (_items == null || _items.Count == 0) throw new InvalidOperationException("No items to train");
 
-            if (_trained)
-                throw new InvalidOperationException("Index already trained");
+            int count = _items.Count;
 
-            if (_items == null || _items.Count == 0)
-                throw new InvalidOperationException("No items to train");
+            // ✅ Заполняем параллельные массивы вместо _index
+            _hashes = new ulong[count];
+            _fileInfoIndices = new List<int>[count];
 
-            _index = new List<(ulong, List<int>)>();
-            foreach (var item in _items)
+            int idx = 0;
+            foreach (var kvp in _items)
             {
-                _index.Add((item.Key, item.Value));
+                _hashes[idx] = kvp.Key;
+                _fileInfoIndices[idx] = kvp.Value;
+                idx++;
             }
 
             _items = null; // Free memory
 
-            _floor = threshold / wordLength;
+            int floor = threshold / wordLength;
             _wordLength = wordLength;
             _threshold = threshold;
 
-            int numWords = _hashLength / wordLength;
-            _words = new List<Dictionary<ulong, HashSet<int>>>(numWords);
+            int effectiveBits = Math.Min(_hashLength, 64);
+            int numWords = effectiveBits / wordLength;
 
-            for (int i = 0; i < numWords; i++)
+            var wordsArray = new Dictionary<ulong, HashSet<int>>[numWords];
+
+            Parallel.For(0, numWords, i =>
             {
-                var wordDict = new Dictionary<ulong, HashSet<int>>();
                 int startBit = i * wordLength;
+                var wordDict = new Dictionary<ulong, HashSet<int>>(count / 4);
 
-                for (int j = 0; j < _index.Count; j++)
+                for (int j = 0; j < count; j++)
                 {
-                    ulong hash = _index[j].Hash;
-                    ulong word = ExtractWord(hash, startBit, wordLength);
+                    // ✅ Читаем из _hashes — линейный проход по ulong[]
+                    ulong word = ExtractWord(_hashes[j], startBit, wordLength);
 
                     if (!wordDict.TryGetValue(word, out var indices))
                     {
@@ -118,16 +135,16 @@ namespace DupTerminator.ImageHash
                     }
                 }
 
-                _words.Add(wordDict);
-            }
+                wordsArray[i] = wordDict;
+            });
 
+            _words = new List<Dictionary<ulong, HashSet<int>>>(wordsArray);
             _trained = true;
         }
 
         public IEnumerable<(ulong Hash, List<PHashFileInfo> FileInfos, int HammingDistance)> Query(ulong hash)
         {
             ThrowIfDisposed();
-
             if (!_trained)
                 throw new InvalidOperationException("Index not trained yet");
 
@@ -136,26 +153,28 @@ namespace DupTerminator.ImageHash
             HashSet<int> candidates = new HashSet<int>();
             int slot = 0;
 
-            for (int i = 0; i < _hashLength; i += _wordLength)
+            for (int i = 0; i < _hashLength && slot < _words!.Count; i += _wordLength)
             {
                 HashSet<ulong> window = GetWindow(hash, i, _wordLength);
 
                 foreach (ulong w in window)
                 {
-                    if (_words![slot].TryGetValue(w, out var indices))
+                    if (_words[slot].TryGetValue(w, out var indices))
                     {
                         foreach (int index in indices)
                         {
                             if (candidates.Add(index))
                             {
-                                int hamming = GetHammingDistance(hash, _index![index].Hash, _threshold);
+                                // ✅ _hashes вместо _index[index].Hash
+                                int hamming = GetHammingDistance(hash, _hashes![index], _threshold);
                                 if (hamming <= _threshold)
                                 {
-                                    List<PHashFileInfo> fileInfos = _index[index].FileInfoIndices
-                                        .Select(fileInfoIndex => _fileInfos[fileInfoIndex])
+                                    // ✅ _fileInfoIndices вместо _index[index].FileInfoIndices
+                                    List<PHashFileInfo> fileInfos = _fileInfoIndices![index]
+                                        .Select(fi => _fileInfos[fi])
                                         .ToList();
 
-                                    yield return (_index[index].Hash, fileInfos, hamming);
+                                    yield return (_hashes[index], fileInfos, hamming);
                                 }
                             }
                         }
@@ -210,18 +229,33 @@ namespace DupTerminator.ImageHash
             return value ? (hash | mask) : (hash & ~mask);
         }
 
-        private ulong ExtractWord(ulong hash, int startBit, int length)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ulong ExtractWord(ulong hash, int startBit, int length)
         {
-            ulong word = 0;
-            for (int i = 0; i < length; i++)
-            {
-                if (GetBit(hash, startBit + i))
-                {
-                    word |= 1UL << (63 - i);
-                }
-            }
-            return word;
+            // Сдвигаем нужные биты в старшую позицию и маскируем
+            // Пример: startBit=16, length=16 → берём биты [47..32], ставим в [63..48]
+            if (startBit >= 64) return 0; // за пределами ulong
+
+            ulong shifted = hash << startBit;
+            ulong mask = length >= 64
+                ? ulong.MaxValue
+                : ((1UL << length) - 1) << (64 - length);
+
+            return shifted & mask;
         }
+
+        //private ulong ExtractWord(ulong hash, int startBit, int length)
+        //{
+        //    ulong word = 0;
+        //    for (int i = 0; i < length; i++)
+        //    {
+        //        if (GetBit(hash, startBit + i))
+        //        {
+        //            word |= 1UL << (63 - i);
+        //        }
+        //    }
+        //    return word;
+        //}
 
         private int GetHammingDistance(ulong hash1, ulong hash2, int maxDistance)
         {
@@ -236,13 +270,15 @@ namespace DupTerminator.ImageHash
             if (!_disposed)
             {
                 _items?.Clear();
-                _index?.Clear();
+                _hashes = null;           // ✅ вместо _index?.Clear()
+                _fileInfoIndices = null;   // ✅
                 _words?.Clear();
                 _fileInfos.Clear();
 
                 _disposed = true;
             }
         }
+
 
         private void ThrowIfDisposed()
         {
