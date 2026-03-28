@@ -499,14 +499,48 @@ namespace DupTerminator.BusinessLogic
                     });
                     calculatedSize += fileInfo.Size;
 
-
-                    if (_pHashService.IsSupportedExtension(fileInfo.Extension))
+                    try
                     {
-                        if (_searchSetting.UseDB)
+                        if (_pHashService.IsSupportedExtension(fileInfo.Extension))
                         {
-                            var lastWriteTime = fileInfo.LastWriteTime;
-                            var result = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
-                            if (result == null)
+                            if (_searchSetting.UseDB)
+                            {
+                                var lastWriteTime = fileInfo.LastWriteTime;
+                                var result = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
+                                if (result == null)
+                                {
+                                    var memoryStream = new ChunkedMemoryStream((int)fileInfo.Size);
+                                    using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
+                                    {
+                                        // Copy the entire contents of the FileStream into the MemoryStream
+                                        fileStream.CopyTo(memoryStream);
+                                    }
+
+                                    // Optional: Reset the position to the beginning of the MemoryStream for subsequent read operations
+                                    memoryStream.Position = 0;
+                                    toCalculateCollection.Add((fileInfo, memoryStream));
+                                    //_phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash2, width, height);
+                                }
+                                else
+                                {
+                                    Debug.Assert(result.Value.phash != 0);
+                                    checksumDictionary.AddOrUpdate(result.Value.phash,
+                                        addValueFactory: (checksum) =>
+                                        {
+                                            var list = new List<PHashFileInfo>();
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
+                                            list.Add(pHashFileInfo);
+                                            return list;
+                                        },
+                                        updateValueFactory: (checksum, list) =>
+                                        {
+                                            PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
+                                            list.Add(pHashFileInfo);
+                                            return list;
+                                        });
+                                }
+                            }
+                            else
                             {
                                 var memoryStream = new ChunkedMemoryStream((int)fileInfo.Size);
                                 using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
@@ -518,347 +552,281 @@ namespace DupTerminator.BusinessLogic
                                 // Optional: Reset the position to the beginning of the MemoryStream for subsequent read operations
                                 memoryStream.Position = 0;
                                 toCalculateCollection.Add((fileInfo, memoryStream));
-                                //_phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash2, width, height);
+                            }
+                        }
+                        else if (_archiveService.IsArchiveFile(fileInfo.Path))
+                        {
+                            //слишком частая запись в sql
+                            //c базой но без Parallel
+                            //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:04:52.1189766
+
+                            //var streamPairs = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
+                            //foreach (var streamPair in streamPairs)
+                            //{
+                            //    if (_searchSetting.UseDB)
+                            //    {
+                            //        var result = _phashRepository.Get(streamPair.Item1.Path, fileInfo.LastWriteTime, streamPair.Item1.Size);
+                            //        if ( result != null)
+                            //        {
+                            //            _checksumDictionary.AddOrUpdate(result.Value.phash,
+                            //            addValueFactory: (checksum) =>
+                            //            {
+                            //                var list = new List<PHashFileInfo>();
+                            //                PHashFileInfo pHashFileInfo = new PHashFileInfo(streamPair.Item1);
+                            //                pHashFileInfo.Width = result.Value.width;
+                            //                pHashFileInfo.Height = result.Value.height;
+                            //                list.Add(pHashFileInfo);
+                            //                return list;
+                            //            },
+                            //            updateValueFactory: (checksum, list) =>
+                            //            {
+                            //                PHashFileInfo pHashFileInfo = new PHashFileInfo(streamPair.Item1);
+                            //                pHashFileInfo.Width = result.Value.width;
+                            //                pHashFileInfo.Height = result.Value.height;
+                            //                list.Add(pHashFileInfo);
+                            //                return list;
+                            //            });
+                            //        }
+                            //        else
+                            //        {
+                            //            toCalculateCollection.Add(streamPair);
+                            //        }
+                            //    }
+                            //    else
+                            //    {
+                            //        toCalculateCollection.Add(streamPair);
+                            //    }                            
+                            //}
+
+
+                            if (_searchSetting.UseDB)
+                            {
+                                //общий blocking
+                                //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:03:12.7702661
+                                //13gb ram
+
+                                //blocking 1000
+                                //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:03:18.9046361
+                                //6.6gb ram
+
+                                //Parralel
+                                //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:04:59.4542301
+                                //5.9gb ram
+                                var dbCollection = _phashRepository.GetContainerHashes(fileInfo);
+                                if (dbCollection == null)
+                                {
+                                    var streamPairs = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
+
+                                    var finalResultBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
+
+                                    Parallel.ForEach(
+                                       streamPairs,
+                                       new ParallelOptions { MaxDegreeOfParallelism = _numberOfConsumers },
+                                       // localInit
+                                       () => new List<(ArchiveFileInfo efi, ulong phash, int width, int height)>(), // localInit: Initialize a new local list for each task/partition
+                                                                                                                    // body
+                                       (item, loopState, localList) => // body: The loop body logic
+                                       {
+                                           using (item.Item2)
+                                           {
+                                               (ulong? phash, int width, int height) result = _pHashService.CalculatePHash(item.Item2);
+                                               if (result.phash.HasValue)
+                                               {
+                                                   localList.Add((item.Item1, result.phash.Value, result.width, result.height));
+                                               }
+                                               else
+                                               {
+                                                   _logger.LogWarning($"phash empty for {item.Item1.Path}");
+                                               }
+                                               return localList; // Return the updated local list for the next iteration
+                                           }
+                                       },
+                                       (finalLocalList) => // localFinally: Action to combine results
+                                       {
+                                           foreach (var item in finalLocalList)
+                                           {
+                                               //Debug.Assert(item.phash != 0);
+                                               Debug.Assert(item.width != 0);
+                                               Debug.Assert(item.height != 0);
+                                               finalResultBag.Add(item);
+                                           }
+                                       }
+                                    );
+
+                                    if (!cancelToken.IsCancellationRequested)
+                                    {
+                                        _phashRepository.AddContainerStreams(fileInfo, finalResultBag.ToArray());
+                                    }
+                                    foreach (var item in finalResultBag)
+                                    {
+                                        //Debug.Assert(item.phash != 0);
+                                        Debug.Assert(item.width != 0);
+                                        Debug.Assert(item.height != 0);
+                                        checksumDictionary.AddOrUpdate(item.phash,
+                                                addValueFactory: (checksum) =>
+                                                {
+                                                    var list = new List<PHashFileInfo>();
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                },
+                                                updateValueFactory: (checksum, list) =>
+                                                {
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                });
+                                    }
+                                    finalResultBag.Clear();
+                                    //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
+                                    //{
+                                    //    item.Item2.Dispose();
+                                    //}
+                                    streamPairs.Clear();
+                                    streamPairs = null;
+
+                                }
+                                else
+                                {
+                                    foreach (var item in dbCollection)
+                                    {
+                                        //Debug.Assert(item.phash != 0);
+                                        Debug.Assert(item.width != 0);
+                                        Debug.Assert(item.height != 0);
+                                        checksumDictionary.AddOrUpdate(item.phash,
+                                                addValueFactory: (checksum) =>
+                                                {
+                                                    var list = new List<PHashFileInfo>();
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                },
+                                                updateValueFactory: (checksum, list) =>
+                                                {
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                });
+                                    }
+                                }
                             }
                             else
                             {
-                                Debug.Assert(result.Value.phash != 0);
-                                checksumDictionary.AddOrUpdate(result.Value.phash,
-                                    addValueFactory: (checksum) =>
-                                    {
-                                        var list = new List<PHashFileInfo>();
-                                        PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
-                                        list.Add(pHashFileInfo);
-                                        return list;
-                                    },
-                                    updateValueFactory: (checksum, list) =>
-                                    {
-                                        PHashFileInfo pHashFileInfo = new PHashFileInfo(fileInfo, checksum, result.Value.width, result.Value.height);
-                                        list.Add(pHashFileInfo);
-                                        return list;
-                                    });
-                            }
-                        }
-                        else
-                        {
-                            var memoryStream = new ChunkedMemoryStream((int)fileInfo.Size);
-                            using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
-                            {
-                                // Copy the entire contents of the FileStream into the MemoryStream
-                                fileStream.CopyTo(memoryStream);
-                            }
-
-                            // Optional: Reset the position to the beginning of the MemoryStream for subsequent read operations
-                            memoryStream.Position = 0;
-                            toCalculateCollection.Add((fileInfo, memoryStream));
-                        }
-                    }
-                    else if (_archiveService.IsArchiveFile(fileInfo.Path))
-                    {
-                        //слишком частая запись в sql
-                        //c базой но без Parallel
-                        //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:04:52.1189766
-
-                        //var streamPairs = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
-                        //foreach (var streamPair in streamPairs)
-                        //{
-                        //    if (_searchSetting.UseDB)
-                        //    {
-                        //        var result = _phashRepository.Get(streamPair.Item1.Path, fileInfo.LastWriteTime, streamPair.Item1.Size);
-                        //        if ( result != null)
-                        //        {
-                        //            _checksumDictionary.AddOrUpdate(result.Value.phash,
-                        //            addValueFactory: (checksum) =>
-                        //            {
-                        //                var list = new List<PHashFileInfo>();
-                        //                PHashFileInfo pHashFileInfo = new PHashFileInfo(streamPair.Item1);
-                        //                pHashFileInfo.Width = result.Value.width;
-                        //                pHashFileInfo.Height = result.Value.height;
-                        //                list.Add(pHashFileInfo);
-                        //                return list;
-                        //            },
-                        //            updateValueFactory: (checksum, list) =>
-                        //            {
-                        //                PHashFileInfo pHashFileInfo = new PHashFileInfo(streamPair.Item1);
-                        //                pHashFileInfo.Width = result.Value.width;
-                        //                pHashFileInfo.Height = result.Value.height;
-                        //                list.Add(pHashFileInfo);
-                        //                return list;
-                        //            });
-                        //        }
-                        //        else
-                        //        {
-                        //            toCalculateCollection.Add(streamPair);
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        toCalculateCollection.Add(streamPair);
-                        //    }                            
-                        //}
-
-
-                        if (_searchSetting.UseDB)
-                        {
-                            //общий blocking
-                            //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:03:12.7702661
-                            //13gb ram
-
-                            //blocking 1000
-                            //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:03:18.9046361
-                            //6.6gb ram
-
-                            //Parralel
-                            //DupTerminator.BusinessLogic.Searcher: Information: ElapsedTime: 00:04:59.4542301
-                            //5.9gb ram
-                            var dbCollection = _phashRepository.GetContainerHashes(fileInfo);
-                            if (dbCollection == null)
-                            {
-                                var streamPairs = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
-
-                                var finalResultBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
-
-                                Parallel.ForEach(
-                                   streamPairs,
-                                   new ParallelOptions { MaxDegreeOfParallelism = _numberOfConsumers },
-                                   // localInit
-                                   () => new List<(ArchiveFileInfo efi, ulong phash, int width, int height)>(), // localInit: Initialize a new local list for each task/partition
-                                                                                                                // body
-                                   (item, loopState, localList) => // body: The loop body logic
-                                   {
-                                       using (item.Item2)
-                                       {
-                                           (ulong? phash, int width, int height) result = _pHashService.CalculatePHash(item.Item2);
-                                           if (result.phash.HasValue)
-                                           {
-                                               localList.Add((item.Item1, result.phash.Value, result.width, result.height));
-                                           }
-                                           else
-                                           {
-                                               _logger.LogWarning($"phash empty for {item.Item1.Path}");
-                                           }
-                                           return localList; // Return the updated local list for the next iteration
-                                       }
-                                   },
-                                   (finalLocalList) => // localFinally: Action to combine results
-                                   {
-                                       foreach (var item in finalLocalList)
-                                       {
-                                           //Debug.Assert(item.phash != 0);
-                                           Debug.Assert(item.width != 0);
-                                           Debug.Assert(item.height != 0);
-                                           finalResultBag.Add(item);
-                                       }
-                                   }
-                                );
-
-                                if (!cancelToken.IsCancellationRequested)
+                                var streams = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
+                                foreach (var stream in streams)
                                 {
-                                    _phashRepository.AddContainerStreams(fileInfo, finalResultBag.ToArray());
+                                    toCalculateCollection.Add(stream);
                                 }
-                                foreach (var item in finalResultBag)
-                                {
-                                    //Debug.Assert(item.phash != 0);
-                                    Debug.Assert(item.width != 0);
-                                    Debug.Assert(item.height != 0);
-                                    checksumDictionary.AddOrUpdate(item.phash,
-                                            addValueFactory: (checksum) =>
-                                            {
-                                                var list = new List<PHashFileInfo>();
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            },
-                                            updateValueFactory: (checksum, list) =>
-                                            {
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            });
-                                }
-                                finalResultBag.Clear();
-                                //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
-                                //{
-                                //    item.Item2.Dispose();
-                                //}
-                                streamPairs.Clear();
-                                streamPairs = null;
+                            }
+                            //GetStreams<ArchiveFileInfo>(fileInfo, toCalculateCollection, cancelToken);
 
+                        }
+                        else if (fileInfo.Extension.ToLower() == ".pdf")
+                        {
+                            if (_searchSetting.UseDB)
+                            {
+                                var dbCollection = _phashRepository.GetContainerHashes(fileInfo);
+                                if (dbCollection == null)
+                                {
+                                    _logger.LogDebug($"Not found phashes for {fileInfo.Path}, {fileInfo.LastWriteTime}, {fileInfo.Size}");
+                                    var streamPairs = _pdfService.GetStreams(fileInfo, cancelToken);
+
+                                    var finalResultBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
+
+                                    var result = Parallel.ForEach(
+                                       streamPairs,
+                                       new ParallelOptions { MaxDegreeOfParallelism = _numberOfConsumers },
+                                       // localInit
+                                       () => new List<(ExtendedFileInfo efi, ulong phash, int width, int height)>(), // localInit: Initialize a new local list for each task/partition
+                                                                                                                     // body
+                                       (item, loopState, localList) => // body: The loop body logic
+                                       {
+                                           using (item.Item2)
+                                           {
+                                               var result = _pHashService.CalculatePHash(item.Item2);
+                                               if (result.phash.HasValue)
+                                                   localList.Add((item.Item1, result.phash.Value, result.width, result.height));
+                                               return localList; // Return the updated local list for the next iteration
+                                           }
+                                       },
+                                       (finalLocalList) => // localFinally: Action to combine results
+                                       {
+                                           foreach (var item in finalLocalList)
+                                           {
+                                               Debug.Assert(item.phash != 0);
+                                               finalResultBag.Add(item);
+                                           }
+                                       }
+                                    );
+                                    Debug.Assert(result.IsCompleted);
+
+                                    if (!cancelToken.IsCancellationRequested)
+                                    {
+                                        _phashRepository.AddContainerStreams(fileInfo, finalResultBag.ToArray());
+                                    }
+                                    foreach (var item in finalResultBag)
+                                    {
+                                        Debug.Assert(item.width != 0);
+                                        Debug.Assert(item.height != 0);
+                                        checksumDictionary.AddOrUpdate(item.phash,
+                                                addValueFactory: (checksum) =>
+                                                {
+                                                    var list = new List<PHashFileInfo>();
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                },
+                                                updateValueFactory: (checksum, list) =>
+                                                {
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                });
+                                    }
+                                    finalResultBag.Clear();
+                                    //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
+                                    //{
+                                    //    item.Item2.Dispose();
+                                    //}
+                                    streamPairs.Clear();
+                                    streamPairs = null;
+
+                                }
+                                else
+                                {
+                                    foreach (var item in dbCollection)
+                                    {
+                                        checksumDictionary.AddOrUpdate(item.phash,
+                                                addValueFactory: (checksum) =>
+                                                {
+                                                    var list = new List<PHashFileInfo>();
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                },
+                                                updateValueFactory: (checksum, list) =>
+                                                {
+                                                    PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
+                                                    list.Add(pHashFileInfo);
+                                                    return list;
+                                                });
+                                    }
+                                }
                             }
                             else
                             {
-                                foreach (var item in dbCollection)
-                                {
-                                    //Debug.Assert(item.phash != 0);
-                                    Debug.Assert(item.width != 0);
-                                    Debug.Assert(item.height != 0);
-                                    checksumDictionary.AddOrUpdate(item.phash,
-                                            addValueFactory: (checksum) =>
-                                            {
-                                                var list = new List<PHashFileInfo>();
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            },
-                                            updateValueFactory: (checksum, list) =>
-                                            {
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            });
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var streams = _archiveService.GetStreams(fileInfo, _pHashService.IsSupportedExtension, cancelToken);
-                            foreach (var stream in streams)
-                            {
-                                toCalculateCollection.Add(stream);
-                            }
-                        }
-                        //GetStreams<ArchiveFileInfo>(fileInfo, toCalculateCollection, cancelToken);
-
-                    }
-                    else if (fileInfo.Extension.ToLower() == ".pdf")
-                    {
-                        if (_searchSetting.UseDB)
-                        {
-                            var dbCollection = _phashRepository.GetContainerHashes(fileInfo);
-                            if (dbCollection == null)
-                            {
-                                _logger.LogDebug($"Not found phashes for {fileInfo.Path}, {fileInfo.LastWriteTime}, {fileInfo.Size}");
                                 var streamPairs = _pdfService.GetStreams(fileInfo, cancelToken);
-
-                                var finalResultBag = new ConcurrentBag<(ExtendedFileInfo efi, ulong phash, int width, int height)>();
-
-                                var result = Parallel.ForEach(
-                                   streamPairs,
-                                   new ParallelOptions { MaxDegreeOfParallelism = _numberOfConsumers },
-                                   // localInit
-                                   () => new List<(ExtendedFileInfo efi, ulong phash, int width, int height)>(), // localInit: Initialize a new local list for each task/partition
-                                                                                                                 // body
-                                   (item, loopState, localList) => // body: The loop body logic
-                                   {
-                                       using (item.Item2)
-                                       {
-                                           var result = _pHashService.CalculatePHash(item.Item2);
-                                           if (result.phash.HasValue)
-                                               localList.Add((item.Item1, result.phash.Value, result.width, result.height));
-                                           return localList; // Return the updated local list for the next iteration
-                                       }
-                                   },
-                                   (finalLocalList) => // localFinally: Action to combine results
-                                   {
-                                       foreach (var item in finalLocalList)
-                                       {
-                                           Debug.Assert(item.phash != 0);
-                                           finalResultBag.Add(item);
-                                       }
-                                   }
-                                );
-                                Debug.Assert(result.IsCompleted);
-
-                                if (!cancelToken.IsCancellationRequested)
+                                foreach (var stream in streamPairs)
                                 {
-                                    _phashRepository.AddContainerStreams(fileInfo, finalResultBag.ToArray());
+                                    toCalculateCollection.Add(stream);
                                 }
-                                foreach (var item in finalResultBag)
-                                {
-                                    Debug.Assert(item.width != 0);
-                                    Debug.Assert(item.height != 0);
-                                    checksumDictionary.AddOrUpdate(item.phash,
-                                            addValueFactory: (checksum) =>
-                                            {
-                                                var list = new List<PHashFileInfo>();
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            },
-                                            updateValueFactory: (checksum, list) =>
-                                            {
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            });
-                                }
-                                finalResultBag.Clear();
-                                //foreach ((ExtendedFileInfo, Stream) item in streamPairs)
-                                //{
-                                //    item.Item2.Dispose();
-                                //}
-                                streamPairs.Clear();
-                                streamPairs = null;
-
-                            }
-                            else
-                            {
-                                foreach (var item in dbCollection)
-                                {
-                                    checksumDictionary.AddOrUpdate(item.phash,
-                                            addValueFactory: (checksum) =>
-                                            {
-                                                var list = new List<PHashFileInfo>();
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            },
-                                            updateValueFactory: (checksum, list) =>
-                                            {
-                                                PHashFileInfo pHashFileInfo = new PHashFileInfo(item.efi, checksum, item.width, item.height);
-                                                list.Add(pHashFileInfo);
-                                                return list;
-                                            });
-                                }
-                            }
-                        }
-                        else
-                        {
-                            var streamPairs = _pdfService.GetStreams(fileInfo, cancelToken);
-                            foreach (var stream in streamPairs)
-                            {
-                                toCalculateCollection.Add(stream);
                             }
                         }
                     }
-
-                    //if (fileInfo is ArchiveFileInfo afi)
-                    //{
-
-                    //    var stream = _archiveService.GetStream(afi);
-                    //    blockingCollection.Add((fileInfo, stream));
-                    //    //_phashRepository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, phash2, width, height);
-
-                    //}
-                    //if (_searchSetting.UseDB)
-                    //{
-                    //    var lastWriteTime = fileInfo is ArchiveFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                    //    var result = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
-
-                    //}
-                    //else
-                    //{
-                    //    if (fileInfo is ArchiveFileInfo afi)
-                    //    {
-                    //        var stream = _archiveService.GetStream(afi);
-                    //        blockingCollection.Add((fileInfo, stream));
-                    //    }
-                    //    else
-                    //    {
-                    //        var memoryStream = new MemoryStream();
-                    //        using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
-                    //        {
-                    //            // Copy the entire contents of the FileStream into the MemoryStream
-                    //            fileStream.CopyTo(memoryStream);
-                    //        }
-
-                    //        // Optional: Reset the position to the beginning of the MemoryStream for subsequent read operations
-                    //        memoryStream.Position = 0;
-                    //        blockingCollection.Add((fileInfo, memoryStream));
-                    //    }
-                    //}
-
-                    //}
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, ex.Message);
+                    }
                 }
             }
         }

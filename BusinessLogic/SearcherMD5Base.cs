@@ -385,31 +385,39 @@ namespace DupTerminator.BusinessLogic
         {
             System.Diagnostics.Debug.WriteLine($"SearchFileOnPhisicalDrive {phisicalDrive} start.");
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
-            foreach (var directory in locations.Where(p => p.IsDirectory))
+
+            try
             {
-                if (token.IsCancellationRequested)
+                foreach (var directory in locations.Where(p => p.IsDirectory))
                 {
-                    _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
-                    break;
+                    if (token.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
+                        break;
+                    }
+
+                    progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = directory.Path, State = "Search" });
+
+                    DirectoryInfo di = new System.IO.DirectoryInfo(directory.Path);
+                    AddFilesFromDirectory(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive);
                 }
 
-                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = directory.Path, State = "Search" });
+                foreach (var file in locations.Where(p => !p.IsDirectory))
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
+                        break;
+                    }
 
-                DirectoryInfo di = new System.IO.DirectoryInfo(directory.Path);
-                AddFilesFromDirectory(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive);
+                    progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
+
+                    AddFile(file, ref files, token, phisicalDrive);
+                }
             }
-
-            foreach (var file in locations.Where(p => !p.IsDirectory))
+            catch (Exception ex)
             {
-                if (token.IsCancellationRequested)
-                {
-                    _logger.LogInformation("SearchFileOnPhisicalDrive was canceled.");
-                    break;
-                }
-
-                progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
-
-                AddFile(file, ref files, token, phisicalDrive);
+                _logger.LogError(ex, ex.Message);
             }
 
             return new ReadOnlyCollection<ExtendedFileInfo>(files);

@@ -63,6 +63,8 @@ namespace DupTerminator.BusinessLogic
             _stopwatch.Stop();
             _logger.LogInformation($"ElapsedTime: {_stopwatch.Elapsed}");
 
+            if (duplicateGroups is null)
+                return null;
 
             //var list = duplicateGroups.Select(d => new DuplicateGroup(Guid.NewGuid().ToString(), d.ToList())).ToList();
             var duplicateGroupsFiltered = duplicateGroups.Where(d => d.Count > 1).ToList();
