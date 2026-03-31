@@ -8,7 +8,7 @@ using static DupTerminator.BusinessLogic.SearcherMD5Container;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    [DebuggerDisplay("{First.Name} {Second.Name}")]
+    [DebuggerDisplay("{First.ToString()} {Second.ToString()}")]
     public class ContainerPairKey
     {
         public ContainerPairKey(ExtendedFileInfo first, ExtendedFileInfo second)

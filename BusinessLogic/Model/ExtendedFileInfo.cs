@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -123,6 +124,11 @@ namespace DupTerminator.BusinessLogic.Model
             if (obj is ExtendedFileInfo other) return CompareTo(other);
 
             throw new ArgumentException("Object must be of type SimpleFileInfo");
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().Name}: {Name}";
         }
     }
 }

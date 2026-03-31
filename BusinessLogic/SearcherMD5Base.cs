@@ -338,20 +338,23 @@ namespace DupTerminator.BusinessLogic
         private void AddMd5(ExtendedFileInfo fileInfo, string md5)
         {
             Debug.Assert(fileInfo != null);
-            _checksumDictionary.AddOrUpdate(md5,
-                addValueFactory: (checksum) =>
-                {
-                    var list = new List<ExtendedFileInfo>();
-                    list.Add(fileInfo);
-                    return list;
-                },
-                updateValueFactory: (checksum, list) =>
-                {
-                    list.Add(fileInfo);
-                    return list;
-                });
+            if (md5 is not null)
+            {
+                _checksumDictionary.AddOrUpdate(md5,
+                    addValueFactory: (checksum) =>
+                    {
+                        var list = new List<ExtendedFileInfo>();
+                        list.Add(fileInfo);
+                        return list;
+                    },
+                    updateValueFactory: (checksum, list) =>
+                    {
+                        list.Add(fileInfo);
+                        return list;
+                    });
 
-            Debug.Assert(!(_checksumDictionary[md5].Count > 1 && _checksumDictionary[md5].All(f => f.Path == _checksumDictionary[md5].First().Path)));
+                Debug.Assert(!(_checksumDictionary[md5].Count > 1 && _checksumDictionary[md5].All(f => f.Path == _checksumDictionary[md5].First().Path)));
+            }
         }
 
         protected static void CompareBySize(
@@ -535,6 +538,7 @@ namespace DupTerminator.BusinessLogic
                 efi.Container = new DirectoryContainer
                 {
                     Path = di.FullName,
+                    Name = di.Name,
                     //FilesCount = dFiles.Length
                     Files = dFiles.Select(f => new SimpleFileInfo
                     {
@@ -629,6 +633,7 @@ namespace DupTerminator.BusinessLogic
             var container = new DirectoryContainer
             {
                 Path = di.FullName,
+                Name = di.Name,
             };
             var files3 = dFiles.Select(f => new ExtendedFileInfo()
             {

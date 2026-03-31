@@ -57,6 +57,7 @@ namespace DupTerminator.BusinessLogic
                 var container = new DirectoryContainer
                 {
                     Path = di.FullName,
+                    Name = di.Name,
                 };
                 var files3 = dFiles.Select(f => new ExtendedFileInfo()
                 {

@@ -136,8 +136,16 @@ namespace DupTerminator.BusinessLogic
                             //value.AddRange([first, second]);
                             if (!value.FirstFiles.Contains(first))
                             {
-                                value.FirstFiles.Add(first);
-                                value.SecondFiles.Add(second);
+                                if (containersKey.WasSwapped)
+                                {
+                                    value.FirstFiles.Add(second);
+                                    value.SecondFiles.Add(first);
+                                }
+                                else
+                                {
+                                    value.FirstFiles.Add(first);
+                                    value.SecondFiles.Add(second);
+                                }
                             }
                         }
                     }
