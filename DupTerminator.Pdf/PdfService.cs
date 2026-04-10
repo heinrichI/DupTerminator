@@ -42,7 +42,7 @@ namespace DupTerminator.Pdf
                 IPdfImage image = pdfInfo.ImageIndex.HasValue ? images.Skip(pdfInfo.ImageIndex.Value).First() : images.First();
                 Debug.Assert(image.RawBytes.Length == (int)pdfInfo.Size);
 
-                using (var entryStream = new ChunkedMemoryStream(image.RawBytes.Length))
+                using (var entryStream = new ChunkedMemoryStream((ulong)image.RawBytes.Length))
                 {
                     entryStream.Write(image.RawBytes);
                     entryStream.Position = 0;
@@ -83,7 +83,7 @@ namespace DupTerminator.Pdf
                     IPdfImage image = pdfInfo.ImageIndex.HasValue ? images[pdfInfo.ImageIndex.Value] : images[0];
                     Debug.Assert(image.RawBytes.Length == (int)pdfInfo.Size);
 
-                    using (var entryStream = new ChunkedMemoryStream(image.RawBytes.Length))
+                    using (var entryStream = new ChunkedMemoryStream((ulong)image.RawBytes.Length))
                     {
                         entryStream.Write(image.RawBytes);
                         entryStream.Position = 0;
@@ -126,7 +126,7 @@ namespace DupTerminator.Pdf
                                 };
                                 imageIndex++;
 
-                                var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
+                                var entryStream = new ChunkedMemoryStream((ulong)pdfImage.RawBytes.Length);
                                 entryStream.Write(pdfImage.RawBytes);
                                 entryStream.Position = 0;
 
@@ -160,7 +160,7 @@ namespace DupTerminator.Pdf
                 var images = page.GetImages();
                 Debug.Assert(images.Count() == 1);
 
-                var entryStream = new ChunkedMemoryStream(images.First().RawBytes.Length);
+                var entryStream = new ChunkedMemoryStream((ulong)images.First().RawBytes.Length);
                 entryStream.Write(images.First().RawBytes);
                 entryStream.Position = 0;
                 return entryStream;
@@ -204,7 +204,7 @@ namespace DupTerminator.Pdf
                             };
                             imageIndex++;
 
-                            var entryStream = new ChunkedMemoryStream(pdfImage.RawBytes.Length);
+                            var entryStream = new ChunkedMemoryStream((ulong)pdfImage.RawBytes.Length);
                             entryStream.Write(pdfImage.RawBytes);
                             entryStream.Position = 0;
 

@@ -42,7 +42,7 @@ namespace SevenZipExtractor
                         continue;
                     }
 
-                    using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                    using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                     {
                         entry.Extract(entryStream);
 
@@ -143,7 +143,7 @@ namespace SevenZipExtractor
             return ArchiveFile.IsArchive(fullName);
         }
 
-        public ArchiveFileInfo[] GetInfoFromArchive(ExtendedFileInfo archive, CancellationToken token, bool archiveInArchive = false)
+        public ArchiveFileInfo[] GetInfoFromArchive(ExtendedFileInfo archive, CancellationToken token, ulong? skipLessThan = null, bool archiveInArchive = false)
         {
             //Entries могут выдавать дубликаты, но с разной HostOS
             Dictionary<string, ArchiveFileInfo> containerInfos = new Dictionary<string, ArchiveFileInfo>();
@@ -165,7 +165,13 @@ namespace SevenZipExtractor
                             continue;
                         }
 
-                        using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                        if (entry.Size == 0)
+                            _logger.LogWarning($"{entry.FileName} size = 0");
+
+                        if (skipLessThan.HasValue && entry.Size < skipLessThan.Value)
+                            _logger.LogDebug($"Skip {entry.FileName} size = {entry.Size}");
+
+                        using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                         {
                             entry.Extract(entryStream);
 
@@ -236,7 +242,7 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == fileInfo.Container.Name)
                         {
-                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                             {
                                 entry.Extract(entryStream);
 
@@ -252,7 +258,7 @@ namespace SevenZipExtractor
 
                                         if (Path.GetFileName(entry2.FileName) == fileInfo.Name)
                                         {
-                                            using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+                                            using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
                                             {
                                                 entry2.Extract(entryStream2);
 
@@ -281,7 +287,7 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == fileInfo.Name)
                         {
-                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                             {
                                 entry.Extract(entryStream);
 
@@ -310,7 +316,7 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == archiveFileInfo.Container.Name)
                         {
-                            using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                            using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                             {
                                 entry.Extract(entryStream);
 
@@ -326,7 +332,7 @@ namespace SevenZipExtractor
 
                                         if (Path.GetFileName(entry2.FileName) == archiveFileInfo.Name)
                                         {
-                                            var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size));
+                                            var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size));
                                             entry2.Extract(entryStream2);
 
                                             entryStream2.Position = 0;
@@ -352,7 +358,7 @@ namespace SevenZipExtractor
 
                         if (Path.GetFileName(entry.FileName) == archiveFileInfo.Name)
                         {
-                            var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size));
+                            var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size));
                             entry.Extract(entryStream);
 
                             entryStream.Position = 0;
@@ -482,7 +488,7 @@ namespace SevenZipExtractor
                     continue;
                 }
 
-                var entryStream = new ChunkedMemoryStream((int)entry.Size);
+                var entryStream = new ChunkedMemoryStream((ulong)entry.Size);
                 entry.Extract(entryStream);
                 entryStream.Position = 0;
 
@@ -540,7 +546,7 @@ namespace SevenZipExtractor
 
                     if (Path.GetFileName(entry.FileName) == archiveSimpleFileInfo.Name)
                     {
-                        var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size));
+                        var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size));
                         entry.Extract(entryStream);
 
                         entryStream.Position = 0;
@@ -581,7 +587,7 @@ namespace SevenZipExtractor
                                 if (Path.GetFileName(entry2.FileName) == item.Name)
                                 {
                                     fileFinded = true;
-                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
                                     {
                                         entry2.Extract(entryStream2);
 
@@ -606,7 +612,7 @@ namespace SevenZipExtractor
                             if (Path.GetFileName(entry.FileName) == group.Key)
                             {
                                 groupFinded = true;
-                                using (var entryStream = new ChunkedMemoryStream(Convert.ToInt32(entry.Size)))
+                                using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                                 {
                                     entry.Extract(entryStream);
                                     entryStream.Position = 0;
@@ -625,7 +631,7 @@ namespace SevenZipExtractor
                                                 if (Path.GetFileName(entry2.FileName) == item.Name)
                                                 {
                                                     fileFinded = true;
-                                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToInt32(entry2.Size)))
+                                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
                                                     {
                                                         entry2.Extract(entryStream2);
 

@@ -15,10 +15,10 @@ namespace DupTerminator.BusinessLogic
         private long _position;
         private readonly int _chunkSize;
 
-        public ChunkedMemoryStream(int capacity, int chunkSize = 1024 * 50)
+        public ChunkedMemoryStream(ulong capacity, int chunkSize = 1024 * 50)
         {
             _arrayPool = ArrayPool<byte>.Shared;
-            _chunks = new List<byte[]>(capacity / chunkSize);
+            _chunks = new List<byte[]>((int)(capacity / (ulong)chunkSize));
             _chunkSize = chunkSize;
         }
 

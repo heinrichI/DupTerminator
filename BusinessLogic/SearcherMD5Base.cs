@@ -476,7 +476,7 @@ namespace DupTerminator.BusinessLogic
             }
             else
             {
-                filesInArchive = _archiveService.GetInfoFromArchive(efi, token);
+                filesInArchive = _archiveService.GetInfoFromArchive(efi, token, _searchSetting.SkipLessThan);
             }
             foreach (ExtendedFileInfo fileArch in filesInArchive)
             {

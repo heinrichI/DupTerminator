@@ -509,7 +509,7 @@ namespace DupTerminator.BusinessLogic
                                 var result = _phashRepository.Get(fileInfo.Path, lastWriteTime, fileInfo.Size);
                                 if (result == null)
                                 {
-                                    var memoryStream = new ChunkedMemoryStream((int)fileInfo.Size);
+                                    var memoryStream = new ChunkedMemoryStream((ulong)fileInfo.Size);
                                     using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
                                     {
                                         // Copy the entire contents of the FileStream into the MemoryStream
@@ -542,7 +542,7 @@ namespace DupTerminator.BusinessLogic
                             }
                             else
                             {
-                                var memoryStream = new ChunkedMemoryStream((int)fileInfo.Size);
+                                var memoryStream = new ChunkedMemoryStream((ulong)fileInfo.Size);
                                 using (var fileStream = System.IO.File.OpenRead(fileInfo.Path))
                                 {
                                     // Copy the entire contents of the FileStream into the MemoryStream
