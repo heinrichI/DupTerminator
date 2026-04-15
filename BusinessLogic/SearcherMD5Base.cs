@@ -288,6 +288,7 @@ namespace DupTerminator.BusinessLogic
 
                             if (string.IsNullOrEmpty(md5))
                             {
+                                _logger.LogDebug($"Not found md5 for {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 var checkSums = _pdfService.CalculateHashes(data.Cast<PdfFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
                                 if (checkSums.Length != data.Length)
                                     throw new Exception("Длины не совпадают!");
@@ -326,7 +327,13 @@ namespace DupTerminator.BusinessLogic
                             }
                             if (string.IsNullOrEmpty(md5))
                             {
+                                _logger.LogDebug($"Not found md5 for {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 md5 = HashHelper.CreateMD5Checksum(fileInfo);
+                                Debug.Assert(!string.IsNullOrEmpty(md5));
+                                if (_searchSetting.UseDB)
+                                {
+                                    _md5Repository.Add(fileInfo.Path, lastWriteTime, fileInfo.Size, md5);
+                                }
                             }
                             AddMd5(fileInfo, md5);
                         }
@@ -489,6 +496,7 @@ namespace DupTerminator.BusinessLogic
                     AddFileToList(files, fileArch);
                 Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
+            Debug.Assert(files.Any(f => f.Path == efi.Path && f.Size == efi.Size));
             return new ArchiveContainer(efi)
             {
                 Files = filesInArchive.Select(c => new ArchiveSimpleFileInfo(c)).ToArray(),

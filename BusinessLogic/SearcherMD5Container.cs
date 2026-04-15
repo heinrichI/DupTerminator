@@ -109,8 +109,8 @@ namespace DupTerminator.BusinessLogic
                             ExtendedFileInfo first = files[i];
                             ExtendedFileInfo second = files[j];
 
-                            if (first.Container.Equals(second.Container))
-                                continue;
+                            //if (first.Container.Equals(second.Container))
+                            //    continue;
 
                             //если это сами контейнеры
                             ContainerPairKey key = new ContainerPairKey(first, second);
@@ -152,24 +152,24 @@ namespace DupTerminator.BusinessLogic
                 }
             }
 
-            HashSet<ContainerPairKey> forRemove = new ();
-            foreach (var container in containers)
-            {
-                if (container.Key.First is not null && container.Key.Second is not null
-                    && container.Key.First.Container is not null && container.Key.Second.Container is not null
-                    && container.Key.First.Container is not DirectoryContainer && container.Key.Second.Container is not DirectoryContainer)
-                {
-                    ContainerPairKey containersKey = new ContainerPairKey(container.Key.First.Container, container.Key.Second.Container);
-                    if (containers.ContainsKey(containersKey) && !forRemove.Contains(containersKey))
-                    {
-                        forRemove.Add(container.Key);
-                    }
-                }
-            }
-            foreach (var item in forRemove)
-            {
-                containers.Remove(item);
-            }
+            //HashSet<ContainerPairKey> forRemove = new ();
+            //foreach (var container in containers)
+            //{
+            //    if (container.Key.First is not null && container.Key.Second is not null
+            //        && container.Key.First.Container is not null && container.Key.Second.Container is not null
+            //        && container.Key.First.Container is not DirectoryContainer && container.Key.Second.Container is not DirectoryContainer)
+            //    {
+            //        ContainerPairKey containersKey = new ContainerPairKey(container.Key.First.Container, container.Key.Second.Container);
+            //        if (containers.ContainsKey(containersKey) && !forRemove.Contains(containersKey))
+            //        {
+            //            forRemove.Add(container.Key);
+            //        }
+            //    }
+            //}
+            //foreach (var item in forRemove)
+            //{
+            //    containers.Remove(item);
+            //}
 
 
             var cts = containers
@@ -201,7 +201,35 @@ namespace DupTerminator.BusinessLogic
                 }
             }
 
-            return new ReadOnlyCollection<DuplicateContainer>(cts.ToList());
+
+
+            var filteredList = cts.ToList();
+
+            // Удаляем пары, которые покрываются более крупными контейнерами
+            for (int i = filteredList.Count - 1; i >= 0; i--)
+            {
+                var current = filteredList[i];
+                bool isCovered = false;
+
+                foreach (var other in filteredList)
+                {
+                    if (ReferenceEquals(current, other))
+                        continue;
+
+                    if (IsCoveredByContainerPair(current, other))
+                    {
+                        isCovered = true;
+                        break;
+                    }
+                }
+
+                if (isCovered)
+                    filteredList.RemoveAt(i);
+            }
+
+            return new ReadOnlyCollection<DuplicateContainer>(filteredList);
+
+            //return new ReadOnlyCollection<DuplicateContainer>(cts.ToList());
 
             //проверяем сначала сами контейнеры, если есть совпадающие то откидываем все файлы из них
 
@@ -285,17 +313,59 @@ namespace DupTerminator.BusinessLogic
 
             //return duplicates2;
         }
-        
 
-        private ExtendedFileInfo GetRootContainer(ExtendedFileInfo file)
+        bool IsCoveredByContainerPair(DuplicateContainer child, DuplicateContainer parent)
         {
-            var current = file;
-            while (current.Container != null)
-            {
-                current = current.Container;
-            }
-            return current;
+            // Проверяем, что child.First находится внутри parent.First (или совпадает)
+            bool firstCovered = child.First.Equals(parent.First) ||
+                                child.First.GetAncestorContainers().Contains(parent.First);
+
+            // Аналогично для Second
+            bool secondCovered = child.Second.Equals(parent.Second) ||
+                                 child.Second.GetAncestorContainers().Contains(parent.Second);
+
+            // Исключаем саму себя
+            if (child.Key.Equals(parent.Key))
+                return false;
+
+            return firstCovered && secondCovered;
         }
+
+        //private int GetMaxDepth(KeyValuePair<string, IList<ExtendedFileInfo>> kvp)
+        //{
+        //    if (kvp.Value == null || kvp.Value.Count == 0)
+        //        return 0;
+
+        //    int maxDepth = 0;
+
+        //    foreach (var file in kvp.Value)
+        //    {
+        //        int currentDepth = 0;
+        //        var currentContainer = file.Container;
+
+        //        // Идем вглубь, пока Container не null
+        //        while (currentContainer != null)
+        //        {
+        //            currentDepth++;
+        //            currentContainer = currentContainer.Container;
+        //        }
+
+        //        if (currentDepth > maxDepth)
+        //            maxDepth = currentDepth;
+        //    }
+
+        //    return maxDepth;
+        //}
+
+        //private ExtendedFileInfo GetRootContainer(ExtendedFileInfo file)
+        //{
+        //    var current = file;
+        //    while (current.Container != null)
+        //    {
+        //        current = current.Container;
+        //    }
+        //    return current;
+        //}
 
         public void Dispose()
         {

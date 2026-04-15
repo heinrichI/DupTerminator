@@ -64,6 +64,17 @@ namespace DupTerminator.BusinessLogic.Model
         //    }
         //}
 
+
+        public IEnumerable<ExtendedFileInfo> GetAncestorContainers()
+        {
+            var current = this.Container;
+            while (current != null)
+            {
+                yield return current;
+                current = current.Container;
+            }
+        }
+
         public override bool Equals(object? obj)
         {
             return obj is ExtendedFileInfo info && Equals(info);

@@ -62,7 +62,7 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = ac.Files;
                 else if (first.Container is DirectoryContainer dfi2)
                     FirstContainerFiles = dfi2.Files;
-                else if (second.Container is PdfContainer pc)
+                else if (first.Container is PdfContainer pc)
                     FirstContainerFiles = pc.Files;
 
                 if (second is ArchiveContainer ac3)
