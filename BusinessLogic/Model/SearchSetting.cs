@@ -11,7 +11,7 @@ namespace DupTerminator.BusinessLogic.Model
     {
         public ObservableCollection<string> IncludePattern { get; set; } = new ObservableCollection<string>();
         public List<string> ExcludePattern { get; set; } = new List<string>();
-        public bool UseDB { get; set; }
+        public bool UseDB { get; set; } = true;
 
         public ulong? SkipLessThan { get; set; }
     }

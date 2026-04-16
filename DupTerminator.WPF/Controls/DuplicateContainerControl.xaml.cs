@@ -33,6 +33,13 @@ namespace DupTerminator.WPF.Controls
        DependencyProperty.Register("ItemsSource", typeof(IEnumerable),
            typeof(DuplicateContainerControl), new PropertyMetadata(null, OnItemsSourceChanged));
 
+        //public static readonly DependencyProperty DeleteFileCommandProperty =
+        //    DependencyProperty.RegisterAttached(
+        //        "DeleteFileCommand",
+        //        typeof(ICommand),
+        //        typeof(DuplicateContainerControl),
+        //        new PropertyMetadata(null));
+
 
         public IEnumerable ItemsSource
         {

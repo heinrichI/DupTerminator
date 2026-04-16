@@ -58,11 +58,12 @@ namespace DupTerminator.BusinessLogic
         }
 
         protected async Task<List<PHashDuplicateGroup>> GetDuplicateGroupAsync(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             IProgress<ProgressDto> progress,
             CancellationToken cancelToken)
         {
-            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(locations, progress, cancelToken);
+            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(includeLocations, excludeLocations, progress, cancelToken);
 
             //Debug.Assert(_checksumDictionary.Count > 0, "Файлов нет!");
             //var paths = checksumDictionary.SelectMany(f => f.Value.Select(h => h.FileInfo.Path)).ToArray();
@@ -191,13 +192,14 @@ namespace DupTerminator.BusinessLogic
         }
 
         protected async Task<ConcurrentDictionary<ulong, IList<PHashFileInfo>>> CalculateChecksum(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             IProgress<ProgressDto> progress,
             CancellationToken cancelToken)
         {
             ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = new ConcurrentDictionary<ulong, IList<PHashFileInfo>>();
 
-            KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(locations);
+            KeyValuePair<string, List<SearchPath>>[] phisicalDrives = GetPhisicalDrives(includeLocations);
 
             //(BlockingCollection<ExtendedFileInfo> BlockingCollection, string Drive)[] blockingCollectionByPhisDisks =
             //    new (BlockingCollection<ExtendedFileInfo>, string drive)[phisicalDrives.Length];
@@ -211,7 +213,12 @@ namespace DupTerminator.BusinessLogic
             for (int i = 0; i < phisicalDrives.Length; i++)
             {
                 int temp = i;
-                tasksSearch[i] = Task.Run(() => SearchFileOnPhisicalDrive(progress, phisicalDrives[temp].Key, phisicalDrives[temp].Value, cancelToken))
+                tasksSearch[i] = Task.Run(() => SearchFileOnPhisicalDrive(
+                    progress,
+                    phisicalDrives[temp].Key,
+                    phisicalDrives[temp].Value,
+                    excludeLocations,
+                    cancelToken))
                .ContinueWith(t =>
                {
                    // Force progress report after task completion, even if failed
@@ -292,12 +299,12 @@ namespace DupTerminator.BusinessLogic
             return checksumDictionary;
         }
 
-        private KeyValuePair<string, List<SearchPath>>[] GetPhisicalDrives(ReadOnlyCollection<SearchPath> locations)
+        private KeyValuePair<string, List<SearchPath>>[] GetPhisicalDrives(ReadOnlyCollection<SearchPath> includeLocations)
         {
             List<string>? driveLetters = new List<string>();
-            if (locations != null)
-                driveLetters.AddRange(locations.Select(p => p.DriveLetter).Distinct());
-            var groupByLetter = locations.GroupBy(l => l.DriveLetter);
+            if (includeLocations != null)
+                driveLetters.AddRange(includeLocations.Select(p => p.DriveLetter).Distinct());
+            var groupByLetter = includeLocations.GroupBy(l => l.DriveLetter);
 
             Dictionary<string, List<SearchPath>> dict = new Dictionary<string, List<SearchPath>>();
             foreach (var group in groupByLetter)
@@ -400,11 +407,12 @@ namespace DupTerminator.BusinessLogic
         private ReadOnlyCollection<ExtendedFileInfo> SearchFileOnPhisicalDrive(
             IProgress<ProgressDto> progress,
             in string phisicalDrive,
-            IEnumerable<SearchPath> locations,
+            IEnumerable<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             CancellationToken token)
         {
             List<ExtendedFileInfo> files = new List<ExtendedFileInfo>();
-            foreach (var directory in locations.Where(p => p.IsDirectory))
+            foreach (var directory in includeLocations.Where(p => p.IsDirectory))
             {
                 if (token.IsCancellationRequested)
                 {
@@ -417,9 +425,10 @@ namespace DupTerminator.BusinessLogic
                 if (!Directory.Exists(directory.Path))
                     throw new Exception("Directory does not exists!");
                 DirectoryInfo di = new System.IO.DirectoryInfo(directory.Path);
-                AddFilesFromDirectory(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive);
+                AddFilesFromDirectory(di, ref files, directory.SearchInSubFolder, token, progress, phisicalDrive,
+                    excludeLocations.Where(l => l.IsDirectory).Select(l => l.Path));
             }
-            foreach (var file in locations.Where(p => !p.IsDirectory))
+            foreach (var file in includeLocations.Where(p => !p.IsDirectory))
             {
                 progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = file.Path, State = "Search" });
 
@@ -976,7 +985,8 @@ namespace DupTerminator.BusinessLogic
             bool isRecurse,
             CancellationToken token,
             IProgress<ProgressDto> progress,
-            in string phisicalDrive)
+            in string phisicalDrive,
+            IEnumerable<string> excludeLocations)
         {
             //try
             //{
@@ -1010,10 +1020,16 @@ namespace DupTerminator.BusinessLogic
                         throw;
                     }
 
+                    if (excludeLocations.Contains(directories[i].FullName, StringComparer.OrdinalIgnoreCase))
+                    {
+                        _logger.LogInformation($"Skip {directories[i].FullName}");
+                        continue;
+                    }
+
                     progress.Report(new ProgressDto { PhisicalDrive = phisicalDrive, Path = directories[i].FullName, State = "Search" });
 
                     //if (!_directorySkipList.Contains(directories[i].FullName, StringComparer.OrdinalIgnoreCase))
-                    AddFilesFromDirectory(directories[i], ref files, isRecurse, token, progress, phisicalDrive);
+                    AddFilesFromDirectory(directories[i], ref files, isRecurse, token, progress, phisicalDrive, excludeLocations);
                     //else
                     //    Debug.WriteLine(String.Format("Директория {0} есть в списке пропускаемых. Пропускаем.", directories[i].FullName));
                 }

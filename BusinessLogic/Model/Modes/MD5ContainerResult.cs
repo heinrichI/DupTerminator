@@ -9,10 +9,11 @@ namespace DupTerminator.BusinessLogic.Model.Modes
 {
     public class MD5ContainerResult : ResultBase
     {
-        public MD5ContainerResult(ReadOnlyCollection<DuplicateContainer> result)
+        public MD5ContainerResult(Collection<DuplicateContainer> result)
         {
-            Result = result;
+            if (result is not null)
+                Result = new ObservableCollection<DuplicateContainer>(result);
         }
-        public ReadOnlyCollection<DuplicateContainer> Result { get; }
+        public ObservableCollection<DuplicateContainer> Result { get; }
     }
 }

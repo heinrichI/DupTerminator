@@ -10,8 +10,11 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
+using DupTerminator.BusinessLogic;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.BusinessLogic.Model.Modes;
 using DupTerminator.WPF.Abstraction;
@@ -21,6 +24,7 @@ using DupTerminator.WPF.Model;
 using DupTerminator.WPF.Service;
 using DupTerminator.WPF.View;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic.FileIO;
 using static System.Formats.Asn1.AsnWriter;
 
 namespace DupTerminator.WPF.ViewModel
@@ -38,13 +42,15 @@ namespace DupTerminator.WPF.ViewModel
             ImageGroupsViewModel imageGroupsViewModel,
             ImageListViewModel imageListViewModel,
             IImageProvider imageProvider,
-            ClearDbCommand clearDbCommand)
+            ClearDbCommand clearDbCommand,
+            ILogger<MainViewModel> logger)
         {
             SettingViewModel = settingViewModel;
             ImageGroupsViewModel = imageGroupsViewModel;
             ImageListViewModel = imageListViewModel;
             _imageProvider = imageProvider;
             ClearDbCommand = clearDbCommand;
+            _logger = logger;
             SettingViewModel.SearchCompleted += OnSearchCompleted;
         }
 
@@ -109,6 +115,19 @@ namespace DupTerminator.WPF.ViewModel
             set
             {
                 _selectedResultIndex = value;
+                RaisePropertyChangedEvent();
+            }
+        }
+
+        private readonly IImageProvider _imageProvider;
+        private readonly ILogger<MainViewModel> _logger;
+        private int _selectedTabPageIndex;
+        public int SelectedTabPageIndex
+        {
+            get { return _selectedTabPageIndex; }
+            set
+            {
+                _selectedTabPageIndex = value;
                 RaisePropertyChangedEvent();
             }
         }
@@ -193,19 +212,52 @@ namespace DupTerminator.WPF.ViewModel
         }
 
 
-
-
-        private int _selectedTabPageIndex;
-        private readonly IImageProvider _imageProvider;
-
-        public int SelectedTabPageIndex
+        ICommand _deleteFileCommand;
+        public ICommand DeleteFileCommand
         {
-            get { return _selectedTabPageIndex; }
-            set
+            get
             {
-                _selectedTabPageIndex = value;
-                RaisePropertyChangedEvent();
+                return _deleteFileCommand ?? (_deleteFileCommand = new RelayCommand(arg =>
+                {
+                    if (arg is not SimpleFileInfo fileInfo)
+                        return;
+
+                    if (SearchResults is not MD5ContainerResult result)
+                        return;
+
+
+                    var containersToRemove = result.Result
+                        .Where(d => d.Key.First.Equals(fileInfo) || d.Key.Second.Equals(fileInfo)).ToArray();
+                    if (containersToRemove.Any() && System.IO.File.Exists(fileInfo.Path))
+                    {
+                        var confirm = MessageBox.Show(
+                            $"Удалить файл?\n\n{fileInfo.Path}",
+                            "Подтверждение",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
+
+                        if (confirm != MessageBoxResult.Yes)
+                            return;
+
+                        FileSystem.DeleteFile(
+                                    fileInfo.Path,
+                                    UIOption.AllDialogs,
+                                    RecycleOption.SendToRecycleBin // Отправить в корзину
+                                );
+                        _logger.LogInformation($"Файл {fileInfo.Path} удален");
+                        foreach (var containerToRemove in containersToRemove)
+                        {
+                            result.Result.Remove(containerToRemove);
+                        }          
+                    }
+                }, arg =>
+                {
+                    if (arg is ExtendedFileInfo efi && efi.Container is DirectoryContainer)
+                        return true;
+                    return false;
+                }));
             }
         }
     }
+
 }

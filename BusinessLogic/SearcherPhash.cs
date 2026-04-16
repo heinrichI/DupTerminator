@@ -24,8 +24,8 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearcherPhash : SearcherPhashBase, IDisposable
     {
-        private readonly ReadOnlyCollection<SearchPath> _locations;
-
+        private readonly ReadOnlyCollection<SearchPath> _includeLocations;
+        private readonly ReadOnlyCollection<SearchPath> _excludeLocations;
         private readonly Stopwatch _stopwatch = new();
 
 
@@ -33,7 +33,8 @@ namespace DupTerminator.BusinessLogic
         //MemoryPool<byte> _memoryPool = MemoryPool<byte>.Shared;
 
         public SearcherPhash(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             SearchSetting searchSetting,
             PHashSettings pHashSettings,
             IPhashRepository phashRepository,
@@ -44,7 +45,8 @@ namespace DupTerminator.BusinessLogic
             IMIHFactory mIHFactory,
             ILogger logger) : base(searchSetting, pHashSettings, mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
-            _locations = locations;
+            _includeLocations = includeLocations;
+            _excludeLocations = excludeLocations;
         }
 
         public async Task<ReadOnlyCollection<PHashDuplicateGroup>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
@@ -58,7 +60,7 @@ namespace DupTerminator.BusinessLogic
             //        GCLargeObjectHeapCompactionMode.CompactOnce;
             //}
 
-            List<PHashDuplicateGroup> duplicateGroups = await GetDuplicateGroupAsync(_locations, progress, cancelToken);
+            List<PHashDuplicateGroup> duplicateGroups = await GetDuplicateGroupAsync(_includeLocations, _excludeLocations, progress, cancelToken);
 
             _stopwatch.Stop();
             _logger.LogInformation($"ElapsedTime: {_stopwatch.Elapsed}");

@@ -11,7 +11,8 @@ namespace DupTerminator.WPF.Model
 {
     internal class SettingsSerializable
     {
-        public SearchPathViewModel[] Locations { get; set; } = new SearchPathViewModel[0];
+        public SearchPathViewModel[] IncludeLocations { get; set; } = new SearchPathViewModel[0];
+        public SearchPathViewModel[] ExcludeLocations { get; set; } = new SearchPathViewModel[0];
         public SearchSetting SearchSetting { get; set; } = new SearchSetting();
         public string SelectedMode { get; set; }
     }

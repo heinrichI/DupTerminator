@@ -100,14 +100,17 @@ namespace DupTerminator.WPF.Commands
 
         public async void Execute(object? parameter)
         {
-            var locations = new ReadOnlyCollection<SearchPath>(_settingViewModel.Locations
+            var includeLocations = new ReadOnlyCollection<SearchPath>(_settingViewModel.IncludeLocationsVM.Locations
+               .Select(location => new SearchPath(location.Path, location.IsDirectory, location.SearchInSubfolder))
+               .ToList());
+            var excludeLocations = new ReadOnlyCollection<SearchPath>(_settingViewModel.ExcludeLocationsVM.Locations
                .Select(location => new SearchPath(location.Path, location.IsDirectory, location.SearchInSubfolder))
                .ToList());
 
             if (_settingViewModel.SelectedMode is MD5ModeSettings)
             {
                 var searcher = new SearcherMD5(
-                   locations,
+                   includeLocations,
                    _settingViewModel.SearchSetting,
                     _md5Repository,
                     _windowsUtil,
@@ -132,7 +135,7 @@ namespace DupTerminator.WPF.Commands
             else if (_settingViewModel.SelectedMode is MD5ContainerSettings modeSettings)
             {
                 var searcher = new SearcherMD5Container(
-                   locations,
+                   includeLocations,
                    _settingViewModel.SearchSetting,
                    modeSettings,
                     _md5Repository,
@@ -157,7 +160,8 @@ namespace DupTerminator.WPF.Commands
             else if (_settingViewModel.SelectedMode is PHashContainerSettings pHashContainerSettings)
             {
                 var searcher = new SearcherPhashContainer(
-                   locations,
+                   includeLocations,
+                   excludeLocations,
                    _settingViewModel.SearchSetting,
                    pHashContainerSettings,
                     _phashRepository,
@@ -178,7 +182,8 @@ namespace DupTerminator.WPF.Commands
             else if (_settingViewModel.SelectedMode is PHashSearchImageSettings pHashSearchImageSettings)
             {
                 var searcher = new SearcherPhashSearchImage(
-                   locations,
+                   includeLocations,
+                   excludeLocations,
                    _settingViewModel.SearchSetting,
                    pHashSearchImageSettings,
                     _phashRepository,
@@ -205,7 +210,8 @@ namespace DupTerminator.WPF.Commands
             else if (_settingViewModel.SelectedMode is PHashSearchContainerSettings pHashSearchContainerSettings)
             {
                 var searcher = new SearcherPhashSearchContainer(
-                   locations,
+                   includeLocations,
+                   excludeLocations,
                    _settingViewModel.SearchSetting,
                    pHashSearchContainerSettings,
                     _phashRepository,
@@ -229,7 +235,8 @@ namespace DupTerminator.WPF.Commands
             else if (_settingViewModel.SelectedMode is PHashSettings pHashSettings)
             {
                 var searcher = new SearcherPhash(
-                   locations,
+                   includeLocations,
+                   excludeLocations,
                    _settingViewModel.SearchSetting,
                    pHashSettings,
                     _phashRepository,

@@ -24,12 +24,14 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearcherPhashSearchImage : SearcherPhashBase, IDisposable
     {
-        private readonly ReadOnlyCollection<SearchPath> _locations;
+        private readonly ReadOnlyCollection<SearchPath> _includeLocations;
+        private readonly ReadOnlyCollection<SearchPath> _excludeLocations;
         private readonly PHashSearchImageSettings _pHashSearchImageSettings;
         private readonly IMIHFactory _mIHFactory;
         private readonly Stopwatch _stopwatch = new();
         public SearcherPhashSearchImage(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             SearchSetting searchSetting,
             PHashSearchImageSettings pHashSearchImageSettings,
             IPhashRepository phashRepository,
@@ -40,7 +42,8 @@ namespace DupTerminator.BusinessLogic
             IMIHFactory mIHFactory,
             ILogger<SearcherMD5> logger) : base(searchSetting, new PHashSettings(), mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
-            _locations = locations;
+            _includeLocations = includeLocations;
+            _excludeLocations = excludeLocations;
             _pHashSearchImageSettings = pHashSearchImageSettings;
             _mIHFactory = mIHFactory;
         }
@@ -52,7 +55,7 @@ namespace DupTerminator.BusinessLogic
 
             var target = _pHashService.CalculatePHash(_pHashSearchImageSettings.Target);
 
-            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_locations, progress, cancelToken);
+            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_includeLocations, _excludeLocations, progress, cancelToken);
 
             if (checksumDictionary.Any())
             {
@@ -98,7 +101,7 @@ namespace DupTerminator.BusinessLogic
         }
         public async Task<ReadOnlyCollection<PHashFileInfoSearchItem>> ReSearchAsync(ulong hash, IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
-            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_locations, progress, cancelToken);
+            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_includeLocations, _excludeLocations, progress, cancelToken);
 
             if (checksumDictionary.Any())
             {

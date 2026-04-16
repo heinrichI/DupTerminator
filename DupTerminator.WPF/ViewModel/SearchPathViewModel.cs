@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,21 @@ namespace DupTerminator.WPF.ViewModel
 
         public bool SearchInSubfolder { get; set; }
 
-        public string Path { get; set; }
+        private string _path;
+        public string Path
+        {
+            get => _path;
+            set
+            {
+                if (_path == value)
+                    return;
+                var cleanValue = value?.TrimEnd('\\', '/');
+                _path = cleanValue;
+                RaisePropertyChangedEvent();
+                // Проверяем, является ли путь существующей директорией
+                IsDirectory = !string.IsNullOrEmpty(cleanValue) && Directory.Exists(cleanValue);
+            }
+        }
 
         public bool IsDirectory { get; set; }
     }

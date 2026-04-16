@@ -55,7 +55,7 @@ namespace DupTerminator.BusinessLogic
             _logger = logger;
         }
 
-        public async Task<ReadOnlyCollection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        public async Task<Collection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             _stopwatch.Restart();
 
@@ -227,7 +227,7 @@ namespace DupTerminator.BusinessLogic
                     filteredList.RemoveAt(i);
             }
 
-            return new ReadOnlyCollection<DuplicateContainer>(filteredList);
+            return new Collection<DuplicateContainer>(filteredList);
 
             //return new ReadOnlyCollection<DuplicateContainer>(cts.ToList());
 

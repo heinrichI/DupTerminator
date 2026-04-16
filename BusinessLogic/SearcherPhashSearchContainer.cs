@@ -24,12 +24,14 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearcherPhashSearchContainer : SearcherPhashBase, IDisposable
     {
-        private readonly ReadOnlyCollection<SearchPath> _locations;
+        private readonly ReadOnlyCollection<SearchPath> _includeLocations;
+        private readonly ReadOnlyCollection<SearchPath> _excludeLocations;
         private readonly PHashSearchContainerSettings _pHashSearchContainerSettings;
         private readonly IMIHFactory _mIHFactory;
         private readonly Stopwatch _stopwatch = new();
         public SearcherPhashSearchContainer(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             SearchSetting searchSetting,
             PHashSearchContainerSettings pHashSearchContainerSettings,
             IPhashRepository phashRepository,
@@ -40,12 +42,13 @@ namespace DupTerminator.BusinessLogic
             IMIHFactory mIHFactory,
             ILogger<SearcherMD5> logger) : base(searchSetting, new PHashSettings(), mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
-            _locations = locations;
+            _includeLocations = includeLocations;
+            _excludeLocations = excludeLocations;
             _pHashSearchContainerSettings = pHashSearchContainerSettings;
             _mIHFactory = mIHFactory;
         }
 
-        public async Task<ReadOnlyCollection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        public async Task<Collection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             var finalResultBag = new ConcurrentBag<(ArchiveFileInfo efi, ulong phash, int width, int height)>();
             ExtendedFileInfo? targetEfi = null;
@@ -138,7 +141,7 @@ namespace DupTerminator.BusinessLogic
 
             }
 
-            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_locations, progress, cancelToken);
+            ConcurrentDictionary<ulong, IList<PHashFileInfo>> checksumDictionary = await CalculateChecksum(_includeLocations, _excludeLocations, progress, cancelToken);
 
             if (checksumDictionary.Any())
             {
@@ -197,10 +200,10 @@ namespace DupTerminator.BusinessLogic
                         .OrderByDescending(d => d.SizeOfEqualFiles)
                         .ToList();
 
-                    return new ReadOnlyCollection<DuplicateContainer>(cts);
+                    return new Collection<DuplicateContainer>(cts);
                 }
                 //resultList.Sort((x, y) => x.HammingDistance.CompareTo(y.HammingDistance));
-                return new ReadOnlyCollection<DuplicateContainer>(resultList);
+                return new Collection<DuplicateContainer>(resultList);
             }
 
             return null;

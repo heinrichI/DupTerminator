@@ -22,7 +22,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace DupTerminator.WPF.ViewModel
 {
-    internal class SettingViewModel : PropertyChangedBase, IDropable
+    internal class SettingViewModel : PropertyChangedBase
     {
         private const string SETTINGS_FILE_NAME = "setting.json";
         private readonly IMd5Repository _md5Repository;
@@ -72,7 +72,8 @@ namespace DupTerminator.WPF.ViewModel
         private void LoadSettings()
         {
             SettingsSerializable? settingsSerializable = SerializeHelper<SettingsSerializable>.Load(SETTINGS_FILE_NAME) ?? new SettingsSerializable();
-            _locationsObservable = new ObservableCollection<SearchPathViewModel>(settingsSerializable.Locations);
+            IncludeLocationsVM.Locations = new ObservableCollection<SearchPathViewModel>(settingsSerializable.IncludeLocations);
+            ExcludeLocationsVM.Locations = new ObservableCollection<SearchPathViewModel>(settingsSerializable.ExcludeLocations);
             SearchSetting = settingsSerializable.SearchSetting;
             SelectedMode = Modes.SingleOrDefault(m => m.Name == settingsSerializable.SelectedMode);
             //Modes.Curr
@@ -112,12 +113,8 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
-
-        ObservableCollection <SearchPathViewModel> _locationsObservable;
-        public ObservableCollection<SearchPathViewModel> Locations
-        {
-            get { return _locationsObservable; }
-        }
+        public PathCollectionViewModel IncludeLocationsVM { get; set; } = new PathCollectionViewModel();
+        public PathCollectionViewModel ExcludeLocationsVM { get; set; } = new PathCollectionViewModel();
 
         public SearchSetting SearchSetting { get; set; }
 
@@ -153,47 +150,48 @@ namespace DupTerminator.WPF.ViewModel
             }
         }
 
-        #region IDropable Members
+        //#region IDropable Members
 
-        void IDropable.Drop(object dropData)
-        {
-            var filepaths = dropData as string[];
-            if (filepaths != null)
-            {
-                foreach (string path in filepaths)
-                {
-                    if (!String.IsNullOrEmpty(path))
-                    {
-                        if (IOHelper.IsDirectory(path))
-                        {
-                            _locationsObservable.Add(new SearchPathViewModel
-                            {
-                                Path = path,
-                                IsDirectory = true,
-                                SearchInSubfolder = true
-                                //Image = IconReader.GetIcon(path, true);
-                            });
-                        }
-                        else if (System.IO.File.Exists(path))
-                        {
-                            _locationsObservable.Add(new SearchPathViewModel
-                            {
-                                Path = path,
-                                IsDirectory = false
-                            });
-                        }
-                    }
-                }
-            }
-        }
+        //void IDropable.Drop(object dropData)
+        //{
+        //    var filepaths = dropData as string[];
+        //    if (filepaths != null)
+        //    {
+        //        foreach (string path in filepaths)
+        //        {
+        //            if (!String.IsNullOrEmpty(path))
+        //            {
+        //                if (IOHelper.IsDirectory(path))
+        //                {
+        //                    _includeLocationsObservable.Add(new SearchPathViewModel
+        //                    {
+        //                        Path = path,
+        //                        IsDirectory = true,
+        //                        SearchInSubfolder = true
+        //                        //Image = IconReader.GetIcon(path, true);
+        //                    });
+        //                }
+        //                else if (System.IO.File.Exists(path))
+        //                {
+        //                    _includeLocationsObservable.Add(new SearchPathViewModel
+        //                    {
+        //                        Path = path,
+        //                        IsDirectory = false
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
 
-        #endregion
+        //#endregion
 
         internal void Save()
         {
             SettingsSerializable settingsSerializable = new SettingsSerializable();
-            settingsSerializable.Locations = _locationsObservable.ToArray();
+            settingsSerializable.IncludeLocations = IncludeLocationsVM.Locations.ToArray();
+            settingsSerializable.ExcludeLocations = ExcludeLocationsVM.Locations.ToArray();
             settingsSerializable.SearchSetting = SearchSetting;
             settingsSerializable.SelectedMode = SelectedMode.Name;
             SerializeHelper<SettingsSerializable>.Save(settingsSerializable, SETTINGS_FILE_NAME);

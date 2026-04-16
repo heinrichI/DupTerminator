@@ -11,6 +11,27 @@
     <UserControl.Resources>
         <converters:FileSizeConverter x:Key="fileSizeConverter"/>
         <converters:FileExtensionToIconConverter x:Key="IconConverter"/>
+
+        <!-- Стиль кнопки удаления -->
+        <Style x:Key="DeleteButtonStyle" TargetType="Button">
+            <Setter Property="Content" Value="🗑"/>
+            <Setter Property="Width" Value="22"/>
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="3,0,0,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ToolTip" Value="Удалить файл"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#FFDDDD"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -53,10 +74,12 @@
                             </Style>
                         </Grid.Style>
 
-                       <Grid Grid.Row="0" Grid.Column="0">
+                        <!-- ===== ПЕРВЫЙ ФАЙЛ (заголовок) ===== -->
+                        <Grid Grid.Row="0" Grid.Column="0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Image Grid.Column="0" Height="16"
                                    Source="{Binding First, Converter={StaticResource IconConverter}}"
@@ -82,6 +105,12 @@
                                     CommandParameter="{Binding First}" />
                                 </TextBox.InputBindings>
                             </TextBox>
+
+                            <!-- Кнопка удаления первого файла -->
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource DeleteButtonStyle}"
+                                    Command="{Binding DataContext.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding First}"/>
                         </Grid>
 
 
@@ -90,6 +119,7 @@
                                 <Label Content="/" />
                                 <Label Content="{Binding FirstContainerFilesCount}" />
                             </StackPanel>-->
+                        <!-- ===== EXPANDER ПЕРВОГО КОНТЕЙНЕРА ===== -->
                         <Expander Grid.Row="1" Grid.Column="0" 
                                   Header="{Binding FirstEqualCount}"
                                   IsExpanded="{Binding IsExpanded, ElementName=SecondExpander}" 
@@ -155,12 +185,13 @@
                             </Grid>
                         </Expander>
 
-
-                            <Grid Grid.Row="0" Grid.Column="1">
+                        <!-- ===== ВТОРОЙ ФАЙЛ (заголовок) ===== -->
+                        <Grid Grid.Row="0" Grid.Column="1">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             <Image  Grid.Column="0" Height="16"
                                    Source="{Binding Second, Converter={StaticResource IconConverter}}"
                                    Stretch="Uniform"
@@ -185,8 +216,16 @@
                                         CommandParameter="{Binding Second}" />
                                 </TextBox.InputBindings>
                             </TextBox>
+
+
+                            <!-- Кнопка удаления второго файла -->
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource DeleteButtonStyle}"
+                                    Command="{Binding DataContext.DeleteFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding Second}"/>
                         </Grid>
 
+                        <!-- ===== EXPANDER ВТОРОГО КОНТЕЙНЕРА ===== -->
                         <Expander Grid.Row="1" Grid.Column="1" 
                                   Header="{Binding SecondEqualCount}" 
                                   x:Name="SecondExpander" 

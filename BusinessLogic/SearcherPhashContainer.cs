@@ -24,11 +24,13 @@ namespace DupTerminator.BusinessLogic
 {
     public class SearcherPhashContainer : SearcherPhashBase, IDisposable
     {
-        private readonly ReadOnlyCollection<SearchPath> _locations;
+        private readonly ReadOnlyCollection<SearchPath> _includeLocations;
+        private readonly ReadOnlyCollection<SearchPath> _excludeLocations;
         private readonly PHashContainerSettings _pHashContainerSettings;
         private readonly Stopwatch _stopwatch = new();
         public SearcherPhashContainer(
-            ReadOnlyCollection<SearchPath> locations,
+            ReadOnlyCollection<SearchPath> includeLocations,
+            ReadOnlyCollection<SearchPath> excludeLocations,
             SearchSetting searchSetting,
             PHashContainerSettings pHashContainerSettings,
             IPhashRepository phashRepository,
@@ -39,15 +41,16 @@ namespace DupTerminator.BusinessLogic
             IMIHFactory mIHFactory,
             ILogger<SearcherMD5> logger) : base(searchSetting, pHashContainerSettings, mIHFactory, pHashService, phashRepository, archiveService, pdfService, windowsUtil, logger)
         {
-            _locations = locations;
+            _includeLocations = includeLocations;
+            _excludeLocations = excludeLocations;
             _pHashContainerSettings = pHashContainerSettings;
         }
 
-        public async Task<ReadOnlyCollection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
+        public async Task<Collection<DuplicateContainer>> StartAsync(IProgress<ProgressDto> progress, CancellationToken cancelToken)
         {
             _stopwatch.Restart();
 
-            List<PHashDuplicateGroup> duplicateGroups = await GetDuplicateGroupAsync(_locations, progress, cancelToken);
+            List<PHashDuplicateGroup> duplicateGroups = await GetDuplicateGroupAsync(_includeLocations, _excludeLocations, progress, cancelToken);
 
             _stopwatch.Stop();
             _logger.LogInformation($"ElapsedTime: {_stopwatch.Elapsed}");
@@ -118,7 +121,7 @@ namespace DupTerminator.BusinessLogic
                 .OrderByDescending(d => d.SizeOfEqualFiles)
                 .ToList();
 
-            return new ReadOnlyCollection<DuplicateContainer>(cts);
+            return new Collection<DuplicateContainer>(cts);
         }
 
 

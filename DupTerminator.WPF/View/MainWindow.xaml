@@ -18,8 +18,9 @@
         <converters:FileExtensionToIconConverter x:Key="IconConverter"/>
         <converters:FileSizeConverter x:Key="fileSizeConverter"/>
 
+        <!-- MD5Container and PhashContainer -->
         <DataTemplate DataType="{x:Type modes:MD5ContainerResult}">
-            <controls:DuplicateContainerControl ItemsSource="{Binding Result}"/>
+            <controls:DuplicateContainerControl ItemsSource="{Binding Result}" />
         </DataTemplate>
 
         <!-- Display for MD5Result -->
@@ -65,7 +66,9 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition />
                     <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" >
                     <CheckBox Content="Use DB" IsChecked="{Binding UseDB, UpdateSourceTrigger=PropertyChanged}"/>
@@ -74,12 +77,13 @@
                     <controls:SettingsControl Modes="{Binding Modes}" SelectedMode="{Binding SelectedMode, Mode=TwoWay}"></controls:SettingsControl>
                      <controls:FileExtensionsControl x:Name="fileExtensionsControl" Extensions="{Binding IncludePattern}"  Margin="10"/>
                 </StackPanel>
-                <Label Content="Paths:" Grid.Row="1"/>
+                <Label Content="Include paths:" Grid.Row="1"/>
                 <DataGrid MinHeight="100"
                             Grid.Row="2"
                             AutoGenerateColumns="False"
                             CanUserAddRows="True"
                             CanUserDeleteRows="True"
+                            DataContext="{Binding IncludeLocationsVM}"
                             ItemsSource="{Binding Locations, ValidatesOnNotifyDataErrors=True}"
                             IsSynchronizedWithCurrentItem="True"
                                >
@@ -116,9 +120,42 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-                <Button Grid.Row="3"
-                    Command="{Binding StartCommand}" 
-        Content="Start" />
+                    <Label Content="Exclude paths:" Grid.Row="3"/>
+                    <DataGrid MinHeight="100"
+                            Grid.Row="4"
+                            AutoGenerateColumns="False"
+                            CanUserAddRows="True"
+                            CanUserDeleteRows="True"
+                            DataContext="{Binding ExcludeLocationsVM}"
+                            ItemsSource="{Binding Locations, ValidatesOnNotifyDataErrors=True}"
+                            IsSynchronizedWithCurrentItem="True"
+                               >
+                        <i:Interaction.Behaviors>
+                            <behavior:FrameworkElementDropBehavior/>
+                        </i:Interaction.Behaviors>
+                        <DataGrid.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{DynamicResource mainwindow_tabControl_setting_pathmenu_deletecurrent}" 
+                                              Command="{Binding LocationsModel.DeleteCurrentLocationCommand}"
+                                              CommandParameter="{Binding}" />
+                            </ContextMenu>
+                        </DataGrid.ContextMenu>
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Binding="{Binding Path, Mode=TwoWay}"
+                                                        Header="{DynamicResource mainwindow_GridColumn_Path}"/>
+                            <DataGridTemplateColumn Header="{DynamicResource mainwindow_GridColumn_SearchSubfolders}" >
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding SearchInSubfolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                   Visibility="{Binding IsDirectory, Converter={StaticResource booleanToVisibilityConverter}}" 
+                                                   HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="5" Command="{Binding StartCommand}" Content="Start" />
                 </Grid>
                 </TabItem>
 
