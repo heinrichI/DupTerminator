@@ -76,7 +76,7 @@ namespace DupTerminator.BusinessLogic
                 container.Files = files3.Select(f => new SimpleFileInfo(f)).ToArray();
                 //container.FilesCount = container.Files.Length;
             }
-            else if (_archiveService.IsArchiveFile(_pHashSearchContainerSettings.Target))
+            else if (File.Exists(_pHashSearchContainerSettings.Target) && _archiveService.IsArchiveFile(_pHashSearchContainerSettings.Target))
             {
                 var fi = new FileInfo(_pHashSearchContainerSettings.Target);
                 if (fi.Exists)
