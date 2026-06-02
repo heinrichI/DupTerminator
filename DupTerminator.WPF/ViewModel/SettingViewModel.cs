@@ -76,7 +76,8 @@ namespace DupTerminator.WPF.ViewModel
             ExcludeLocationsVM.Locations = new ObservableCollection<SearchPathViewModel>(settingsSerializable.ExcludeLocations);
             SearchSetting = settingsSerializable.SearchSetting;
             SelectedMode = Modes.SingleOrDefault(m => m.Name == settingsSerializable.SelectedMode);
-            //Modes.Curr
+            if (SelectedMode == null)
+                SelectedMode = Modes.First();
         }
 
         //private void OnSearchCompleted(ReadOnlyCollection<ResultBase> results)

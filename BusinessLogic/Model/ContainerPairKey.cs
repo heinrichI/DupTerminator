@@ -27,12 +27,16 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = ac4.Files;
                 else if(first is PdfContainer pc3)
                     SecondContainerFiles = pc3.Files;
+                else if (first is ContainerInfo ci1)
+                    SecondContainerFiles = ci1.Files;
                 else if (first.Container is DirectoryContainer dfi)
                     SecondContainerFiles = dfi.Files;
                 else if(first.Container is ArchiveContainer ac)
                     SecondContainerFiles = ac.Files;
                 else if (first.Container is PdfContainer pc2)
                     SecondContainerFiles = pc2.Files;
+                else if (first.Container is ContainerInfo ci)
+                    SecondContainerFiles = ci.Files;
 
                 if (second is ArchiveContainer sac)
                     FirstContainerFiles = sac.Files;
@@ -40,12 +44,16 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi3.Files;
                 else if (second is PdfContainer pc3)
                     FirstContainerFiles = pc3.Files;
+                else if (second is ContainerInfo ci2)
+                    FirstContainerFiles = ci2.Files;
                 else if(second.Container is ArchiveContainer ac2)
                     FirstContainerFiles = ac2.Files;
                 else if (second.Container is DirectoryContainer dfi2)
                     FirstContainerFiles = dfi2.Files;
                 else if (second.Container is PdfContainer pc)
                     FirstContainerFiles = pc.Files;
+                else if (second.Container is ContainerInfo ci)
+                    FirstContainerFiles = ci.Files;
             }
             else
             {
@@ -58,12 +66,16 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi.Files;
                 else if(first is PdfContainer pc3)
                     FirstContainerFiles = pc3.Files;
+                else if (first is ContainerInfo ci1)
+                    FirstContainerFiles = ci1.Files;
                 else if(first.Container is ArchiveContainer ac)
                     FirstContainerFiles = ac.Files;
                 else if (first.Container is DirectoryContainer dfi2)
                     FirstContainerFiles = dfi2.Files;
                 else if (first.Container is PdfContainer pc)
                     FirstContainerFiles = pc.Files;
+                else if (first.Container is ContainerInfo ci)
+                    FirstContainerFiles = ci.Files;
 
                 if (second is ArchiveContainer ac3)
                     SecondContainerFiles = ac3.Files;
@@ -71,12 +83,16 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = dfi3.Files;
                 else if (second is PdfContainer pc3)
                     SecondContainerFiles = pc3.Files;
+                else if (second is ContainerInfo ci2)
+                    SecondContainerFiles = ci2.Files;
                 else if(second.Container is ArchiveContainer ac2)
                     SecondContainerFiles = ac2.Files;
                 else if (second.Container is DirectoryContainer dfi2)
                     SecondContainerFiles = dfi2.Files;
                 else if (second.Container is PdfContainer pc)
                     SecondContainerFiles = pc.Files;
+                else if (second.Container is ContainerInfo ci)
+                    SecondContainerFiles = ci.Files;
             }
             Debug.Assert(FirstContainerFiles is not null);
             Debug.Assert(SecondContainerFiles is not null);
@@ -84,14 +100,9 @@ namespace DupTerminator.BusinessLogic.Model
 
         public ContainerPairKey(ExtendedFileInfo first, ExtendedFileInfo second, ExtendedFileInfo firstChild, ExtendedFileInfo secondChild) : this(first, second)
         {
-            // Ensure the pair is ordered by path (to avoid duplicates)
-            if (string.Compare(first.Path, second.Path, StringComparison.Ordinal) > 0)
+            // The base constructor already handled swapping, use WasSwapped to assign files correctly
+            if (WasSwapped)
             {
-                // Swap if first.Path > second.Path
-                First = second;
-                Second = first;
-                WasSwapped = true;
-
                 if (firstChild is ArchiveContainer afi)
                     SecondContainerFiles = afi.Files;
                 else if (firstChild is DirectoryContainer dc)
@@ -107,9 +118,6 @@ namespace DupTerminator.BusinessLogic.Model
             }
             else
             {
-                First = first;
-                Second = second;
-
                 if (firstChild is ArchiveContainer ac)
                     FirstContainerFiles = ac.Files;
                 else if (firstChild is DirectoryContainer dc)

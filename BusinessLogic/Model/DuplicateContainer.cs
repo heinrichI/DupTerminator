@@ -14,8 +14,8 @@ namespace DupTerminator.BusinessLogic.Model
             Key = key;
             First = key.First;
             Second = key.Second;
-            FirstContainerFilesCount = Key.FirstContainerFiles.Length;
-            SecondContainerFilesCount = Key.SecondContainerFiles.Length;
+            FirstContainerFilesCount = Key.FirstContainerFiles?.Length ?? 0;
+            SecondContainerFilesCount = Key.SecondContainerFiles?.Length ?? 0;
             FirstEqualFiles = firstEqualFiles;
             SecondEqualFiles = secondEqualFiles;
             TheyThemselvesAreEqual = theyThemselvesAreEqual;
@@ -72,7 +72,6 @@ namespace DupTerminator.BusinessLogic.Model
         public SimpleFileInfo[] FirstDiffrentFiles { get; set; }
 
         public SimpleFileInfo[] SecondDiffrentFiles { get; set; }
-
 
         //public string Similarity { get; set; }
     }

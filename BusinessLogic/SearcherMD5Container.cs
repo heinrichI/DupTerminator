@@ -93,64 +93,197 @@ namespace DupTerminator.BusinessLogic
             //    .ToList();
 
 
-            Dictionary<ContainerPairKey, ContainerInfo> containers = new Dictionary<ContainerPairKey, ContainerInfo>();
+            Dictionary<ContainerPairKey, LocalContainerInfo> containers = new Dictionary<ContainerPairKey, LocalContainerInfo>();
+            
+            _logger.LogInformation($"🔍 [MD5Container] START PROCESSING {checksumDictionary.Count} CHECKSUM GROUPS");
+            
+            // Pass 1: record content matches (files inside containers)
             foreach (KeyValuePair<string, IList<ExtendedFileInfo>> pair in checksumDictionary)
             {
-                if (pair.Value.Count > 1)
+                if (pair.Value.Count <= 1)
+                    continue;
+
+                IList<ExtendedFileInfo> files = pair.Value;
+                for (int i = 0; i < files.Count; i++)
                 {
-                    // Get the list of ExtendedFileInfo for this checksum
-                    IList<ExtendedFileInfo> files = pair.Value;
-
-                    // Iterate through all pairs (i, j) where i < j
-                    for (int i = 0; i < files.Count; i++)
+                    for (int j = i + 1; j < files.Count; j++)
                     {
-                        for (int j = i + 1; j < files.Count; j++)
+                        ExtendedFileInfo first = files[i];
+                        ExtendedFileInfo second = files[j];
+                        
+                        // Debug.WriteLine($"📄 Pair found: #{pair.Key} FIRST={first.Path} SECOND={second.Path}");
+
+                        // Whether this "file" is itself a container (the archive/zip itself)
+                        bool firstIsContainer = first is ArchiveContainer || first is PdfContainer || first is DirectoryContainer || (first is DupTerminator.BusinessLogic.Model.ContainerInfo ci1 && ci1.Container != null);
+                        bool secondIsContainer = second is ArchiveContainer || second is PdfContainer || second is DirectoryContainer || (second is DupTerminator.BusinessLogic.Model.ContainerInfo ci2 && ci2.Container != null);
+
+                        // Skip files from the same container (by reference or by path)
+                        // But if they're different containers, process them
+                        if (firstIsContainer && secondIsContainer)
                         {
-                            ExtendedFileInfo first = files[i];
-                            ExtendedFileInfo second = files[j];
-
-                            //if (first.Container.Equals(second.Container))
-                            //    continue;
-
-                            //если это сами контейнеры
-                            ContainerPairKey key = new ContainerPairKey(first, second);
-                            if (containers.ContainsKey(key))
+                            // Both are containers themselves - this is a container-to-container comparison
+                            // Use the 4-arg constructor to track that both First and Second ARE the containers
+                            ContainerPairKey key = new ContainerPairKey(first, second, first, second);
+                            if (!containers.TryGetValue(key, out LocalContainerInfo info))
                             {
-                                containers[key].TheyThemselvesAreEqual = true;
-                                containers[key].FirstFiles.Clear();
-                                containers[key].SecondFiles.Clear();
+                                info = new LocalContainerInfo();
+                                containers[key] = info;
                             }
-
-                            ContainerPairKey containersKey = new ContainerPairKey(first.Container, second.Container, first, second);
-                            // Initialize the list if the key doesn't exist
-                            if (!containers.TryGetValue(containersKey, out ContainerInfo value))
+                            // Don't skip - we want to track container pairs even if they're equal
+                            if (info.FirstFiles.Count == 0 && info.SecondFiles.Count == 0)
                             {
-                                value = new ContainerInfo();
-                                containers[containersKey] = value;
+                                info.FirstFiles.Add(first);
+                                info.SecondFiles.Add(second);
                             }
+                            continue;
+                        }
 
-                            if (value.TheyThemselvesAreEqual)
-                                continue;
+                        // Skip files from the same container (by reference or by path) for non-container files
+                        if (firstIsContainer || secondIsContainer)
+                        {
+                            // One is container, one is file inside - skip for now
+                            continue;
+                        }
 
-                            // Assuming you want to add all files from the current checksum group (pair.Value)
-                            //value.AddRange([first, second]);
-                            if (!value.FirstFiles.Contains(first))
+                        // Regular files (not containers) - check same container filter
+                        if (first.Container == second.Container)
+                            continue;
+                        if (first.Container != null && second.Container != null && first.Container.Path == second.Container.Path)
+                            continue;
+
+                        // Pass the CONTAINERS, not the files, so ContainerPairKey knows which containers we're comparing
+                        ContainerPairKey containersKey = new ContainerPairKey(
+                            first.Container ?? first, 
+                            second.Container ?? second);
+                        // Initialize the list if the key doesn't exist
+                        if (!containers.TryGetValue(containersKey, out LocalContainerInfo value))
+                        {
+                            value = new LocalContainerInfo();
+                            containers[containersKey] = value;
+                        }
+
+                        // Assuming you want to add all files from the current checksum group (pair.Value)
+                        //value.AddRange([first, second]);
+                        if (!value.FirstFiles.Contains(first))
+                        {
+                            if (containersKey.WasSwapped)
                             {
-                                if (containersKey.WasSwapped)
-                                {
-                                    value.FirstFiles.Add(second);
-                                    value.SecondFiles.Add(first);
-                                }
-                                else
-                                {
-                                    value.FirstFiles.Add(first);
-                                    value.SecondFiles.Add(second);
-                                }
+                                value.FirstFiles.Add(second);
+                                value.SecondFiles.Add(first);
+                            }
+                            else
+                            {
+                                value.FirstFiles.Add(first);
+                                value.SecondFiles.Add(second);
                             }
                         }
                     }
                 }
             }
+
+            // Pass 2: mark containers that are themselves identical (same checksum)
+            foreach (KeyValuePair<string, IList<ExtendedFileInfo>> pair2 in checksumDictionary)
+            {
+                if (pair2.Value.Count <= 1)
+                    continue;
+
+                IList<ExtendedFileInfo> files2 = pair2.Value;
+                for (int i2 = 0; i2 < files2.Count; i2++)
+                {
+                    for (int j2 = i2 + 1; j2 < files2.Count; j2++)
+                    {
+                        ExtendedFileInfo first = files2[i2];
+                        ExtendedFileInfo second = files2[j2];
+
+                        // DEBUG LOG FOR TARGET FILES
+                        if (first.Path.Contains("Django - Zorro v01") || second.Path.Contains("Django - Zorro v01"))
+                        {
+                            _logger.LogInformation($"🔍 DEBUG TARGET FILE: {first.Path}");
+                            _logger.LogInformation($"   Type: {first.GetType().Name}");
+                            _logger.LogInformation($"   Is ArchiveContainer: {first is ArchiveContainer}");
+                            _logger.LogInformation($"   Is ContainerInfo: {first is DupTerminator.BusinessLogic.Model.ContainerInfo}");
+                            _logger.LogInformation($"   Has Files: {(first as DupTerminator.BusinessLogic.Model.ContainerInfo)?.Files?.Length ?? 0} files");
+                            _logger.LogInformation($"   Checksum: {pair2.Key}");
+                        }
+
+                        // Only handle cases where the files ARE containers themselves
+                        if (!(first is ArchiveContainer || first is PdfContainer || first is DirectoryContainer))
+                        {
+                            // Also handle generic ContainerInfo if it has Files
+                            if (!(first is DupTerminator.BusinessLogic.Model.ContainerInfo ci) || ci.Files == null || ci.Files.Length == 0)
+                                continue;
+                        }
+
+                        // When first and second ARE containers, use 4-arg constructor with them as both container and child
+                        ContainerPairKey key = new ContainerPairKey(first, second, first, second);
+                        if (!containers.TryGetValue(key, out LocalContainerInfo info))
+                        {
+                            info = new LocalContainerInfo();
+                            containers[key] = info;
+                        }
+                        info.TheyThemselvesAreEqual = true;
+                        info.FirstFiles.Clear();
+                        info.SecondFiles.Clear();
+
+                        _logger.LogDebug($"TheyThemselvesAreEqual: {first.Path} == {second.Path}");
+                    }
+                }
+            }
+
+            // PASS 2.5: Auto detect full container matches when all files are equal
+            _logger.LogInformation($"🔍 [MD5Container] PASS 2.5: Auto detecting 100% identical containers");
+            
+            foreach (var containerEntry in containers.ToList())
+            {
+                if (containerEntry.Value.TheyThemselvesAreEqual)
+                    continue;
+
+                int totalFilesFirst = containerEntry.Key.FirstContainerFiles?.Length ?? 0;
+                int totalFilesSecond = containerEntry.Key.SecondContainerFiles?.Length ?? 0;
+                int equalFilesCount = containerEntry.Value.FirstFiles.Count;
+
+                // If ALL files from both containers are matching - containers themselves are identical
+                if (equalFilesCount == totalFilesFirst && equalFilesCount == totalFilesSecond && totalFilesFirst > 0)
+                {
+                    containerEntry.Value.TheyThemselvesAreEqual = true;
+                    containerEntry.Value.FirstFiles.Clear();
+                    containerEntry.Value.SecondFiles.Clear();
+                    
+                    _logger.LogInformation($"✅ Auto detected identical containers: {containerEntry.Key.First.Path} == {containerEntry.Key.Second.Path} ({equalFilesCount} files)");
+                }
+            }
+
+            Debug.Assert(containers.All(c => c.Value.FirstFiles.Count == c.Value.SecondFiles.Count), "All entries must have equal FirstFiles and SecondFiles count");
+
+            // PASS 3: Remove all child file matches when containers themselves are 100% identical
+            _logger.LogInformation($"🔍 [MD5Container] PASS 3: Removing child entries for fully identical containers");
+            
+            var fullyIdenticalContainers = containers
+                .Where(c => c.Value.TheyThemselvesAreEqual)
+                .Select(c => c.Key)
+                .ToList();
+
+            int removedCount = 0;
+            foreach (var identicalPair in fullyIdenticalContainers)
+            {
+                var keysToRemove = containers
+                    .Where(kvp => 
+                        !kvp.Value.TheyThemselvesAreEqual &&
+                        (IsInsideContainer(kvp.Key.First, identicalPair.First) && IsInsideContainer(kvp.Key.Second, identicalPair.Second) ||
+                         IsInsideContainer(kvp.Key.First, identicalPair.Second) && IsInsideContainer(kvp.Key.Second, identicalPair.First))
+                    )
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                foreach (var key in keysToRemove)
+                {
+                    containers.Remove(key);
+                    removedCount++;
+                }
+            }
+
+            _logger.LogInformation($"✅ Removed {removedCount} child file entries for fully identical containers");
+
 
             //HashSet<ContainerPairKey> forRemove = new ();
             //foreach (var container in containers)
@@ -177,11 +310,11 @@ namespace DupTerminator.BusinessLogic
                 .Select(c => new DuplicateContainer(c.Key, c.Value.FirstFiles, c.Value.SecondFiles, c.Value.TheyThemselvesAreEqual));
 
             if (_modeSettings.ShowOnlyIfAllFilesInContainerEqual)
-                cts = cts.Where(c => c.FirstEqualCount == c.Key.FirstContainerFiles.Length || c.SecondEqualCount == c.Key.SecondContainerFiles.Length);
+                cts = cts.Where(c => c.FirstEqualCount == (c.Key.FirstContainerFiles?.Length ?? 0) || c.SecondEqualCount == (c.Key.SecondContainerFiles?.Length ?? 0));
 
-            cts = cts.OrderByDescending(d => d.SizeOfEqualFiles);
+            var ctsList = cts.OrderByDescending(d => d.SizeOfEqualFiles).ToList();
 
-            foreach (DuplicateContainer item in cts)
+            foreach (DuplicateContainer item in ctsList)
             {
                 // Sort by Name
                 //item.FirstEqualFiles.Sort((s1, s2) => s1.Name.CompareTo(s2.Name));
@@ -203,7 +336,7 @@ namespace DupTerminator.BusinessLogic
 
 
 
-            var filteredList = cts.ToList();
+            var filteredList = ctsList;
 
             // Удаляем пары, которые покрываются более крупными контейнерами
             for (int i = filteredList.Count - 1; i >= 0; i--)
@@ -225,6 +358,12 @@ namespace DupTerminator.BusinessLogic
 
                 if (isCovered)
                     filteredList.RemoveAt(i);
+            }
+
+            Debug.WriteLine($"✅ FINAL RESULTS: Found {filteredList.Count} duplicate container pairs");
+            foreach (var item in filteredList)
+            {
+                Debug.WriteLine($"✅ DUPLICATE: [{item.Key.First.Path}] <==> [{item.Key.Second.Path}] (TheyThemselvesAreEqual: {item.TheyThemselvesAreEqual}, Files: {item.FirstEqualCount})");
             }
 
             return new Collection<DuplicateContainer>(filteredList);
@@ -314,6 +453,11 @@ namespace DupTerminator.BusinessLogic
             //return duplicates2;
         }
 
+        bool IsInsideContainer(ExtendedFileInfo file, ExtendedFileInfo container)
+        {
+            return file.Equals(container) || file.GetAncestorContainers().Contains(container);
+        }
+
         bool IsCoveredByContainerPair(DuplicateContainer child, DuplicateContainer parent)
         {
             // Проверяем, что child.First находится внутри parent.First (или совпадает)
@@ -388,7 +532,7 @@ namespace DupTerminator.BusinessLogic
             _mres.Set();
         }
 
-        class ContainerInfo()
+        class LocalContainerInfo
         {
             public SortedSet<ExtendedFileInfo> FirstFiles = new SortedSet<ExtendedFileInfo>();
 
