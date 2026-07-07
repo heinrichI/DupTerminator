@@ -71,12 +71,37 @@ namespace DupTerminator.BusinessLogic
             //    if (paths.Count(f => f == path) > 1)
             //        throw new Exception("Что-то не так");
             //}
-            //var s = JsonSerializer.Serialize(checksumDictionary, new JsonSerializerOptions
-            //{
-            //    // This allows all Unicode characters to remain unescaped
-            //    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            //    WriteIndented = true
-            //});
+#if FALSE
+            SerializationHelpers.SerializeChecksumDictionaryToFile(checksumDictionary, "Zorro.json");
+
+            // Verify all file types are preserved after serialization/deserialization
+            var json = File.ReadAllText("Zorro.json");
+            var deserialized = SerializationHelpers.DeserializeChecksumDictionary(json);
+            Debug.Assert(checksumDictionary.Count == deserialized.Count, "Entry count mismatch");
+            int totalMismatchCount = 0;
+            int totalFileCount = 0;
+            foreach (var kvp in checksumDictionary)
+            {
+                var originalFiles = kvp.Value;
+                if (!deserialized.TryGetValue(kvp.Key, out var deserializedFiles))
+                {
+                    Debug.WriteLine($"❌ Missing key in deserialized: {kvp.Key}");
+                    continue;
+                }
+                Debug.Assert(originalFiles.Count == deserializedFiles.Count, $"File count mismatch for key {kvp.Key}");
+                for (int j = 0; j < originalFiles.Count; j++)
+                {
+                    totalFileCount++;
+                    if (originalFiles[j].GetType() != deserializedFiles[j].GetType())
+                    {
+                        Debug.WriteLine($"❌ Type mismatch for key {kvp.Key}, file {j}: expected {originalFiles[j].GetType()}, got {deserializedFiles[j].GetType()}");
+                        totalMismatchCount++;
+                    }
+                }
+            }
+            Debug.Assert(totalMismatchCount == 0, $"Serialization/deserialization type mismatch for {totalMismatchCount} file(s)");
+            Debug.WriteLine($"✅ Type check passed for all {totalFileCount} files");
+#endif
 
 
             //var t = Resolve(checksumDictionary);
@@ -110,7 +135,7 @@ namespace DupTerminator.BusinessLogic
                     {
                         ExtendedFileInfo first = files[i];
                         ExtendedFileInfo second = files[j];
-                        
+
                         // Debug.WriteLine($"📄 Pair found: #{pair.Key} FIRST={first.Path} SECOND={second.Path}");
 
                         // Whether this "file" is itself a container (the archive/zip itself)
@@ -195,7 +220,6 @@ namespace DupTerminator.BusinessLogic
                         ExtendedFileInfo first = files2[i2];
                         ExtendedFileInfo second = files2[j2];
 
-                        // DEBUG LOG FOR TARGET FILES
                         if (first.Path.Contains("Django - Zorro v01") || second.Path.Contains("Django - Zorro v01"))
                         {
                             _logger.LogInformation($"🔍 DEBUG TARGET FILE: {first.Path}");

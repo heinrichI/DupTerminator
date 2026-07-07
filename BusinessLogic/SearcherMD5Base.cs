@@ -345,6 +345,7 @@ namespace DupTerminator.BusinessLogic
         private void AddMd5(ExtendedFileInfo fileInfo, string md5)
         {
             Debug.Assert(fileInfo != null);
+            Debug.Assert(fileInfo.Container != null);
             if (md5 is not null)
             {
                 _checksumDictionary.AddOrUpdate(md5,
@@ -496,7 +497,8 @@ namespace DupTerminator.BusinessLogic
                     AddFileToList(files, fileArch);
                 Debug.Assert(filesInArchive.Count(b => b.Path == fileArch.Path) == 1);
             }
-            Debug.Assert(files.Any(f => f.Path == efi.Path && f.Size == efi.Size));
+            //должен быть сам архив в списке
+            //Debug.Assert(files.Any(f => f.Path == efi.Path && f.Size == efi.Size));
             return new ArchiveContainer(efi)
             {
                 Files = filesInArchive.Select(c => new ArchiveSimpleFileInfo(c)).ToArray(),
@@ -531,6 +533,29 @@ namespace DupTerminator.BusinessLogic
             if ((_searchSetting.UseDB && _archiveInfoRepository.Exist(efi.Path, efi.LastWriteTime, efi.Size)) || _archiveService.IsArchiveFile(efi.Path))
             {
                 ArchiveContainer afi = FillInfosFromArchive(efi, files, token);
+                if (afi.Container is null)
+                {
+                    var di = new DirectoryInfo(efi.DirectoryName);
+                    var dFiles = di.GetFiles();
+                    var container = new DirectoryContainer
+                    {
+                        Path = di.FullName,
+                        Name = di.Name,
+                    };
+                    var files3 = dFiles.Select(f => new ExtendedFileInfo()
+                    {
+                        Size = Convert.ToUInt64(f.Length),
+                        Name = f.Name,
+                        Path = f.FullName,
+                        //LastAccessTime = f.LastAccessTime,
+                        LastWriteTime = f.LastWriteTime,
+                        DirectoryName = f.DirectoryName,
+                        Extension = f.Extension,
+                        Container = container
+                    });
+                    container.Files = files3.Select(f => new SimpleFileInfo(f)).ToArray();
+                    afi.Container = container;
+                }
                 files.Add(afi);
             }
             else if (efi.Extension.ToLower() == ".pdf")

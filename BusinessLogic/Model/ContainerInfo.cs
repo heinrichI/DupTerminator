@@ -13,7 +13,9 @@ namespace DupTerminator.BusinessLogic.Model
     [JsonDerivedType(typeof(DirectoryContainer), "directoryContainer")]
     public class ContainerInfo : ExtendedFileInfo
     {
+        [JsonInclude]
         public SimpleFileInfo[] Files { get; set; }
-        public int FilesCount => Files.Length;
+        [JsonIgnore]
+        public int FilesCount => Files?.Length ?? 0;
     }
 }
