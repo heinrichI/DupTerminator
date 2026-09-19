@@ -22,7 +22,7 @@ namespace DupTerminator.Test
             string name,
             ulong size,
             string checksum,
-            ContainerInfo? container = null,
+            IContainerInfo? container = null,
             int containerFilesCount = 0)
         {
             var file = new ExtendedFileInfo
@@ -34,17 +34,17 @@ namespace DupTerminator.Test
                 LastWriteTime = DateTime.UtcNow,
                 DirectoryName = System.IO.Path.GetDirectoryName(path),
                 Extension = System.IO.Path.GetExtension(path),
-                Container = container ?? new ContainerInfo { Path = string.Empty, Name = string.Empty, Files = Array.Empty<SimpleFileInfo>() },
+                Container = container ?? new DirectoryContainer { Path = string.Empty, Name = string.Empty, Files = Array.Empty<SimpleFileInfo>() },
             };
             return file;
         }
 
-        public static ContainerInfo CreateContainer(
+        public static IContainerInfo CreateContainer(
             string path,
             string name,
             ulong size = 0)
         {
-            return new ContainerInfo
+            return new DirectoryContainer
             {
                 Path = path,
                 Name = name,
@@ -135,7 +135,7 @@ namespace DupTerminator.Test
                     if (el.TryGetProperty(nameof(ExtendedFileInfo.Container), out var c) &&
                         c.ValueKind == JsonValueKind.Object)
                     {
-                        file.Container = new ContainerInfo
+                        file.Container = new DirectoryContainer
                         {
                             LastWriteTime = Prop<DateTime>(c, nameof(ExtendedFileInfo.LastWriteTime)),
                             DirectoryName = Prop<string>(c, nameof(ExtendedFileInfo.DirectoryName)),
@@ -169,10 +169,12 @@ namespace DupTerminator.Test
                 foreach (var file in kvp.Value)
                 {
                     var c = file.Container;
-                    if (c == null || string.IsNullOrEmpty(c.Path)) continue;
+                    if (c == null) continue;
+                    var cEfi = (ExtendedFileInfo)c;
+                    if (string.IsNullOrEmpty(cEfi.Path)) continue;
 
-                    if (!map.TryGetValue(c.Path, out var list))
-                        map[c.Path] = list = new List<SimpleFileInfo>();
+                    if (!map.TryGetValue(cEfi.Path, out var list))
+                        map[cEfi.Path] = list = new List<SimpleFileInfo>();
                     list.Add(new SimpleFileInfo(file));
                 }
 
@@ -181,7 +183,8 @@ namespace DupTerminator.Test
                 {
                     var c = file.Container;
                     if (c == null) continue;
-                    c.Files = map.TryGetValue(c.Path, out var list) ? list.ToArray() : Array.Empty<SimpleFileInfo>();
+                    var cEfi = (ExtendedFileInfo)c;
+                    c.Files = map.TryGetValue(cEfi.Path, out var list) ? list.ToArray() : Array.Empty<SimpleFileInfo>();
                 }
         }
     }

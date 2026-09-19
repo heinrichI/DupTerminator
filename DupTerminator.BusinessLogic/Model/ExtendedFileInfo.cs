@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -52,7 +52,7 @@ namespace DupTerminator.BusinessLogic.Model
             set => _extension = value is null ? null : string.Intern(value);
         }
 
-        public ContainerInfo Container { get; set; }
+        public IContainerInfo Container { get; set; }
 
         //public IEnumerable<ExtendedFileInfo> GetAllParentsContainers()
         //{
@@ -70,8 +70,8 @@ namespace DupTerminator.BusinessLogic.Model
             var current = this.Container;
             while (current != null)
             {
-                yield return current;
-                current = current.Container;
+                yield return (ExtendedFileInfo)current;
+                current = ((ExtendedFileInfo)current).Container;
             }
         }
 

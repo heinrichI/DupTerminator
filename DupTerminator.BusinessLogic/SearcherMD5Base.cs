@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -213,20 +213,14 @@ namespace DupTerminator.BusinessLogic
                     });
 
 
-                    if (data.All(d => d is ArchiveFileInfo || d is ArchiveContainer))
+                    if (data.All(d => d is IArchiveItem))
                     {
                         HashSet<string> added = new HashSet<string>();
                         foreach (var fileInfo in data)
                         {
+                            var archiveItem = (IArchiveItem)fileInfo;
                             string md5 = string.Empty;
-                            //DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                            DateTime lastWriteTime;
-                            if (fileInfo is ArchiveContainer)
-                                lastWriteTime = fileInfo.LastWriteTime;
-                            else if (fileInfo is ArchiveFileInfo afi && afi.ArchiveInArchive)
-                                lastWriteTime = afi.Container.Container.LastWriteTime;
-                            else
-                                lastWriteTime = fileInfo.Container.LastWriteTime;
+                            DateTime lastWriteTime = archiveItem.GetContainerLastWriteTime();
                             if (_searchSetting.UseDB)
                             {
                                 md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
@@ -237,7 +231,8 @@ namespace DupTerminator.BusinessLogic
                                 _logger.LogDebug($"Not found md5 for {fileInfo.Path}, {lastWriteTime}, {fileInfo.Size}");
                                 try
                                 {
-                                    var checkSums = _archiveService.CalculateHashesInArchive<string>(data.Cast<ArchiveFileInfo>().ToArray(), HashHelper.CreateMD5Checksum);
+                                    var archiveFiles = data.OfType<ArchiveFileInfo>().ToArray();
+                                    var checkSums = _archiveService.CalculateHashesInArchive<string>(archiveFiles, HashHelper.CreateMD5Checksum);
                                     if (checkSums.Length != data.Length)
                                         throw new Exception("Длины не совпадают!");
                                     foreach (var checksum in checkSums)
@@ -280,7 +275,7 @@ namespace DupTerminator.BusinessLogic
                         {
                             string md5 = string.Empty;
                             //DateTime lastWriteTime = fileInfo is ArchiveFileInfo || fileInfo is PdfFileInfo ? fileInfo.Container.LastWriteTime : fileInfo.LastWriteTime;
-                            DateTime lastWriteTime = fileInfo.Container.LastWriteTime;
+                            DateTime lastWriteTime = ((ExtendedFileInfo)fileInfo.Container).LastWriteTime;
                             if (_searchSetting.UseDB)
                             {
                                 md5 = _md5Repository.ReadMD5(fileInfo.Path, lastWriteTime, fileInfo.Size);
@@ -373,7 +368,7 @@ namespace DupTerminator.BusinessLogic
             var groups = foundedFiles.GroupBy(fi => fi.Size)
                 .Where(group => group.Count() > 1)
                 .SelectMany(g => g)
-                .GroupBy(gg => gg is ArchiveFileInfo agg && agg.ArchiveInArchive ? gg.Container.Container : gg.Container).ToArray();
+                .GroupBy(gg => gg is ArchiveFileInfo agg && agg.ArchiveInArchive ? (IContainerInfo)((ExtendedFileInfo)gg.Container).Container : gg.Container).ToArray();
             foreach (var group in groups)
             {
                 if (cancelToken.IsCancellationRequested)

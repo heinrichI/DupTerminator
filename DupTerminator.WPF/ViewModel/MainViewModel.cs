@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -178,11 +178,11 @@ namespace DupTerminator.WPF.ViewModel
                                 UseShellExecute = true
                             });
                         }
-                        else if (efi.Container is not null && System.IO.File.Exists(efi.Container.Path))
+                        else if (efi.Container is not null && System.IO.File.Exists(((ExtendedFileInfo)efi.Container).Path))
                         {
                             ArchiveFileInfo afi2 = new ArchiveFileInfo
                             {
-                                ArchivePath = efi.Container.Path,
+                                ArchivePath = ((ExtendedFileInfo)efi.Container).Path,
                                 Path = efi.Path,
                                 Name = efi.Name
                             };
@@ -198,11 +198,11 @@ namespace DupTerminator.WPF.ViewModel
                                 dialog.Show();
                             }
                         }
-                        else if (System.IO.Directory.Exists(efi.Container.Path))
+                        else if (System.IO.Directory.Exists(((ExtendedFileInfo)efi.Container).Path))
                         {
                             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
                             {
-                                FileName = efi.Container.Path,
+                                FileName = ((ExtendedFileInfo)efi.Container).Path,
                                 UseShellExecute = true
                             });
                         }

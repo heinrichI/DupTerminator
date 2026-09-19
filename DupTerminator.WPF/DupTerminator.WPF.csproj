@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DupTerminator.BusinessLogic\DupTerminator.BusinessLogic.csproj" />
     <ProjectReference Include="..\DupTerminator.DataBase\DupTerminator.DataBase.csproj" />
     <ProjectReference Include="..\DupTerminator.ImageHash\DupTerminator.ImageHash.csproj" />
     <ProjectReference Include="..\DupTerminator.Pdf\DupTerminator.Pdf.csproj" />

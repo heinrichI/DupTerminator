@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -390,15 +390,15 @@ namespace DupTerminator.BusinessLogic
 
                 if (afi.ArchiveInArchive)
                 {
-                    if (afi.Container.Container != null && afi.Container.Container.LastWriteTime != DateTime.MinValue)
-                        return afi.Container.Container.LastWriteTime;
+                    if (((ExtendedFileInfo)afi.Container).Container != null && ((ExtendedFileInfo)((ExtendedFileInfo)afi.Container).Container).LastWriteTime != DateTime.MinValue)
+                        return ((ExtendedFileInfo)((ExtendedFileInfo)afi.Container).Container).LastWriteTime;
                     else
                     {
-                        return afi.Container.Container.Container.LastWriteTime;
+                        return ((ExtendedFileInfo)((ExtendedFileInfo)((ExtendedFileInfo)afi.Container).Container).Container).LastWriteTime;
                     }
                 }
                 else
-                    return item.Item1.Container.LastWriteTime;
+                    return ((ExtendedFileInfo)item.Item1.Container).LastWriteTime;
             }
             return item.Item1.LastWriteTime;
         }

@@ -21,11 +21,13 @@ namespace DupTerminator.WPF.Controls
     public class ImageListViewModel : PropertyChangedBase
     {
         private readonly IImageProvider _imageLoadingService;
+        private readonly IThumbnailProvider _thumbnailProvider;
         private readonly IProgressDialogService _progressDialogService;
 
-        public ImageListViewModel(IImageProvider imageLoadingService, IProgressDialogService progressDialogService)
+        public ImageListViewModel(IImageProvider imageLoadingService, IThumbnailProvider thumbnailProvider, IProgressDialogService progressDialogService)
         {
             _imageLoadingService = imageLoadingService;
+            _thumbnailProvider = thumbnailProvider;
             _progressDialogService = progressDialogService;
         }
 
@@ -36,7 +38,7 @@ namespace DupTerminator.WPF.Controls
             Images.Clear();
             foreach (var image in images)
             {
-                Images.Add(new ImageItemViewModel(image, _imageLoadingService));
+                Images.Add(new ImageItemViewModel(image, _thumbnailProvider));
             }
         }
 
@@ -73,6 +75,17 @@ namespace DupTerminator.WPF.Controls
 
                             // Show dialog and wait for either worker completion or dialog close
                             dialog.Show();
+                        }
+                    }
+                    else if (arg is ExtendedFileInfo efi)
+                    {
+                        if (System.IO.File.Exists(efi.Path))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = efi.Path,
+                                UseShellExecute = true
+                            });
                         }
                     }
                 }, arg => arg != null));

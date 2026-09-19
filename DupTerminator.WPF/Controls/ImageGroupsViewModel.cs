@@ -15,13 +15,13 @@ namespace DupTerminator.WPF.ViewModel
     public class ImageGroupsViewModel : PropertyChangedBase
     {
         private readonly ObservableCollection<ImageGroupViewModel> _imageGroups = new ObservableCollection<ImageGroupViewModel>();
-        private readonly IImageProvider _imageLoadingService;
+        private readonly IThumbnailProvider _thumbnailProvider;
 
         public ReadOnlyObservableCollection<ImageGroupViewModel> ImageGroups { get; }
 
-        public ImageGroupsViewModel(IImageProvider imageLoadingService)
+        public ImageGroupsViewModel(IThumbnailProvider thumbnailProvider)
         {
-            _imageLoadingService = imageLoadingService;
+            _thumbnailProvider = thumbnailProvider;
             ImageGroups = new ReadOnlyObservableCollection<ImageGroupViewModel>(_imageGroups);
 
             ViewFullSizeCommand = new RelayCommand((_) => OnViewFullSize());
@@ -35,7 +35,7 @@ namespace DupTerminator.WPF.ViewModel
 
                 foreach (var group in duplicateGroups)
                 {
-                    _imageGroups.Add(new ImageGroupViewModel(group, _imageLoadingService));
+                    _imageGroups.Add(new ImageGroupViewModel(group, _thumbnailProvider));
                 }
             //});
         }

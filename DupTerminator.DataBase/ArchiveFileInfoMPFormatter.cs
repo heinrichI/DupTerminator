@@ -66,28 +66,28 @@ namespace DupTerminator.DataBase
                     throw new NotSupportedException("Контейнер неизвестен");
                 }
 
-                Debug.Assert(value.Container.Path != null);
-                writer.WriteString(value.Container.Path);
-                writer.WriteString(value.Container.Name);
-                writer.WriteVarInt(value.Container.Size);
-                writer.WriteVarInt(value.Container.LastWriteTime.Ticks);
-                writer.WriteString(value.Container.DirectoryName);
-                writer.WriteString(value.Container.Extension);
+                Debug.Assert(((ExtendedFileInfo)value.Container).Path != null);
+                writer.WriteString(((ExtendedFileInfo)value.Container).Path);
+                writer.WriteString(((ExtendedFileInfo)value.Container).Name);
+                writer.WriteVarInt(((ExtendedFileInfo)value.Container).Size);
+                writer.WriteVarInt(((ExtendedFileInfo)value.Container).LastWriteTime.Ticks);
+                writer.WriteString(((ExtendedFileInfo)value.Container).DirectoryName);
+                writer.WriteString(((ExtendedFileInfo)value.Container).Extension);
                 //writer.WriteVarInt(value.Container.FilesCount);
 
 
                 //Container files array
                 //WriteContainerFiles(writer, value.Container.Files);
-                if (value.Container.Files == null)
+                if (((IContainerInfo)value.Container).Files == null)
                 {
                     writer.WriteNullCollectionHeader();
                 }
                 else
                 {
                     //var formatter = MemoryPackFormatterProvider.GetFormatter<SimpleFileInfo>();
-                    //writer.WriteArray(value.Container.Files);
-                    writer.WriteCollectionHeader(value.Container.Files.Length);
-                    foreach (SimpleFileInfo item in value.Container.Files)
+                    //writer.WriteArray(((IContainerInfo)value.Container).Files);
+                    writer.WriteCollectionHeader(((IContainerInfo)value.Container).Files.Length);
+                    foreach (SimpleFileInfo item in ((IContainerInfo)value.Container).Files)
                     {
                         //writer.WriteObjectHeader(3);
                         writer.WriteString(item.Path);
@@ -97,7 +97,7 @@ namespace DupTerminator.DataBase
                 }
 
 
-                if (value.Container.Container == null)
+                if (((ExtendedFileInfo)value.Container).Container == null)
                 {
                     writer.WriteNullObjectHeader();
                 }
@@ -106,12 +106,13 @@ namespace DupTerminator.DataBase
                     // Wrap manually serialized object in a header (6 fields)
                     writer.WriteObjectHeader(6);
 
-                    if (value.Container.Container is ArchiveContainer)
+                    var innerContainer = (ExtendedFileInfo)((ExtendedFileInfo)value.Container).Container;
+                    if (innerContainer is ArchiveContainer)
                     {
                         //writer.WriteUnionHeader(ARCHIVE_CONTAINER_TAG); // the union header is the key to polymorphism!
                         writer.WriteVarInt(ARCHIVE_CONTAINER_TAG);
                     }
-                    else if (value.Container.Container is DirectoryContainer)
+                    else if (innerContainer is DirectoryContainer)
                     {
                         //writer.WriteUnionHeader(DIRECTORY_CONTAINER_TAG);
                         writer.WriteVarInt(DIRECTORY_CONTAINER_TAG);
@@ -121,26 +122,26 @@ namespace DupTerminator.DataBase
                         throw new NotSupportedException("Контейнер неизвестен");
                     }
 
-                    writer.WriteString(value.Container.Container.Path);
-                    writer.WriteString(value.Container.Container.Name);
-                    writer.WriteVarInt(value.Container.Container.Size);
-                    writer.WriteVarInt(value.Container.Container.LastWriteTime.Ticks);
-                    writer.WriteString(value.Container.Container.DirectoryName);
-                    writer.WriteString(value.Container.Container.Extension);
-                    //writer.WriteVarInt(value.Container.Container.FilesCount);
+                    writer.WriteString(innerContainer.Path);
+                    writer.WriteString(innerContainer.Name);
+                    writer.WriteVarInt(innerContainer.Size);
+                    writer.WriteVarInt(innerContainer.LastWriteTime.Ticks);
+                    writer.WriteString(innerContainer.DirectoryName);
+                    writer.WriteString(innerContainer.Extension);
+                    //writer.WriteVarInt(innerContainer.FilesCount);
 
-                    if (value.Container.Container.Files == null)
+                    if (((IContainerInfo)innerContainer).Files == null)
                     {
                         writer.WriteNullCollectionHeader();
                     }
                     //else
                     //{
-                    //    writer.WriteArray(value.Container.Container.Files);
+                    //    writer.WriteArray(innerContainer.Files);
                     //}
                     else
                     {
-                        writer.WriteCollectionHeader(value.Container.Container.Files.Length);
-                        foreach (var item in value.Container.Container.Files)
+                        writer.WriteCollectionHeader(((IContainerInfo)innerContainer).Files.Length);
+                        foreach (var item in ((IContainerInfo)innerContainer).Files)
                         {
                             //writer.WriteObjectHeader(3);
                             writer.WriteString(item.Path);
@@ -247,7 +248,7 @@ namespace DupTerminator.DataBase
 
                 if (!reader.TryReadObjectHeader(out var container2Count))
                 {
-                    value.Container.Container = null;
+                    ((ExtendedFileInfo)value.Container).Container = null;
                 }
                 else
                 {
@@ -260,7 +261,7 @@ namespace DupTerminator.DataBase
                     }
                     if (tag2 == ARCHIVE_CONTAINER_TAG)
                     {
-                        value.Container.Container = new ArchiveContainer
+                        ((ExtendedFileInfo)value.Container).Container = new ArchiveContainer
                         {
                             Path = reader.ReadString(),
                             Name = reader.ReadString(),
@@ -273,7 +274,7 @@ namespace DupTerminator.DataBase
                     }
                     else if (tag2 == DIRECTORY_CONTAINER_TAG)
                     {
-                        value.Container.Container = new DirectoryContainer
+                        ((ExtendedFileInfo)value.Container).Container = new DirectoryContainer
                         {
                             Path = reader.ReadString(),
                             Name = reader.ReadString(),
@@ -303,7 +304,7 @@ namespace DupTerminator.DataBase
                             });
                         }
 
-                        value.Container.Container.Files = list.ToArray();
+                        ((IContainerInfo)((ExtendedFileInfo)value.Container).Container).Files = list.ToArray();
                     }
                 }
             }

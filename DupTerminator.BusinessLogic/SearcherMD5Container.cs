@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -71,10 +71,24 @@ namespace DupTerminator.BusinessLogic
             //    if (paths.Count(f => f == path) > 1)
             //        throw new Exception("Что-то не так");
             //}
-#if FALSE
+#if true
+            // Validate ArchiveFileInfo fields before serialization
+            foreach (var kvp in checksumDictionary)
+            {
+                for (int i = 0; i < kvp.Value.Count; i++)
+                {
+                    if (kvp.Value[i] is ArchiveFileInfo afi)
+                    {
+                        Debug.Assert(afi.ArchivePath is not null, $"ArchivePath is null for file {afi.Name} in group {kvp.Key}");
+                        Debug.Assert(afi.ArchiveExtension is not null, $"ArchiveExtension is null for file {afi.Name} in group {kvp.Key}");
+                        Debug.Assert(afi.ArchiveFileName is not null, $"ArchiveFileName is null for file {afi.Name} in group {kvp.Key}");
+                    }
+                }
+            }
+
             SerializationHelpers.SerializeChecksumDictionaryToFile(checksumDictionary, "Zorro.json");
 
-            // Verify all file types are preserved after serialization/deserialization
+            //Verify all file types are preserved after serialization/ deserialization
             var json = File.ReadAllText("Zorro.json");
             var deserialized = SerializationHelpers.DeserializeChecksumDictionary(json);
             Debug.Assert(checksumDictionary.Count == deserialized.Count, "Entry count mismatch");
@@ -139,8 +153,8 @@ namespace DupTerminator.BusinessLogic
                         // Debug.WriteLine($"📄 Pair found: #{pair.Key} FIRST={first.Path} SECOND={second.Path}");
 
                         // Whether this "file" is itself a container (the archive/zip itself)
-                        bool firstIsContainer = first is ArchiveContainer || first is PdfContainer || first is DirectoryContainer || (first is DupTerminator.BusinessLogic.Model.ContainerInfo ci1 && ci1.Container != null);
-                        bool secondIsContainer = second is ArchiveContainer || second is PdfContainer || second is DirectoryContainer || (second is DupTerminator.BusinessLogic.Model.ContainerInfo ci2 && ci2.Container != null);
+                        bool firstIsContainer = first is ArchiveContainer || first is PdfContainer || first is DirectoryContainer || (first is IContainerInfo ci1 && ci1.Files != null);
+                        bool secondIsContainer = second is ArchiveContainer || second is PdfContainer || second is DirectoryContainer || (second is IContainerInfo ci2 && ci2.Files != null);
 
                         // Skip files from the same container (by reference or by path)
                         // But if they're different containers, process them
@@ -173,13 +187,13 @@ namespace DupTerminator.BusinessLogic
                         // Regular files (not containers) - check same container filter
                         if (first.Container == second.Container)
                             continue;
-                        if (first.Container != null && second.Container != null && first.Container.Path == second.Container.Path)
+                        if (first.Container != null && second.Container != null && ((ExtendedFileInfo)first.Container).Path == ((ExtendedFileInfo)second.Container).Path)
                             continue;
 
                         // Pass the CONTAINERS, not the files, so ContainerPairKey knows which containers we're comparing
                         ContainerPairKey containersKey = new ContainerPairKey(
-                            first.Container ?? first, 
-                            second.Container ?? second);
+                            first.Container != null ? (ExtendedFileInfo)first.Container : first, 
+                            second.Container != null ? (ExtendedFileInfo)second.Container : second);
                         // Initialize the list if the key doesn't exist
                         if (!containers.TryGetValue(containersKey, out LocalContainerInfo value))
                         {
@@ -226,7 +240,7 @@ namespace DupTerminator.BusinessLogic
                             _logger.LogInformation($"   Type: {first.GetType().Name}");
                             _logger.LogInformation($"   Is ArchiveContainer: {first is ArchiveContainer}");
                             _logger.LogInformation($"   Is ContainerInfo: {first is DupTerminator.BusinessLogic.Model.ContainerInfo}");
-                            _logger.LogInformation($"   Has Files: {(first as DupTerminator.BusinessLogic.Model.ContainerInfo)?.Files?.Length ?? 0} files");
+                            _logger.LogInformation($"   Has Files: {(first as IContainerInfo)?.Files?.Length ?? 0} files");
                             _logger.LogInformation($"   Checksum: {pair2.Key}");
                         }
 
@@ -234,7 +248,7 @@ namespace DupTerminator.BusinessLogic
                         if (!(first is ArchiveContainer || first is PdfContainer || first is DirectoryContainer))
                         {
                             // Also handle generic ContainerInfo if it has Files
-                            if (!(first is DupTerminator.BusinessLogic.Model.ContainerInfo ci) || ci.Files == null || ci.Files.Length == 0)
+                            if (!(first is IContainerInfo ci) || ci.Files == null || ci.Files.Length == 0)
                                 continue;
                         }
 

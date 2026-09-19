@@ -82,15 +82,19 @@ namespace DupTerminator.BusinessLogic
         {
             ConcurrentDictionary<string, IList<ExtendedFileInfo>> checksumDictionary = await GetChecksumDictionaryAsync(_locations, progress, cancelToken);
 
+#if TRUE
+            SerializationHelpers.SerializeChecksumDictionaryToFile(checksumDictionary, "ContainerSameFile.json");
+#endif
+
             IEnumerable<DuplicateGroup>? duplicates = checksumDictionary
                  .Where(pair => pair.Value.Count > 1)
                  .Select(pair => new DuplicateGroup(pair.Key, pair.Value));
             //.OrderByDescending(d => d.Files.Any(f => f.Container is null));
 
             var flat = duplicates.SelectMany(dg => dg.Files).ToArray();
-            var containers = flat.Select(f => f.Container).Distinct();
+            var containers = flat.Select(f => f.Container).Cast<ExtendedFileInfo>().Distinct();
             var intersect = containers.Intersect(flat, _containerComparer).ToList();
-            var forRemove = duplicates.Where(d => d.Files.Any(f => intersect.Contains(f.Container)));
+            var forRemove = duplicates.Where(d => d.Files.Any(f => intersect.Contains((ExtendedFileInfo)f.Container)));
             var filtered = duplicates.Except(forRemove).ToList();
 
             //var withoutContainer = duplicates.SelectMany(f => f.Files).Where(d => d.Container is null);

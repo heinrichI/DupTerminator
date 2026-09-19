@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator", "DupTerminator\DupTerminator.csproj", "{18CB07C4-B2F8-4D1A-A92C-4B8495FB76CD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator.BusinessLogic", "BusinessLogic\DupTerminator.BusinessLogic.csproj", "{949E50C1-F0AA-4CA1-A137-8FBDDB155EC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator.BusinessLogic", "DupTerminator.BusinessLogic\DupTerminator.BusinessLogic.csproj", "{949E50C1-F0AA-4CA1-A137-8FBDDB155EC4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DupTerminator.DataBase", "DupTerminator.DataBase\DupTerminator.DataBase.csproj", "{A3280DEF-214F-456F-B1A9-5A8481AB55DB}"
 EndProject

@@ -32,6 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BusinessLogic\DupTerminator.BusinessLogic.csproj" />
+    <ProjectReference Include="..\DupTerminator.BusinessLogic\DupTerminator.BusinessLogic.csproj" />
   </ItemGroup>
 </Project>

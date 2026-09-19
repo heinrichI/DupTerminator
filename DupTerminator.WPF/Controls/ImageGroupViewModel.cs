@@ -17,7 +17,7 @@ namespace DupTerminator.WPF.ViewModel
 {
     public class ImageGroupViewModel : PropertyChangedBase
     {
-        private readonly IImageProvider _imageLoadingService;
+        private readonly IThumbnailProvider _thumbnailProvider;
 
         public PHashDuplicateGroup DuplicateGroup { get; }
         public ObservableCollection<ImageItemViewModel> Images { get; } = new ObservableCollection<ImageItemViewModel>();
@@ -25,10 +25,10 @@ namespace DupTerminator.WPF.ViewModel
         public ICommand ViewFullSizeCommand { get; }
 
 
-        public ImageGroupViewModel(PHashDuplicateGroup duplicateGroup, IImageProvider imageLoadingService)
+        public ImageGroupViewModel(PHashDuplicateGroup duplicateGroup, IThumbnailProvider thumbnailProvider)
         {
             DuplicateGroup = duplicateGroup;
-            _imageLoadingService = imageLoadingService;
+            _thumbnailProvider = thumbnailProvider;
             InitializeImages();
 
             ViewFullSizeCommand = new RelayCommand((_) => OnViewFullSize());
@@ -38,7 +38,7 @@ namespace DupTerminator.WPF.ViewModel
         {
             foreach (PHashFileInfoSearchItem file in DuplicateGroup)
             {
-                Images.Add(new ImageItemViewModel(file, _imageLoadingService));
+                Images.Add(new ImageItemViewModel(file, _thumbnailProvider));
             }
         }
 

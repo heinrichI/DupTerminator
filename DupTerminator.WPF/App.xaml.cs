@@ -76,6 +76,7 @@ namespace DupTerminator.WPF
 
             //services.AddSingleton<IImageLoadingService, ImageLoadingService>();
             services.AddSingleton<IImageProvider, ImageProvider>();
+            services.AddSingleton<IThumbnailProvider, ThumbnailProvider>();
             services.AddTransient<ImageGroupsViewModel>();
             services.AddSingleton<ImageListViewModel>();
             //services.AddTransient<ImageGroupViewerViewModel>();

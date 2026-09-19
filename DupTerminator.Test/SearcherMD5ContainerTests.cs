@@ -280,5 +280,44 @@ namespace DupTerminator.Test
             Assert.Contains("Django - Zorro v01", r0.First.Path);
             Assert.Contains("Django - Zorro v01", r0.Second.Path);
         }
+
+        [Fact]
+        public async Task ContainerSameFileTest()
+        {
+            // ── Arrange ────────────────────────────────────────────────────────
+            var json = SerializationHelpers.ReadJsonFromZip(
+                Path.Combine(AppContext.BaseDirectory, "TestData", "ContainerSameFile.zip"),
+                "ContainerSameFile.json");
+            var checksumDict = TestFactory.LoadFromJson(json);
+
+            var settings = new MD5ContainerSettings
+            {
+                MoreThanFileCount = 1,
+                ShowOnlyIfAllFilesInContainerEqual = false
+            };
+
+            var sut = new TestableSearcherMD5Container(
+                _locations,
+                _searchSetting,
+                settings,
+                _md5Repo.Object,
+                _archiveInfoRepo.Object,
+                _pdfInfoRepo.Object,
+                _windowsUtil.Object,
+                _archiveService.Object,
+                _pdfService.Object,
+                _logger,
+                checksumDict);
+
+            var progress = new Progress<ProgressDto>();
+            var token = CancellationToken.None;
+
+            // act
+            var result = await sut.StartAsync(progress, token);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.True(result.Count > 0);
+        }
     }
 }

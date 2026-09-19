@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using DupTerminator.BusinessLogic.Model;
 using DupTerminator.WPF.Abstraction;
@@ -15,19 +16,20 @@ namespace DupTerminator.WPF.Controls
 {
     public class ImageItemViewModel : PropertyChangedBase, IDisposable
     {
-        private readonly IImageProvider _imageLoadingService;
+        private readonly IThumbnailProvider _thumbnailProvider;
         private BitmapImage? _thumbnail;
         private bool _isLoading;
 
-        public ImageItemViewModel(PHashFileInfoSearchItem searchItem, IImageProvider imageLoadingService)
+        // A shared, frozen placeholder shown while the real thumbnail is loading.
+        private static readonly BitmapImage _placeholder = CreatePlaceholder();
+
+        public ImageItemViewModel(PHashFileInfoSearchItem searchItem, IThumbnailProvider thumbnailProvider)
         {
             SearchItem = searchItem;
-            _imageLoadingService = imageLoadingService;
+            _thumbnailProvider = thumbnailProvider;
 
             RenameCommand = new RelayCommand((_) => OnRename(), (_) => CanRename());
             ViewFullSizeCommand = new RelayCommand((_) => OnViewFullSize());
-
-            //LoadThumbnail();
         }
 
         public ExtendedFileInfo FileInfo => SearchItem.FileItem.FileInfo;
@@ -58,31 +60,31 @@ namespace DupTerminator.WPF.Controls
             {
                 if (_thumbnail != null)
                     return _thumbnail;
-                else
-                {
-                    IsLoading = true;
-                    Debug.WriteLine($"Loading {FilePath}");
-                    try
-                    {
-                        if (FileInfo is ArchiveFileInfo archiveFileInfo)
-                            _thumbnail = _imageLoadingService.GetThumbnailFromArchive(archiveFileInfo);
-                        else if (FileInfo is PdfFileInfo pdfFileInfo)
-                            _thumbnail = _imageLoadingService.GetThumbnailFromPdf(pdfFileInfo);
-                        else
-                            _thumbnail = _imageLoadingService.GetThumbnailAsync(FilePath).Result;
-                    }
-                    finally
-                    {
-                        IsLoading = false;
-                    }
-                    return _thumbnail;
-                }
+
+                if (String.IsNullOrEmpty(FilePath))
+                    return null;
+
+                // Request the thumbnail to be loaded on the background thread.
+                _thumbnailProvider.Enqueue(this);
+
+                return _placeholder;
             }
             private set
             {
                 _thumbnail = value;
                 RaisePropertyChangedEvent();
             }
+        }
+
+        /// <summary>
+        /// Called by the ThumbnailProvider on the UI thread once the thumbnail is ready.
+        /// </summary>
+        public void SetThumbnail(BitmapImage image)
+        {
+            if (image == null)
+                return;
+
+            Thumbnail = image;
         }
 
         public bool IsLoading
@@ -99,26 +101,6 @@ namespace DupTerminator.WPF.Controls
         public ICommand ViewFullSizeCommand { get; }
         public PHashFileInfoSearchItem SearchItem { get; }
 
-        //private async void LoadThumbnail()
-        //{
-        //    if (_thumbnail != null) return;
-
-        //    Debug.WriteLine("LoadThumbnail");
-        //    IsLoading = true;
-        //    try
-        //    {
-        //        if (FileInfo is ArchiveFileInfo archiveFileInfo)
-        //            Thumbnail = await _imageLoadingService.GetThumbnailFromArchive(archiveFileInfo);
-        //        else
-        //            //Thumbnail = await _imageLoadingService.LoadThumbnailAsync(_fileInfo, 200, 200);
-        //            Thumbnail = await _imageLoadingService.GetThumbnailAsync(FilePath);
-        //    }
-        //    finally
-        //    {
-        //        IsLoading = false;
-        //    }
-        //}
-
         private bool CanRename() => File.Exists(FilePath); //!_fileInfo.IsArchive && 
 
         private void OnRename()
@@ -129,6 +111,36 @@ namespace DupTerminator.WPF.Controls
         private void OnViewFullSize()
         {
             System.Diagnostics.Debug.WriteLine("ViewFullSizeCommand executed!");
+        }
+
+        private static BitmapImage CreatePlaceholder()
+        {
+            // Generate a small gray placeholder in code – no resource file needed.
+            const int size = 200;
+            var visual = new DrawingVisual();
+            using (var dc = visual.RenderOpen())
+            {
+                dc.DrawRectangle(Brushes.LightGray, null, new System.Windows.Rect(0, 0, size, size));
+            }
+
+            var bitmap = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+            bitmap.Render(visual);
+            bitmap.Freeze();
+
+            var encoder = new PngBitmapEncoder();
+            encoder.Frames.Add(BitmapFrame.Create(bitmap));
+
+            using var stream = new MemoryStream();
+            encoder.Save(stream);
+            stream.Position = 0;
+
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = stream;
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+            image.Freeze();
+            return image;
         }
 
         public void Dispose()

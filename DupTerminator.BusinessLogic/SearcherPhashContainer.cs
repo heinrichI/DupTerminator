@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -78,14 +78,14 @@ namespace DupTerminator.BusinessLogic
                                 continue;
 
                             // Ensure the pair is ordered by path (to avoid duplicates)
-                            if (string.Compare(first.FileItem.FileInfo.Container.Path, second.FileItem.FileInfo.Container.Path, StringComparison.Ordinal) > 0)
+                            if (string.Compare(((ExtendedFileInfo)first.FileItem.FileInfo.Container).Path, ((ExtendedFileInfo)second.FileItem.FileInfo.Container).Path, StringComparison.Ordinal) > 0)
                             {
                                 // Swap if first.Path > second.Path
                                 (first, second) = (second, first);
                             }
 
 
-                            var key = new ContainerPairKey(first.FileItem.FileInfo.Container, second.FileItem.FileInfo.Container, first.FileItem.FileInfo, second.FileItem.FileInfo);
+                            var key = new ContainerPairKey((ExtendedFileInfo)first.FileItem.FileInfo.Container, (ExtendedFileInfo)second.FileItem.FileInfo.Container, first.FileItem.FileInfo, second.FileItem.FileInfo);
 
                             // Initialize the list if the key doesn't exist
                             if (!containers.TryGetValue(key, out (SortedSet<ExtendedFileInfo>, SortedSet<ExtendedFileInfo>) value))

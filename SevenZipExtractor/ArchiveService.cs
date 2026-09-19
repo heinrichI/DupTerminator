@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -87,7 +87,6 @@ namespace SevenZipExtractor
         {
             ArchiveFileInfo efi = new ArchiveFileInfo()
             {
-                //InArchive = true,
                 ArchiveCRC = entry.CRC,
                 ArchiveFileName = archive.Name,
                 ArchivePath = archive.Path,
@@ -230,7 +229,7 @@ namespace SevenZipExtractor
             Debug.Assert(fileInfo.Container != null);
             if (fileInfo.ArchiveInArchive)
             {
-                using (ArchiveFile archiveFile = new ArchiveFile(fileInfo.Container.Container.Path))
+                using (ArchiveFile archiveFile = new ArchiveFile(((ExtendedFileInfo)((ExtendedFileInfo)fileInfo.Container).Container).Path))
                 {
                     foreach (var entry in archiveFile.Entries)
                     {
@@ -240,7 +239,7 @@ namespace SevenZipExtractor
                             continue;
                         }
 
-                        if (Path.GetFileName(entry.FileName) == fileInfo.Container.Name)
+                        if (Path.GetFileName(entry.FileName) == ((ExtendedFileInfo)fileInfo.Container).Name)
                         {
                             using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                             {
@@ -305,7 +304,7 @@ namespace SevenZipExtractor
         {
             if (archiveFileInfo.ArchiveInArchive)
             {
-                using (ArchiveFile archiveFile = new ArchiveFile(archiveFileInfo.Container.Container.Path))
+                using (ArchiveFile archiveFile = new ArchiveFile(((ExtendedFileInfo)((ExtendedFileInfo)archiveFileInfo.Container).Container).Path))
                 {
                     foreach (var entry in archiveFile.Entries)
                     {
@@ -314,7 +313,7 @@ namespace SevenZipExtractor
                             continue;
                         }
 
-                        if (Path.GetFileName(entry.FileName) == archiveFileInfo.Container.Name)
+                        if (Path.GetFileName(entry.FileName) == ((ExtendedFileInfo)archiveFileInfo.Container).Name)
                         {
                             using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                             {
@@ -561,96 +560,104 @@ namespace SevenZipExtractor
         {
             List<(ArchiveFileInfo, T)> result = new List<(ArchiveFileInfo, T)>(data.Length);
 
-            var first = data.First();
-            Debug.Assert(first.Container != null);
-            var firsetLevelArchive = first.ArchiveInArchive ? first.Container.Container : first.Container;
-            var byContainer = data.GroupBy(d => d.Container.Name);
-            using (ArchiveFile archiveFile = new ArchiveFile(firsetLevelArchive.Path))
+            if (data.Length > 0)
             {
-                foreach (var group in byContainer)
+                var first = data.First();
+                Debug.Assert(first.Container != null);
+                var firsetLevelArchive = first.ArchiveInArchive ? ((ExtendedFileInfo)first.Container).Container : first.Container;
+                var byContainer = data.GroupBy(d => ((ExtendedFileInfo)d.Container).Name);
+                using (ArchiveFile archiveFile = new ArchiveFile(((ExtendedFileInfo)firsetLevelArchive).Path))
                 {
-                    bool groupFinded = false;
-
-                    if (group.Key == firsetLevelArchive.Name)
+                    foreach (var group in byContainer)
                     {
-                        groupFinded = true;
-                        foreach (var item in group)
+                        bool groupFinded = false;
+
+                        if (group.Key == ((ExtendedFileInfo)firsetLevelArchive).Name)
                         {
-                            bool fileFinded = false;
-                            foreach (var entry2 in archiveFile.Entries)
+                            groupFinded = true;
+                            foreach (var item in group)
                             {
-                                if (entry2.IsFolder)
+                                bool fileFinded = false;
+                                foreach (var entry2 in archiveFile.Entries)
+                                {
+                                    if (entry2.IsFolder)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (Path.GetFileName(entry2.FileName) == item.Name)
+                                    {
+                                        fileFinded = true;
+                                        using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
+                                        {
+                                            entry2.Extract(entryStream2);
+
+                                            entryStream2.Position = 0;
+                                            result.Add((item, calculator(entryStream2)));
+                                        }
+                                        break;
+                                    }
+                                }
+                                Debug.Assert(fileFinded);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var entry in archiveFile.Entries)
+                            {
+                                if (entry.IsFolder)
                                 {
                                     continue;
                                 }
 
-                                if (Path.GetFileName(entry2.FileName) == item.Name)
+                                if (Path.GetFileName(entry.FileName) == group.Key)
                                 {
-                                    fileFinded = true;
-                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
+                                    groupFinded = true;
+                                    using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
                                     {
-                                        entry2.Extract(entryStream2);
+                                        entry.Extract(entryStream);
+                                        entryStream.Position = 0;
+                                        using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
+                                        {
+                                            foreach (var item in group)
+                                            {
+                                                bool fileFinded = false;
+                                                foreach (var entry2 in archiveFile2.Entries)
+                                                {
+                                                    if (entry2.IsFolder)
+                                                    {
+                                                        continue;
+                                                    }
 
-                                        entryStream2.Position = 0;
-                                        result.Add((item, calculator(entryStream2)));
+                                                    if (Path.GetFileName(entry2.FileName) == item.Name)
+                                                    {
+                                                        fileFinded = true;
+                                                        using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
+                                                        {
+                                                            entry2.Extract(entryStream2);
+
+                                                            entryStream2.Position = 0;
+                                                            result.Add((item, calculator(entryStream2)));
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                                Debug.Assert(fileFinded);
+                                            }
+                                        }
                                     }
                                     break;
                                 }
                             }
-                            Debug.Assert(fileFinded);
                         }
+                        Debug.Assert(groupFinded);
                     }
-                    else
-                    {
-                        foreach (var entry in archiveFile.Entries)
-                        {
-                            if (entry.IsFolder)
-                            {
-                                continue;
-                            }
-
-                            if (Path.GetFileName(entry.FileName) == group.Key)
-                            {
-                                groupFinded = true;
-                                using (var entryStream = new ChunkedMemoryStream(Convert.ToUInt64(entry.Size)))
-                                {
-                                    entry.Extract(entryStream);
-                                    entryStream.Position = 0;
-                                    using (ArchiveFile archiveFile2 = new ArchiveFile(entryStream))
-                                    {
-                                        foreach (var item in group)
-                                        {
-                                            bool fileFinded = false;
-                                            foreach (var entry2 in archiveFile2.Entries)
-                                            {
-                                                if (entry2.IsFolder)
-                                                {
-                                                    continue;
-                                                }
-
-                                                if (Path.GetFileName(entry2.FileName) == item.Name)
-                                                {
-                                                    fileFinded = true;
-                                                    using (var entryStream2 = new ChunkedMemoryStream(Convert.ToUInt64(entry2.Size)))
-                                                    {
-                                                        entry2.Extract(entryStream2);
-
-                                                        entryStream2.Position = 0;
-                                                        result.Add((item, calculator(entryStream2)));
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                            Debug.Assert(fileFinded);
-                                        }
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }                      
-                    Debug.Assert(groupFinded);
                 }
+            }
+
+            Debug.Assert(result.Count == data.Length);
+            return result.ToArray();
+        }
                 //foreach (var target in data)
                 //{
                 //    if (target.ArchiveInArchive)
@@ -726,7 +733,6 @@ namespace SevenZipExtractor
                 //        }
                 //    }
                 //}
-            }
 
             //var fileInfo = data.First();
             //Debug.Assert(fileInfo.Container != null);
@@ -847,8 +853,5 @@ namespace SevenZipExtractor
             //        }                  
             //    }
             //}
-            Debug.Assert(result.Count == data.Length);
-            return result.ToArray();
-        }
     }
 }

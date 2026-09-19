@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -34,7 +34,7 @@ namespace DupTerminator.Pdf
         public string? CalculateHash(PdfFileInfo pdfInfo, Func<Stream, string?> calculator)
         {
             Debug.Assert(pdfInfo != null);
-            using (var doc = PdfDocument.Open(pdfInfo.Container.Path, _parsingOption))
+            using (var doc = PdfDocument.Open(((ExtendedFileInfo)pdfInfo.Container).Path, _parsingOption))
             {
                 var page = doc.GetPage(pdfInfo.PageNumber);
 
@@ -55,7 +55,7 @@ namespace DupTerminator.Pdf
         {
             var sorted = pdfFileInfos.OrderBy(p => p.Name).ThenBy(p => p.ImageIndex);
             List<(PdfFileInfo, T)> result = new List<(PdfFileInfo, T)>(pdfFileInfos.Length);
-            using (var doc = PdfDocument.Open(pdfFileInfos[0].Container.Path, _parsingOption))
+            using (var doc = PdfDocument.Open(((ExtendedFileInfo)pdfFileInfos[0].Container).Path, _parsingOption))
             {
                 Page? lastPage = null;
                 int? lastPageIndex = null;
@@ -153,7 +153,7 @@ namespace DupTerminator.Pdf
         public Stream GetStream(PdfFileInfo pdfInfo)
         {
             Debug.Assert(pdfInfo != null);
-            using (var doc = PdfDocument.Open(pdfInfo.Container.Path, _parsingOption))
+            using (var doc = PdfDocument.Open(((ExtendedFileInfo)pdfInfo.Container).Path, _parsingOption))
             {
                 var page = doc.GetPage(pdfInfo.PageNumber);
 

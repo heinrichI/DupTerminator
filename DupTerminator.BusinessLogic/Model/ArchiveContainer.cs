@@ -1,16 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    public class ArchiveContainer :  ContainerInfo
+    public class ArchiveContainer : ContainerInfo
     {
         public ArchiveContainer()
-        {            
+        {
         }
 
         public ArchiveContainer(ExtendedFileInfo efi)
@@ -24,5 +25,7 @@ namespace DupTerminator.BusinessLogic.Model
             Container = efi.Container;
             Debug.Assert(!string.IsNullOrEmpty(Path));
         }
+
+        public DateTime GetContainerLastWriteTime() => LastWriteTime;
     }
 }

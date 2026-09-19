@@ -27,7 +27,7 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = ac4.Files;
                 else if(first is PdfContainer pc3)
                     SecondContainerFiles = pc3.Files;
-                else if (first is ContainerInfo ci1)
+                else if (first is IContainerInfo ci1)
                     SecondContainerFiles = ci1.Files;
                 else if (first.Container is DirectoryContainer dfi)
                     SecondContainerFiles = dfi.Files;
@@ -35,7 +35,7 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = ac.Files;
                 else if (first.Container is PdfContainer pc2)
                     SecondContainerFiles = pc2.Files;
-                else if (first.Container is ContainerInfo ci)
+                else if (first.Container is IContainerInfo ci)
                     SecondContainerFiles = ci.Files;
 
                 if (second is ArchiveContainer sac)
@@ -44,7 +44,7 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi3.Files;
                 else if (second is PdfContainer pc3)
                     FirstContainerFiles = pc3.Files;
-                else if (second is ContainerInfo ci2)
+                else if (second is IContainerInfo ci2)
                     FirstContainerFiles = ci2.Files;
                 else if(second.Container is ArchiveContainer ac2)
                     FirstContainerFiles = ac2.Files;
@@ -52,7 +52,7 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi2.Files;
                 else if (second.Container is PdfContainer pc)
                     FirstContainerFiles = pc.Files;
-                else if (second.Container is ContainerInfo ci)
+                else if (second.Container is IContainerInfo ci)
                     FirstContainerFiles = ci.Files;
             }
             else
@@ -66,7 +66,7 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi.Files;
                 else if(first is PdfContainer pc3)
                     FirstContainerFiles = pc3.Files;
-                else if (first is ContainerInfo ci1)
+                else if (first is IContainerInfo ci1)
                     FirstContainerFiles = ci1.Files;
                 else if(first.Container is ArchiveContainer ac)
                     FirstContainerFiles = ac.Files;
@@ -74,7 +74,7 @@ namespace DupTerminator.BusinessLogic.Model
                     FirstContainerFiles = dfi2.Files;
                 else if (first.Container is PdfContainer pc)
                     FirstContainerFiles = pc.Files;
-                else if (first.Container is ContainerInfo ci)
+                else if (first.Container is IContainerInfo ci)
                     FirstContainerFiles = ci.Files;
 
                 if (second is ArchiveContainer ac3)
@@ -83,7 +83,7 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = dfi3.Files;
                 else if (second is PdfContainer pc3)
                     SecondContainerFiles = pc3.Files;
-                else if (second is ContainerInfo ci2)
+                else if (second is IContainerInfo ci2)
                     SecondContainerFiles = ci2.Files;
                 else if(second.Container is ArchiveContainer ac2)
                     SecondContainerFiles = ac2.Files;
@@ -91,7 +91,7 @@ namespace DupTerminator.BusinessLogic.Model
                     SecondContainerFiles = dfi2.Files;
                 else if (second.Container is PdfContainer pc)
                     SecondContainerFiles = pc.Files;
-                else if (second.Container is ContainerInfo ci)
+                else if (second.Container is IContainerInfo ci)
                     SecondContainerFiles = ci.Files;
             }
             Debug.Assert(FirstContainerFiles is not null);

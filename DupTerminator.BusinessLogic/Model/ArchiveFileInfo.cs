@@ -8,11 +8,17 @@ using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
-    public class ArchiveFileInfo : ExtendedFileInfo
+    public class ArchiveFileInfo : ExtendedFileInfo, IArchiveItem
     {
+        /// <summary>
+        /// Контрольная сумма файла в архиве.
+        /// </summary>
         public uint ArchiveCRC { get; set; }
 
         private string _archivePath;
+        /// <summary>
+        /// Путь к архиву.
+        /// </summary>
         public string ArchivePath
         {
             get => _archivePath;
@@ -20,6 +26,9 @@ namespace DupTerminator.BusinessLogic.Model
         }
 
         private string _archiveExtension;
+        /// <summary>
+        /// Расширение архива.
+        /// </summary>
         public string ArchiveExtension
         {
             get => _archiveExtension;
@@ -27,13 +36,23 @@ namespace DupTerminator.BusinessLogic.Model
         }
 
         private string _archiveFileName;
+        /// <summary>
+        /// Имя архива.
+        /// </summary>
         public string ArchiveFileName
         {
             get => _archiveFileName;
             set => _archiveFileName = string.Intern(value);
         }
 
-        public bool ArchiveInArchive { get; set; }
+        public virtual bool ArchiveInArchive { get; set; }
+
+        public DateTime GetContainerLastWriteTime()
+        {
+            if (ArchiveInArchive)
+                return ((ExtendedFileInfo)((ExtendedFileInfo)Container).Container).LastWriteTime;
+            return ((ExtendedFileInfo)Container).LastWriteTime;
+        }
 
 
 

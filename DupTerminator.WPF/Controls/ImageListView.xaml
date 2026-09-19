@@ -16,11 +16,10 @@
              VirtualizingPanel.VirtualizationMode="Recycling">
         <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                <WrapPanel Orientation="Horizontal" />
-                <!--<vwp:VirtualizingWrapPanel
+                <vwp:VirtualizingWrapPanel
                     Orientation="Vertical"
                     SpacingMode="Uniform"
-                    StretchItems="False" />-->
+                    StretchItems="False" />
             </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         <ListBox.ItemTemplate>

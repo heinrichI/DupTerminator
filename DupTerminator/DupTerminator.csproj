@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BusinessLogic\DupTerminator.BusinessLogic.csproj" />
+    <ProjectReference Include="..\DupTerminator.BusinessLogic\DupTerminator.BusinessLogic.csproj" />
     <ProjectReference Include="..\DupTerminator.DataBase\DupTerminator.DataBase.csproj" />
     <ProjectReference Include="..\DupTerminator.Unsafe\DupTerminator.Unsafe.csproj" />
     <ProjectReference Include="..\DupTerminator.WindowsSpecific\DupTerminator.WindowsSpecific.csproj" />

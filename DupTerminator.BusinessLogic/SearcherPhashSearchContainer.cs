@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -174,18 +174,19 @@ namespace DupTerminator.BusinessLogic
                         {
                             foreach (var fileItem in queryItem.FileInfos)
                             {
-                                if (fileItem.FileInfo.Container.Path != _pHashSearchContainerSettings.Target)
+                                var containerEfi = (ExtendedFileInfo)fileItem.FileInfo.Container;
+                                if (containerEfi.Path != _pHashSearchContainerSettings.Target)
                                 {
                                     ContainerInfo container;
-                                    if (!containers.ContainsKey(fileItem.FileInfo.Container.Path))
+                                    if (!containers.ContainsKey(containerEfi.Path))
                                     {
-                                        container = new ContainerInfo(fileItem.FileInfo.Container);
+                                        container = new ContainerInfo(containerEfi);
                                         //container.Info.Container.FilesCount = fileItem.FileInfo.Container.FilesCount;
-                                        containers.Add(fileItem.FileInfo.Container.Path, container);
+                                        containers.Add(containerEfi.Path, container);
                                     }
                                     else
                                     {
-                                        container = containers[fileItem.FileInfo.Container.Path];
+                                        container = containers[containerEfi.Path];
                                     }
                                     container.FirstFiles.Add(targetItem.efi);
                                     container.SecondFiles.Add(fileItem.FileInfo);

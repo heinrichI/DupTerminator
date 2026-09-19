@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace DupTerminator.BusinessLogic.Model
 {
@@ -11,11 +6,9 @@ namespace DupTerminator.BusinessLogic.Model
     [JsonDerivedType(typeof(ArchiveContainer), "archiveContainer")]
     [JsonDerivedType(typeof(PdfContainer), "pdfContainer")]
     [JsonDerivedType(typeof(DirectoryContainer), "directoryContainer")]
-    public class ContainerInfo : ExtendedFileInfo
+    public interface IContainerInfo
     {
-        [JsonInclude]
-        public SimpleFileInfo[] Files { get; set; }
-        [JsonIgnore]
-        public int FilesCount => Files?.Length ?? 0;
+        SimpleFileInfo[] Files { get; set; }
+        int FilesCount { get; }
     }
 }
